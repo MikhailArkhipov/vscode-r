@@ -765,15 +765,9 @@ namespace rhost {
             });
         }
 
-        void show_help(const std::string& url) {
+        void browser(const std::string& url) {
             with_cancellation([&] {
-                send_message(*ws_conn, "ShowHelp", to_utf8(url));
-            });
-        }
-
-        void set_current_directory(const std::string& path) {
-            with_cancellation([&] {
-                send_message(*ws_conn, "SetCurrentDirectory", to_utf8(path));
+                send_message(*ws_conn, "Browser", to_utf8(url));
             });
         }
     }

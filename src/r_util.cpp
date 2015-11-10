@@ -253,14 +253,13 @@ namespace rhost {
             });
         }
 
-        extern "C" SEXP rtvs_help_redirector(SEXP arg) {
-            if (TYPEOF(arg) == STRSXP) {
-                const char* url = R_CHAR(STRING_ELT(arg, 0));
-                if (url != nullptr) {
-                    rhost::host::show_help(url);
-                }
+        extern "C" SEXP browser(SEXP value) {
+            unique_sexp value_char(Rf_asChar(value));
+            const char* url = R_CHAR(value_char.get());
+            if (url != nullptr) {
+                rhost::host::show_help(url);
             }
-            return arg;
+            return value;
         }
 
         R_CallMethodDef call_methods[] = {

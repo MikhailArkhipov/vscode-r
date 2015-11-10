@@ -30,7 +30,6 @@ namespace rhost {
         std::future<void> connect_to_server(const websocketpp::uri& uri);
         void register_callbacks(structRstart& rp);
         void plot_xaml(const std::string& xaml);
-        void show_help(const std::string& url);
-        void set_current_directory(const std::string& path);
+        void browser(const std::string& url);
     }
 }
