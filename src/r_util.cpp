@@ -75,8 +75,7 @@ namespace rhost {
                 std::unique_ptr<char[]> buf_deleter;
                 if (count < 0) { // error
                     return count;
-                }
-                else if (count >= sizeof buf) {
+                } else if (count >= sizeof buf) {
                     // It didn't fit in the stack buffer, so heap-allocate a buffer of just the right size.
                     buf_deleter.reset(pbuf = new char[count + 1]);
                     va_copy(va2, va);
@@ -175,8 +174,7 @@ namespace rhost {
                 _conn(conn),
                 _max_size(max_size),
                 _overflown(false),
-                _seen_eof(false)
-            {
+                _seen_eof(false) {
                 if (expected_size > 0 && expected_size != R_NaInt) {
                     _data.reserve(expected_size);
                 }
