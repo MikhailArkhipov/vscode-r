@@ -257,7 +257,7 @@ namespace rhost {
             unique_sexp value_char(Rf_asChar(value));
             const char* url = R_CHAR(value_char.get());
             if (url != nullptr) {
-                rhost::host::show_help(url);
+                rhost::host::browser(url);
             }
             return value;
         }
@@ -267,7 +267,7 @@ namespace rhost {
             { "rtvs::Call.memory_connection", (DL_FUNC)memory_connection_new, 4 },
             { "rtvs::Call.memory_connection_tochar", (DL_FUNC)memory_connection_tochar, 1 },
             { "rtvs::Call.memory_connection_overflown", (DL_FUNC)memory_connection_overflown, 1 },
-            { "rtvs::Call.browser", (DL_FUNC)rtvs_help_redirector, 1, },
+            { "rtvs::Call.browser", (DL_FUNC)browser, 1, },
             { }
         };
 
