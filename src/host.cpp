@@ -764,5 +764,17 @@ namespace rhost {
                 send_message(*ws_conn, "PlotXaml", to_utf8(filepath));
             });
         }
+
+        void show_help(const std::string& url) {
+            with_cancellation([&] {
+                send_message(*ws_conn, "ShowHelp", to_utf8(url));
+            });
+        }
+
+        void set_current_directory(const std::string& path) {
+            with_cancellation([&] {
+                send_message(*ws_conn, "SetCurrentDirectory", to_utf8(path));
+            });
+        }
     }
 }

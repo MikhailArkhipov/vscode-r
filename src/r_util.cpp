@@ -24,6 +24,7 @@
 #include "Rapi.h"
 #include "msvcrt.h"
 #include "util.h"
+#include "rhelp.h"
 
 using namespace rhost::util;
 
@@ -263,6 +264,7 @@ namespace rhost {
 
         void init(DllInfo *dll) {
             R_registerRoutines(dll, nullptr, call_methods, nullptr, nullptr);
+            R_registerRoutines(dll, rhelp::rtvs_help_browser, nullptr, nullptr, nullptr);
         }
     }
 }
