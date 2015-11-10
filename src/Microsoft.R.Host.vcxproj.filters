@@ -10,7 +10,6 @@
     <ClCompile Include="eval.cpp" />
     <ClCompile Include="host.cpp" />
     <ClCompile Include="msvcrt.cpp" />
-    <ClCompile Include="rhelp.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h" />
@@ -25,7 +24,6 @@
     <ClInclude Include="RPlotHost.h" />
     <ClInclude Include="host.h" />
     <ClInclude Include="msvcrt.h" />
-    <ClInclude Include="rhelp.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

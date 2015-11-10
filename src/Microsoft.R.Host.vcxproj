@@ -172,7 +172,6 @@
     <ClCompile Include="eval.cpp" />
     <ClCompile Include="log.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="rhelp.cpp" />
     <ClCompile Include="RPlotHost.cpp" />
     <ClCompile Include="r_util.cpp" />
     <ClCompile Include="host.cpp" />
@@ -185,7 +184,6 @@
     <ClInclude Include="log.h" />
     <ClInclude Include="Rapi.h" />
     <ClInclude Include="Rgraphicsapi.h" />
-    <ClInclude Include="rhelp.h" />
     <ClInclude Include="RPlotHost.h" />
     <ClInclude Include="r_util.h" />
     <ClInclude Include="host.h" />

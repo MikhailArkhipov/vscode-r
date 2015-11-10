@@ -1,10 +1,10 @@
 /* ****************************************************************************
  *
- * Copyright (c) Microsoft Corporation. All rights reserved. 
+ * Copyright (c) Microsoft Corporation. All rights reserved.
  *
  *
  * This file is part of Microsoft R Host.
- * 
+ *
  * Microsoft R Host is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 2 of the License, or
@@ -24,9 +24,10 @@
 #include "Rapi.h"
 #include "msvcrt.h"
 #include "util.h"
-#include "rhelp.h"
+#include "host.h"
 
 using namespace rhost::util;
+using namespace rhost::host;
 
 namespace rhost {
     namespace r_util {
@@ -74,7 +75,8 @@ namespace rhost {
                 std::unique_ptr<char[]> buf_deleter;
                 if (count < 0) { // error
                     return count;
-                } else if (count >= sizeof buf) {
+                }
+                else if (count >= sizeof buf) {
                     // It didn't fit in the stack buffer, so heap-allocate a buffer of just the right size.
                     buf_deleter.reset(pbuf = new char[count + 1]);
                     va_copy(va2, va);
@@ -168,7 +170,7 @@ namespace rhost {
             std::string _data, _overflow_suffix, _eof_marker;
             bool _overflown, _seen_eof;
 
-            memory_connection(Rconnection conn, SEXP conn_sexp, int max_size, int expected_size):
+            memory_connection(Rconnection conn, SEXP conn_sexp, int max_size, int expected_size) :
                 connection_sexp(conn_sexp),
                 _conn(conn),
                 _max_size(max_size),
@@ -216,7 +218,6 @@ namespace rhost {
 
         std::unordered_map<SEXP, memory_connection*> memory_connection::_instances;
 
-
         extern "C" SEXP unevaluated_promise(SEXP name, SEXP env) {
             if (!Rf_isEnvironment(env)) {
                 Rf_error("env is not an environment");
@@ -254,17 +255,27 @@ namespace rhost {
             });
         }
 
+        extern "C" SEXP rtvs_help_redirector(SEXP arg) {
+            if (TYPEOF(arg) == STRSXP) {
+                const char* url = R_CHAR(STRING_ELT(arg, 0));
+                if (url != nullptr) {
+                    rhost::host::show_help(url);
+                }
+            }
+            return arg;
+        }
+
         R_CallMethodDef call_methods[] = {
             { "rtvs::Call.unevaluated_promise", (DL_FUNC)unevaluated_promise, 2 },
             { "rtvs::Call.memory_connection", (DL_FUNC)memory_connection_new, 4 },
             { "rtvs::Call.memory_connection_tochar", (DL_FUNC)memory_connection_tochar, 1 },
             { "rtvs::Call.memory_connection_overflown", (DL_FUNC)memory_connection_overflown, 1 },
+            { "rtvs::Call.browser", (DL_FUNC)rtvs_help_redirector, 1, },
             { }
         };
 
         void init(DllInfo *dll) {
             R_registerRoutines(dll, nullptr, call_methods, nullptr, nullptr);
-            R_registerRoutines(dll, rhelp::rtvs_help_browser, nullptr, nullptr, nullptr);
         }
     }
 }
