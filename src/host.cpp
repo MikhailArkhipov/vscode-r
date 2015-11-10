@@ -100,8 +100,7 @@ namespace rhost {
                         fatal_error("Send failed: [%d] %s", err.value(), err.message().c_str());
                     }
                     return err;
-                }
-                else {
+                } else {
                     return std::error_code();
                 }
             }
@@ -288,8 +287,7 @@ namespace rhost {
                                 "'%s': evaluation result couldn't be parsed as JSON: %s\n\n%s",
                                 msg.name.c_str(), err.c_str(), result.value.c_str());
                         }
-                    }
-                    else {
+                    } else {
                         value = picojson::value(to_utf8(result.value));
                     }
                 }
@@ -304,8 +302,7 @@ namespace rhost {
 #endif
                 if (result.is_canceled) {
                     respond_to_message(conn, msg, picojson::value());
-                }
-                else {
+                } else {
                     respond_to_message(conn, msg, parse_status, error, value);
                 }
 #ifdef TRACE_JSON
@@ -374,8 +371,7 @@ namespace rhost {
                             if (msg.request_id != id) {
                                 fatal_error("Received response ['%s','%s'], while awaiting response for ['%s','%s'].",
                                     msg.request_id.c_str(), msg.name.c_str(), id.c_str(), name);
-                            }
-                            else if (msg.name != name) {
+                            } else if (msg.name != name) {
                                 fatal_error("Response to ['%s','%s'] has mismatching name '%s'.",
                                     id.c_str(), name, msg.name.c_str());
                             }
@@ -384,8 +380,7 @@ namespace rhost {
 
                         if (msg.name.size() > 0 && msg.name[0] == '=') {
                             handle_eval(*ws_conn, msg);
-                        }
-                        else {
+                        } else {
                             fatal_error("Unrecognized incoming message name '%s'.", msg.name.c_str());
                         }
                     }
@@ -397,8 +392,7 @@ namespace rhost {
                 terminate_if_closed();
                 try {
                     return body();
-                }
-                catch (const eval_cancel_error&) {
+                } catch (const eval_cancel_error&) {
                     // Prevent CallBack from doing anything if it's called from within Rf_onintr again.
                     allow_intr_in_CallBack = false;
 
@@ -500,14 +494,11 @@ namespace rhost {
                     auto& r = msg.args[0].get<std::string>();
                     if (r == "N") {
                         return -1;
-                    }
-                    else if (r == "C") {
+                    } else if (r == "C") {
                         return 0;
-                    }
-                    else if (r == "Y") {
+                    } else if (r == "Y") {
                         return 1;
-                    }
-                    else {
+                    } else {
                         fatal_error("YesNoCancel: response argument must be 'Y', 'N' or 'C'.");
                     }
                 });
@@ -618,15 +609,13 @@ namespace rhost {
                     if (canceling_eval) {
                         // Spin the loop in send_message_and_get_response so that it gets a chance to run cancel checks.
                         unblock_message_loop();
-                    }
-                    else {
+                    } else {
                         // If we didn't find the target eval in the stack, it must have completed already, and we've
                         // got a belated cancelation request for it, which we can simply ignore.
                     }
 
                     return;
-                }
-                else if (incoming.name == ":") {
+                } else if (incoming.name == ":") {
                     if (array.size() < 4 || !array[2].is<std::string>() || !array[3].is<std::string>()) {
                         fatal_error("Response message must be of the form [id, ':', request_id, name, ...].");
                     }
@@ -634,8 +623,7 @@ namespace rhost {
                     incoming.request_id = array[2].get<std::string>();
                     incoming.name = array[3].get<std::string>();
                     args += 2;
-                }
-                else {
+                } else {
                     incoming.request_id.clear();
                 }
 
@@ -684,8 +672,7 @@ namespace rhost {
                     if (error_code) {
                         ws_conn->terminate(error_code);
                         fatal_error("Could not establish connection to client: %s", error_code.message().c_str());
-                    }
-                    else {
+                    } else {
                         ws_conn->start();
                     }
                 });
@@ -743,8 +730,7 @@ namespace rhost {
             std::thread([&] {
                 __try {
                     [&] { server_worker(endpoint); } ();
-                }
-                __finally {
+                } __finally {
                     flush_log();
                 }
             }).detach();
@@ -757,8 +743,7 @@ namespace rhost {
             std::thread([&] {
                 __try {
                     [&] { client_worker(uri); }();
-                }
-                __finally {
+                } __finally {
                     flush_log();
                 }
             }).detach();
