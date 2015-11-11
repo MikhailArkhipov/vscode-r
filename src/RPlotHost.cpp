@@ -79,7 +79,7 @@ LRESULT CALLBACK RPlotHost::CBTProc(
                     // user can size tool window to be very small. In this case
                     // user may start getting errors like 'figure margin larger 
                     // than the window'. We'll create window that is large enough
-                    // to hold the piicture even if it gets clipped in the IDE.
+                    // to hold the picture even if it gets clipped in the IDE.
                     rcToolWindow.right = max(rcToolWindow.right, rcPlotWindow.right);
                     rcToolWindow.bottom = max(rcToolWindow.bottom, rcPlotWindow.bottom);
 
