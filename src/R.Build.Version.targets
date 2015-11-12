@@ -24,11 +24,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
   <PropertyGroup>
-    <!-- 
-      When building from a dev machine, the BuildNumber won't be set, so set it to 65000.1 
-      to indicate this is a private build. 65000 is also greater than lab build numbers and hence
-      developer can update MSI installed from the official build by the private copy 
-    -->
     <!-- 1.0.YMMDD.HHMM -->
     <Year>$([System.DateTime]::Now.Year)</Year>
     <YearMinus4>$([MSBuild]::Subtract($(Year), 4))</YearMinus4>
