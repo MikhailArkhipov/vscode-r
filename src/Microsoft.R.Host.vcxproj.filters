@@ -24,8 +24,12 @@
     <ClInclude Include="RPlotHost.h" />
     <ClInclude Include="host.h" />
     <ClInclude Include="msvcrt.h" />
+    <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Resource.rc" />
   </ItemGroup>
 </Project>
