@@ -66,9 +66,10 @@ LRESULT CALLBACK RPlotHost::CBTProc(
             if (wcscmp(buf, L"GraphApp") == 0) {
                 if (m_hwndToolWindow != GetParent(hwndPlot)) {
                     RECT rcToolWindow, rcPlotWindow;
+                    HMENU hMenu = ::GetMenu(hwndPlot);
+
                     ::SetWindowLong(hwndPlot, GWL_STYLE, WS_CHILD);
                     ::SetWindowLong(hwndPlot, GWL_EXSTYLE, 0);
-                    ::SetMenu(hwndPlot, NULL);
                     ::SetWindowText(hwndPlot, NULL);
 
                     ::GetClientRect(hwndPlot, &rcPlotWindow);
@@ -87,7 +88,7 @@ LRESULT CALLBACK RPlotHost::CBTProc(
 
                     // Resize tool window to make sure it fits plot window
                     ::SetWindowPos(m_hwndToolWindow, HWND_TOP, 0, 0, rcToolWindow.right, rcToolWindow.bottom, SWP_SHOWWINDOW | SWP_FRAMECHANGED);
-                    ::PostMessage(m_hwndToolWindow, WM_ACTIVATE_PLOT, 0, 0);
+                    ::PostMessage(m_hwndToolWindow, WM_ACTIVATE_PLOT, (WPARAM)hMenu, 0);
                 }
             }
             m_fProcessing = false;
