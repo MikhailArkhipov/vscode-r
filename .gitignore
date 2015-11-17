@@ -81,3 +81,4 @@ UpgradeLog*.htm
 # C++ Intellisense
 *.sdf
 *.opensdf
+src/GeneratedVersion.h
