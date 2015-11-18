@@ -226,4 +226,5 @@
     <Error Condition="!Exists('$(SolutionDir)\..\NugetPackages\boost_locale-vc140.1.59.0.0\build\native\boost_locale-vc140.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\..\NugetPackages\boost_locale-vc140.1.59.0.0\build\native\boost_locale-vc140.targets'))" />
   </Target>
   <Import Project="$(SolutionDir)\R.Build.Version.targets" />
+  <Import Project="$(SolutionDir)\..\NugetPackages\MicroBuild.Core.0.1.1\build\MicroBuild.Core.targets" Condition="Exists('$(SolutionDir)\..\NugetPackages\MicroBuild.Core.0.1.1\build\MicroBuild.Core.targets')" />
 </Project>
