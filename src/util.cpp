@@ -27,8 +27,15 @@ namespace po = boost::program_options;
 
 namespace rhost {
     namespace util {
+        std::locale single_byle_locale() {
+            boost::locale::generator gen;
+            gen.use_ansi_encoding(); // Windows must use locale for non-Unicode programs (CP_ACP)
+            return gen.generate("");
+        }
+
         std::string to_utf8(const char* buf, size_t len) {
-            auto& codecvt_wchar = std::use_facet<std::codecvt<wchar_t, char, std::mbstate_t>>(std::locale());
+            std::locale loc = single_byle_locale();
+            auto& codecvt_wchar = std::use_facet<std::codecvt<wchar_t, char, std::mbstate_t>>(loc);
             std::wstring_convert<std::codecvt<wchar_t, char, std::mbstate_t>> convert(&codecvt_wchar);
             auto ws = convert.from_bytes(buf, buf + len);
 
@@ -40,7 +47,8 @@ namespace rhost {
             std::wstring_convert<std::codecvt_utf8<wchar_t>> codecvt_utf8;
             auto ws = codecvt_utf8.from_bytes(u8s);
 
-            auto& codecvt_wchar = std::use_facet<std::codecvt<wchar_t, char, std::mbstate_t>>(std::locale());
+            std::locale loc = single_byle_locale();
+            auto& codecvt_wchar = std::use_facet<std::codecvt<wchar_t, char, std::mbstate_t>>(loc);
             std::wstring_convert<std::codecvt<wchar_t, char, std::mbstate_t>> convert(&codecvt_wchar);
             return convert.to_bytes(ws);
         }

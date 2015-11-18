@@ -83,7 +83,6 @@ namespace rhost {
 
         typedef std::unique_ptr<SEXP, SEXP_delete> unique_sexp;
 
-
         std::string to_utf8(const char* buf, size_t len);
 
         inline std::string to_utf8(const std::string& s) {
@@ -95,7 +94,7 @@ namespace rhost {
         }
 
         std::string from_utf8(const std::string& u8s);
-
+        std::locale single_byle_locale();
 
         template<class Arg>
         inline void append(picojson::array& msg, Arg&& arg) {
