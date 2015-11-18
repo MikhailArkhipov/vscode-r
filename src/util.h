@@ -1,10 +1,10 @@
 /* ****************************************************************************
  *
- * Copyright (c) Microsoft Corporation. All rights reserved. 
+ * Copyright (c) Microsoft Corporation. All rights reserved.
  *
  *
  * This file is part of Microsoft R Host.
- * 
+ *
  * Microsoft R Host is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 2 of the License, or
@@ -83,7 +83,6 @@ namespace rhost {
 
         typedef std::unique_ptr<SEXP, SEXP_delete> unique_sexp;
 
-
         std::string to_utf8(const char* buf, size_t len);
 
         inline std::string to_utf8(const std::string& s) {
@@ -95,7 +94,7 @@ namespace rhost {
         }
 
         std::string from_utf8(const std::string& u8s);
-
+        const std::locale& single_byte_locale();
 
         template<class Arg>
         inline void append(picojson::array& msg, Arg&& arg) {
