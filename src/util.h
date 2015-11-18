@@ -1,24 +1,24 @@
 /* ****************************************************************************
- *
- * Copyright (c) Microsoft Corporation. All rights reserved. 
- *
- *
- * This file is part of Microsoft R Host.
- * 
- * Microsoft R Host is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 2 of the License, or
- * (at your option) any later version.
- *
- * Microsoft R Host is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Microsoft R Host.  If not, see <http://www.gnu.org/licenses/>.
- *
- * ***************************************************************************/
+*
+* Copyright (c) Microsoft Corporation. All rights reserved.
+*
+*
+* This file is part of Microsoft R Host.
+*
+* Microsoft R Host is free software: you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation, either version 2 of the License, or
+* (at your option) any later version.
+*
+* Microsoft R Host is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with Microsoft R Host.  If not, see <http://www.gnu.org/licenses/>.
+*
+* ***************************************************************************/
 
 #pragma once
 #include "stdafx.h"
@@ -56,7 +56,8 @@ namespace rhost {
                 if (_p) {
                     try {
                         (*_p)();
-                    } catch (...) {
+                    }
+                    catch (...) {
                         std::terminate();
                     }
                 }
@@ -83,7 +84,6 @@ namespace rhost {
 
         typedef std::unique_ptr<SEXP, SEXP_delete> unique_sexp;
 
-
         std::string to_utf8(const char* buf, size_t len);
 
         inline std::string to_utf8(const std::string& s) {
@@ -95,7 +95,7 @@ namespace rhost {
         }
 
         std::string from_utf8(const std::string& u8s);
-
+        std::locale single_byle_locale();
 
         template<class Arg>
         inline void append(picojson::array& msg, Arg&& arg) {
@@ -117,7 +117,8 @@ namespace rhost {
         inline auto exceptions_to_errors(F f) -> decltype(f()) {
             try {
                 return f();
-            } catch (std::exception& ex) {
+            }
+            catch (std::exception& ex) {
                 Rf_error(ex.what());
             }
         }

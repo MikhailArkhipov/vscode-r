@@ -206,6 +206,7 @@
     <Import Project="$(SolutionDir)\..\NugetPackages\boost_date_time-vc140.1.59.0.0\build\native\boost_date_time-vc140.targets" Condition="Exists('$(SolutionDir)\..\NugetPackages\boost_date_time-vc140.1.59.0.0\build\native\boost_date_time-vc140.targets')" />
     <Import Project="$(SolutionDir)\..\NugetPackages\boost_regex-vc140.1.59.0.0\build\native\boost_regex-vc140.targets" Condition="Exists('$(SolutionDir)\..\NugetPackages\boost_regex-vc140.1.59.0.0\build\native\boost_regex-vc140.targets')" />
     <Import Project="$(SolutionDir)\..\NugetPackages\boost_program_options-vc140.1.59.0.0\build\native\boost_program_options-vc140.targets" Condition="Exists('$(SolutionDir)\..\NugetPackages\boost_program_options-vc140.1.59.0.0\build\native\boost_program_options-vc140.targets')" />
+    <Import Project="$(SolutionDir)\..\NugetPackages\boost_locale-vc140.1.59.0.0\build\native\boost_locale-vc140.targets" Condition="Exists('$(SolutionDir)\..\NugetPackages\boost_locale-vc140.1.59.0.0\build\native\boost_locale-vc140.targets')" />
   </ImportGroup>
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
@@ -216,6 +217,7 @@
     <Error Condition="!Exists('$(SolutionDir)\..\NugetPackages\boost_date_time-vc140.1.59.0.0\build\native\boost_date_time-vc140.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\..\NugetPackages\boost_date_time-vc140.1.59.0.0\build\native\boost_date_time-vc140.targets'))" />
     <Error Condition="!Exists('$(SolutionDir)\..\NugetPackages\boost_regex-vc140.1.59.0.0\build\native\boost_regex-vc140.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\..\NugetPackages\boost_regex-vc140.1.59.0.0\build\native\boost_regex-vc140.targets'))" />
     <Error Condition="!Exists('$(SolutionDir)\..\NugetPackages\boost_program_options-vc140.1.59.0.0\build\native\boost_program_options-vc140.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\..\NugetPackages\boost_program_options-vc140.1.59.0.0\build\native\boost_program_options-vc140.targets'))" />
+    <Error Condition="!Exists('$(SolutionDir)\..\NugetPackages\boost_locale-vc140.1.59.0.0\build\native\boost_locale-vc140.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\..\NugetPackages\boost_locale-vc140.1.59.0.0\build\native\boost_locale-vc140.targets'))" />
   </Target>
   <Import Project="$(SolutionDir)\R.Build.Version.targets" />
 </Project>
