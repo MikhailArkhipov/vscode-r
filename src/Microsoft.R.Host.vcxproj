@@ -199,6 +199,12 @@
   <ItemGroup>
     <ResourceCompile Include="Resource.rc" />
   </ItemGroup>
+  <ItemGroup>
+    <FilesToSign Include="$(OutDir)\$(ProjectName).exe">
+      <Authenticode>Microsoft</Authenticode>
+      <StrongName>StrongName</StrongName>
+    </FilesToSign>
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
     <Import Project="$(SolutionDir)\..\NugetPackages\boost.1.59.0.0\build\native\boost.targets" Condition="Exists('$(SolutionDir)\..\NugetPackages\boost.1.59.0.0\build\native\boost.targets')" />
