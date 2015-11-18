@@ -68,17 +68,14 @@ namespace boost {
                 if (colon == s.npos) {
                     host = s;
                     port = 5118;
-                }
-                else {
+                } else {
                     host = s.substr(0, colon);
                     auto port_str = s.substr(colon + 1);
                     try {
                         port = std::stoi(port_str);
-                    }
-                    catch (std::invalid_argument&) {
+                    } catch (std::invalid_argument&) {
                         throw po::validation_error(po::validation_error::invalid_option_value);
-                    }
-                    catch (std::out_of_range&) {
+                    } catch (std::out_of_range&) {
                         throw po::validation_error(po::validation_error::invalid_option_value);
                     }
                 }
@@ -86,8 +83,7 @@ namespace boost {
                 boost::asio::ip::address address;
                 try {
                     address = boost::asio::ip::address::from_string(host);
-                }
-                catch (boost::system::system_error&) {
+                } catch (boost::system::system_error&) {
                     throw po::validation_error(po::validation_error::invalid_option_value);
                 }
 
