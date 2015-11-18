@@ -1,10 +1,10 @@
 /* ****************************************************************************
  *
- * Copyright (c) Microsoft Corporation. All rights reserved. 
+ * Copyright (c) Microsoft Corporation. All rights reserved.
  *
  *
  * This file is part of Microsoft R Host.
- * 
+ *
  * Microsoft R Host is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 2 of the License, or
@@ -94,7 +94,7 @@ namespace rhost {
         }
 
         std::string from_utf8(const std::string& u8s);
-        std::locale single_byle_locale();
+        const std::locale& single_byte_locale();
 
         template<class Arg>
         inline void append(picojson::array& msg, Arg&& arg) {

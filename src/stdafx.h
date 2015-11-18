@@ -46,7 +46,7 @@
 #include "boost/program_options/variables_map.hpp"
 #include "boost/program_options/parsers.hpp"
 #include "boost/optional.hpp"
-#include <boost/locale.hpp>
+#include "boost/locale.hpp"
 
 #include "picojson.h"
 

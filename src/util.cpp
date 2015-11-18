@@ -1,10 +1,10 @@
 /* ****************************************************************************
  *
- * Copyright (c) Microsoft Corporation. All rights reserved. 
+ * Copyright (c) Microsoft Corporation. All rights reserved.
  *
  *
  * This file is part of Microsoft R Host.
- * 
+ *
  * Microsoft R Host is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 2 of the License, or
@@ -27,14 +27,17 @@ namespace po = boost::program_options;
 
 namespace rhost {
     namespace util {
-        std::locale single_byle_locale() {
-            boost::locale::generator gen;
-            gen.use_ansi_encoding(); // Windows must use locale for non-Unicode programs (CP_ACP)
-            return gen.generate("");
+#ifdef USE_BOOST_LOCALE
+        const std::locale& single_byte_locale() {
+            static auto locale = [] {
+                boost::locale::generator gen;
+                return gen.generate("");
+            } ();
+            return locale;
         }
 
         std::string to_utf8(const char* buf, size_t len) {
-            std::locale loc = single_byle_locale();
+            std::locale loc = single_byte_locale();
             auto& codecvt_wchar = std::use_facet<std::codecvt<wchar_t, char, std::mbstate_t>>(loc);
             std::wstring_convert<std::codecvt<wchar_t, char, std::mbstate_t>> convert(&codecvt_wchar);
             auto ws = convert.from_bytes(buf, buf + len);
@@ -47,10 +50,43 @@ namespace rhost {
             std::wstring_convert<std::codecvt_utf8<wchar_t>> codecvt_utf8;
             auto ws = codecvt_utf8.from_bytes(u8s);
 
-            std::locale loc = single_byle_locale();
+            std::locale loc = single_byte_locale();
             auto& codecvt_wchar = std::use_facet<std::codecvt<wchar_t, char, std::mbstate_t>>(loc);
             std::wstring_convert<std::codecvt<wchar_t, char, std::mbstate_t>> convert(&codecvt_wchar);
             return convert.to_bytes(ws);
+        }
+#endif
+        std::string to_utf8(const char* buf, size_t len) {
+            // Convert 8-bit characters to Unicode via Windows CP. This guarantees
+            // if locale for non-Unicode programs is set correctly, user can type in
+            // their language. This does NOT guarantee that all languages can be used
+            // since R is not Unicode app. If host app is Unicode, it must perform
+            // checks if text being passed here is convertable to Unicode.
+            std::wstring ws;
+            size_t cch = strlen(buf);
+            if (cch > 0) {
+                ws.resize(cch);
+                ::MultiByteToWideChar(CP_ACP, 0, buf, (int)cch, &ws[0], (int)ws.size());
+            }
+            // Now convert Unicode to UTF-8 for passing over to the host.
+            std::wstring_convert<std::codecvt_utf8<wchar_t>> codecvt_utf8;
+            return codecvt_utf8.to_bytes(ws);
+        }
+
+        std::string from_utf8(const std::string& u8s) {
+            // Convert UTF-8 string that is coming from the host to Unicode.
+            std::wstring_convert<std::codecvt_utf8<wchar_t>> codecvt_utf8;
+            auto ws = codecvt_utf8.from_bytes(u8s);
+
+            // Then convert Unicode to the default OS codepage.
+            // If locale for non-Unicode programs is set correctly, user can type in
+            // their language. See also the note in to_utf8() above.
+            char defaultChar = '?';
+            BOOL f;
+            std::string oemString;
+            oemString.resize(ws.length());
+            ::WideCharToMultiByte(CP_ACP, 0, ws.c_str(), (int)ws.length(), &oemString[0], (int)oemString.size(), &defaultChar, &f);
+            return oemString;
         }
     }
 }
