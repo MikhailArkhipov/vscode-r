@@ -65,29 +65,17 @@ LRESULT CALLBACK RPlotHost::CBTProc(
             ::RealGetWindowClass(hwndPlot, buf, _countof(buf));
             if (wcscmp(buf, L"GraphApp") == 0) {
                 if (m_hwndToolWindow != GetParent(hwndPlot)) {
-                    RECT rcToolWindow, rcPlotWindow;
                     HMENU hMenu = ::GetMenu(hwndPlot);
 
                     ::SetWindowLong(hwndPlot, GWL_STYLE, WS_CHILD);
                     ::SetWindowLong(hwndPlot, GWL_EXSTYLE, 0);
                     ::SetWindowText(hwndPlot, NULL);
 
-                    ::GetClientRect(hwndPlot, &rcPlotWindow);
-                    ::GetClientRect(m_hwndToolWindow, &rcToolWindow);
-
-                    // Window has to be large enough to hold plot margins.
-                    // Plot window becomes child of the tool window and in IDE
-                    // user can size tool window to be very small. In this case
-                    // user may start getting errors like 'figure margin larger 
-                    // than the window'. We'll create window that is large enough
-                    // to hold the picture even if it gets clipped in the IDE.
-                    rcToolWindow.right = max(rcToolWindow.right, rcPlotWindow.right);
-                    rcToolWindow.bottom = max(rcToolWindow.bottom, rcPlotWindow.bottom);
-
                     ::SetParent(hwndPlot, m_hwndToolWindow);
 
                     // Resize tool window to make sure it fits plot window
-                    ::SetWindowPos(m_hwndToolWindow, HWND_TOP, 0, 0, rcToolWindow.right, rcToolWindow.bottom, SWP_SHOWWINDOW | SWP_FRAMECHANGED);
+                    ::ShowWindow(hwndPlot, SW_HIDE);
+                    ::SetWindowPos(hwndPlot, HWND_TOP, 0, 0, 0, 0, SWP_FRAMECHANGED | SWP_NOSIZE | SWP_NOMOVE);
                     ::PostMessage(m_hwndToolWindow, WM_ACTIVATE_PLOT, (WPARAM)hMenu, 0);
                 }
             }
