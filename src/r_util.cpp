@@ -23,9 +23,11 @@
 #include "stdafx.h"
 #include "Rapi.h"
 #include "msvcrt.h"
+#include "log.h"
 #include "util.h"
 #include "host.h"
 
+using namespace rhost::log;
 using namespace rhost::util;
 using namespace rhost::host;
 
@@ -253,13 +255,48 @@ namespace rhost {
             });
         }
 
-        extern "C" SEXP browser(SEXP value) {
-            unique_sexp value_char(Rf_asChar(value));
-            const char* url = R_CHAR(value_char.get());
-            if (url != nullptr) {
-                rhost::host::browser(url);
+        picojson::array parse_args_sexp(SEXP args_sexp) {
+            size_t len = Rf_length(args_sexp);
+            picojson::array args(len);
+
+            for (size_t i = 0; i < len; ++i) {
+                const char* arg = R_CHAR(STRING_ELT(args_sexp, i));
+                auto err = picojson::parse(args[i], to_utf8(arg));
+                if (!err.empty()) {
+                    fatal_error("Malformed outgoing message argument #%zu: %s", i, err.c_str());
+                }
             }
-            return value;
+
+            return args;
+        }
+
+        extern "C" SEXP send_message(SEXP name_sexp, SEXP args_sexp) {
+            return with_cancellation([&] {
+                unique_sexp name_char(Rf_asChar(name_sexp));
+                const char* name = R_CHAR(name_char.get());
+
+                auto args = parse_args_sexp(args_sexp);
+                host::send_message(name, args);
+
+                return R_NilValue;
+            });
+        }
+
+        extern "C" SEXP send_message_and_get_response(SEXP name_sexp, SEXP args_sexp) {
+            return with_cancellation([&] {
+                unique_sexp name_char(Rf_asChar(name_sexp));
+                const char* name = R_CHAR(name_char.get());
+
+                auto args = parse_args_sexp(args_sexp);
+                auto response = host::send_message_and_get_response(name, args);
+
+                unique_sexp response_args(Rf_allocVector3(STRSXP, response.args.size(), nullptr));
+                for (size_t i = 0; i < response.args.size(); ++i) {
+                    auto s = response.args[i].serialize();
+                    SET_STRING_ELT(response_args.get(), i, Rf_mkChar(from_utf8(s).c_str()));
+                }
+                return response_args.release();
+            });
         }
 
         R_CallMethodDef call_methods[] = {
@@ -267,7 +304,8 @@ namespace rhost {
             { "rtvs::Call.memory_connection", (DL_FUNC)memory_connection_new, 4 },
             { "rtvs::Call.memory_connection_tochar", (DL_FUNC)memory_connection_tochar, 1 },
             { "rtvs::Call.memory_connection_overflown", (DL_FUNC)memory_connection_overflown, 1 },
-            { "rtvs::Call.browser", (DL_FUNC)browser, 1, },
+            { "rtvs::Call.send_message", (DL_FUNC)send_message, 2 },
+            { "rtvs::Call.send_message_and_get_response", (DL_FUNC)send_message_and_get_response, 2 },
             { }
         };
 

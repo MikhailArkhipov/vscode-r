@@ -25,9 +25,12 @@
 #include "xamlbuilder.h"
 #include "Rgraphicsapi.h"
 #include "host.h"
+#include "util.h"
 #include "msvcrt.h"
 
 using namespace rhost::log;
+using namespace rhost::util;
+using namespace rhost::host;
 
 
 typedef struct {
@@ -98,7 +101,10 @@ static void write_xaml(pDevDesc dd) {
     auto path = get_temp_file_path();
     xdd->xaml->write_xaml(path);
     // TODO: also keep track of the external bitmap files we create so we can delete them
-    rhost::host::plot_xaml(path);
+
+    with_cancellation([&] {
+        send_message("PlotXaml", to_utf8(path));
+    });
 }
 
 static std::string r_fontface_to_xaml_font_weight(int fontface) {
