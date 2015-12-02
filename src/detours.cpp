@@ -21,7 +21,6 @@
 * ***************************************************************************/
 
 #include "stdafx.h"
-#include "minhook.h"
 #include "host.h"
 
 namespace detours {
