@@ -1,10 +1,10 @@
 /* ****************************************************************************
  *
- * Copyright (c) Microsoft Corporation. All rights reserved. 
+ * Copyright (c) Microsoft Corporation. All rights reserved.
  *
  *
  * This file is part of Microsoft R Host.
- * 
+ *
  * Microsoft R Host is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 2 of the License, or
@@ -31,5 +31,10 @@ namespace rhost {
         void register_callbacks(structRstart& rp);
         void plot_xaml(const std::string& xaml);
         void browser(const std::string& url);
+
+        extern "C" void ShowMessage(const char* s);
+        extern "C" int YesNoCancel(const char* s);
+        extern "C" int OkCancel(const char* s);
+        extern "C" int YesNo(const char* s);
     }
 }

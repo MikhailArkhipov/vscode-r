@@ -474,36 +474,6 @@ namespace rhost {
                 });
             }
 
-            extern "C" void ShowMessage(const char* s) {
-                with_cancellation([&] {
-                    send_message(*ws_conn, "![]", to_utf8_json(s));
-                });
-            }
-
-            extern "C" int YesNoCancel(const char* s) {
-                return with_cancellation([&] {
-                    if (!allow_callbacks) {
-                        Rf_error("YesNoCancel: blocking callback not allowed during evaluation.");
-                    }
-
-                    auto msg = send_message_and_get_response(*ws_conn, "?", get_context(), to_utf8_json(s));
-                    if (msg.args.size() != 1 || !msg.args[0].is<std::string>()) {
-                        fatal_error("YesNoCancel: response argument must be a string.");
-                    }
-
-                    auto& r = msg.args[0].get<std::string>();
-                    if (r == "N") {
-                        return -1;
-                    } else if (r == "C") {
-                        return 0;
-                    } else if (r == "Y") {
-                        return 1;
-                    } else {
-                        fatal_error("YesNoCancel: response argument must be 'Y', 'N' or 'C'.");
-                    }
-                });
-            }
-
             extern "C" void Busy(int which) {
                 with_cancellation([&] {
                     send_message(*ws_conn, which ? "~+" : "~-");
@@ -769,6 +739,50 @@ namespace rhost {
             with_cancellation([&] {
                 send_message(*ws_conn, "Browser", to_utf8(url));
             });
+        }
+
+        extern "C" void ShowMessage(const char* s) {
+            with_cancellation([&] {
+                send_message(*ws_conn, "![]", to_utf8_json(s));
+            });
+        }
+
+        int ShowMessageBox(const char* s, const char* cmd) {
+            return with_cancellation([&] {
+                if (!allow_callbacks) {
+                    Rf_error("ShowMessageBox: blocking callback not allowed during evaluation.");
+                }
+
+                auto msg = send_message_and_get_response(*ws_conn, cmd, get_context(), to_utf8_json(s));
+                if (msg.args.size() != 1 || !msg.args[0].is<std::string>()) {
+                    fatal_error("ShowMessageBox: response argument must be a string.");
+                }
+
+                auto& r = msg.args[0].get<std::string>();
+                if (r == "N") {
+                    return -1; // graphapp.h => NO
+                } else if (r == "C") {
+                    return 0; // graphapp.h => CANCEL
+                } else if (r == "Y") {
+                    return 1; // graphapp.h => YES
+                } else if (r == "O") {
+                    return 1; // graphapp.h => YES
+                } else {
+                    fatal_error("ShowMessageBox: response argument must be 'Y', 'N' or 'C'.");
+                }
+            });
+        }
+
+        extern "C" int YesNoCancel(const char* s) {
+            return ShowMessageBox(s, "?");
+        }
+
+        extern "C" int YesNo(const char* s) {
+            return ShowMessageBox(s, "??");
+        }
+
+        extern "C" int OkCancel(const char* s) {
+            return ShowMessageBox(s, "???");
         }
     }
 }

@@ -10,6 +10,7 @@
     <ClCompile Include="eval.cpp" />
     <ClCompile Include="host.cpp" />
     <ClCompile Include="msvcrt.cpp" />
+    <ClCompile Include="detours.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h" />
@@ -25,6 +26,7 @@
     <ClInclude Include="host.h" />
     <ClInclude Include="msvcrt.h" />
     <ClInclude Include="resource.h" />
+    <ClInclude Include="detours.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
