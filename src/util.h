@@ -96,6 +96,9 @@ namespace rhost {
         std::string from_utf8(const std::string& u8s);
         const std::locale& single_byte_locale();
 
+        inline void append(picojson::array& msg) {
+        }
+
         template<class Arg>
         inline void append(picojson::array& msg, Arg&& arg) {
             msg.push_back(picojson::value(std::forward<Arg>(arg)));
