@@ -58,3 +58,4 @@
 #pragma warning(pop)
 
 #include "windows.h"
+#include "minhook.h"
