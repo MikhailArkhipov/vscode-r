@@ -23,59 +23,61 @@
 #include "stdafx.h"
 #include "host.h"
 
-namespace detours {
-    // Converts host response back to MessageBox codes
-    int ToMessageBoxCodes(int result, UINT mbType) {
-        if (mbType == MB_YESNO) {
-            return result == -1 ? IDNO : IDYES;
-        } else if (mbType == MB_YESNOCANCEL) {
-            return result == 0 ? IDCANCEL : (result == -1 ? IDNO : IDYES);
+namespace rhost {
+    namespace detours {
+        // Converts host response back to MessageBox codes
+        int ToMessageBoxCodes(int result, UINT mbType) {
+            if (mbType == MB_YESNO) {
+                return result == -1 ? IDNO : IDYES;
+            } else if (mbType == MB_YESNOCANCEL) {
+                return result == 0 ? IDCANCEL : (result == -1 ? IDNO : IDYES);
+            }
+            return result == 0 ? IDCANCEL : IDOK;
         }
-        return result == 0 ? IDCANCEL : IDOK;
-    }
 
-    // Displays host message box. Host provides title and the parent window.
-    // Communication with the host is in UTF-8 and single-byte characters
-    // are converted to UTF-8 JSON in the rhost::host::ShowMessageBox().
-    int HostMessageBox(LPCSTR lpText, UINT uType) {
-        UINT mbType = uType & 0x0F;
-        if (mbType == MB_OKCANCEL) {
-            return ToMessageBoxCodes(rhost::host::OkCancel(lpText), mbType);
-        } else if (mbType == MB_YESNO) {
-            return ToMessageBoxCodes(rhost::host::YesNo(lpText), mbType);
-        } else if (mbType == MB_YESNOCANCEL) {
-            return ToMessageBoxCodes(rhost::host::YesNoCancel(lpText), mbType);
+        // Displays host message box. Host provides title and the parent window.
+        // Communication with the host is in UTF-8 and single-byte characters
+        // are converted to UTF-8 JSON in the rhost::host::ShowMessageBox().
+        int HostMessageBox(LPCSTR lpText, UINT uType) {
+            UINT mbType = uType & 0x0F;
+            if (mbType == MB_OKCANCEL) {
+                return ToMessageBoxCodes(rhost::host::OkCancel(lpText), mbType);
+            } else if (mbType == MB_YESNO) {
+                return ToMessageBoxCodes(rhost::host::YesNo(lpText), mbType);
+            } else if (mbType == MB_YESNOCANCEL) {
+                return ToMessageBoxCodes(rhost::host::YesNoCancel(lpText), mbType);
+            }
+            rhost::host::ShowMessage(lpText);
+            return IDOK;
         }
-        rhost::host::ShowMessage(lpText);
-        return IDOK;
-    }
 
-    // MessageBoxW
-    decltype(MessageBoxW) *pMessageBoxW = NULL;
-    int WINAPI DetourMessageBoxW(HWND hWnd, LPCWSTR lpText, LPCWSTR lpCaption, UINT uType) {
-        char ch[1000];
-        wcstombs(ch, lpText, _countof(ch));
-        return HostMessageBox(ch, uType);
-    }
+        // MessageBoxW
+        decltype(MessageBoxW) *pMessageBoxW = NULL;
+        int WINAPI DetourMessageBoxW(HWND hWnd, LPCWSTR lpText, LPCWSTR lpCaption, UINT uType) {
+            char ch[1000];
+            wcstombs(ch, lpText, _countof(ch));
+            return HostMessageBox(ch, uType);
+        }
 
-    // MessageBoxA
-    decltype(MessageBoxW) *pMessageBoxA = NULL;
-    int WINAPI DetourMessageBoxA(HWND hWnd, LPCSTR lpText, LPCSTR lpCaption, UINT uType) {
-        return HostMessageBox(lpText, uType);
-    }
+        // MessageBoxA
+        decltype(MessageBoxW) *pMessageBoxA = NULL;
+        int WINAPI DetourMessageBoxA(HWND hWnd, LPCSTR lpText, LPCSTR lpCaption, UINT uType) {
+            return HostMessageBox(lpText, uType);
+        }
 
-    void init_ui_detours() {
-        MH_Initialize();
-        MH_CreateHook(&MessageBoxW, &DetourMessageBoxW, reinterpret_cast<LPVOID*>(&pMessageBoxW));
-        MH_CreateHook(&MessageBoxA, &DetourMessageBoxA, reinterpret_cast<LPVOID*>(&pMessageBoxA));
+        void init_ui_detours() {
+            MH_Initialize();
+            MH_CreateHook(&MessageBoxW, &DetourMessageBoxW, reinterpret_cast<LPVOID*>(&pMessageBoxW));
+            MH_CreateHook(&MessageBoxA, &DetourMessageBoxA, reinterpret_cast<LPVOID*>(&pMessageBoxA));
 
-        MH_EnableHook(&MessageBoxW);
-        MH_EnableHook(&MessageBoxA);
-    }
+            MH_EnableHook(&MessageBoxW);
+            MH_EnableHook(&MessageBoxA);
+        }
 
-    void terminate_ui_detours() {
-        MH_DisableHook(&MessageBoxW);
-        MH_DisableHook(&MessageBoxA);
-        MH_Uninitialize();
+        void terminate_ui_detours() {
+            MH_DisableHook(&MessageBoxW);
+            MH_DisableHook(&MessageBoxA);
+            MH_Uninitialize();
+        }
     }
 }
