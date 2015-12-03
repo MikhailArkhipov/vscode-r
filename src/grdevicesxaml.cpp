@@ -461,7 +461,7 @@ namespace rhost {
                 BEGIN_SUSPEND_INTERRUPTS{
                     auto dev = xaml_device::create(f, *w, *h);
                 pGEDevDesc gdd = GEcreateDevDesc(dev->device_desc);
-                GEaddDevice2(gdd, "xaml");
+                GEaddDevice2f(gdd, "xaml", f);
                 } END_SUSPEND_INTERRUPTS;
 
                 return R_NilValue;
