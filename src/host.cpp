@@ -35,6 +35,9 @@ namespace rhost {
     namespace host {
         const char subprotocol[] = "Microsoft.R.Host";
 
+        boost::signals2::signal<void()> callback_started;
+        boost::signals2::signal<void()> readconsole_done;
+
         typedef websocketpp::connection<websocketpp::config::asio> ws_connection_type;
 
         DWORD main_thread_id;
@@ -137,6 +140,7 @@ namespace rhost {
             // Called periodically by R_ProcessEvents and Rf_eval. This is where we check for various
             // cancellation requests and issue an interrupt (Rf_onintr) if one is applicable in the
             // current context.
+            callback_started();
 
             // Rf_onintr may end up calling CallBack before it returns. We don't want to recursively
             // call it again, so do nothing and let the next eligible callback handle things.
@@ -415,6 +419,8 @@ namespace rhost {
                 if (!allow_callbacks) {
                     Rf_error("ReadConsole: blocking callback not allowed during evaluation.");
                 }
+
+                readconsole_done();
 
                 for (std::string retry_reason;;) {
                     auto msg = send_message_and_get_response(

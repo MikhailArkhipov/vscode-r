@@ -26,6 +26,7 @@
 #include "log.h"
 #include "util.h"
 #include "host.h"
+#include "exports.h"
 
 using namespace rhost::log;
 using namespace rhost::util;
@@ -310,7 +311,7 @@ namespace rhost {
         };
 
         void init(DllInfo *dll) {
-            R_registerRoutines(dll, nullptr, call_methods, nullptr, nullptr);
+            rhost::exports::add_call_methods(call_methods);
         }
     }
 }

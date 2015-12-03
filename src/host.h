@@ -41,6 +41,9 @@ namespace rhost {
         void register_callbacks(structRstart& rp);
         void terminate_if_closed();
 
+        extern boost::signals2::signal<void()> callback_started;
+        extern boost::signals2::signal<void()> readconsole_done;
+
         __declspec(noreturn) void propagate_cancellation();
 
         template <class F>

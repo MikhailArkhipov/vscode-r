@@ -40,6 +40,8 @@
 #include <vector>
 
 #include "boost/algorithm/string.hpp"
+#include "boost/date_time/posix_time/posix_time.hpp"
+#include "boost/format.hpp"
 #include "boost/program_options/cmdline.hpp"
 #include "boost/program_options/options_description.hpp"
 #include "boost/program_options/value_semantic.hpp"
@@ -47,6 +49,9 @@
 #include "boost/program_options/parsers.hpp"
 #include "boost/optional.hpp"
 #include "boost/locale.hpp"
+#include "boost/signals2/signal.hpp"
+#include "boost/uuid/uuid.hpp"
+#include "boost/uuid/uuid_generators.hpp"
 
 #include "picojson.h"
 

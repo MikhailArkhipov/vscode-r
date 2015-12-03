@@ -168,6 +168,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="exports.cpp" />
+    <ClCompile Include="grdevicesvs.cpp" />
+    <ClCompile Include="grdevicesxaml.cpp" />
     <ClCompile Include="msvcrt.cpp" />
     <ClCompile Include="eval.cpp" />
     <ClCompile Include="log.cpp" />
@@ -176,9 +179,12 @@
     <ClCompile Include="r_util.cpp" />
     <ClCompile Include="host.cpp" />
     <ClCompile Include="util.cpp" />
-    <ClCompile Include="vsgd.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="exports.h" />
+    <ClInclude Include="grdevices.h" />
+    <ClInclude Include="grdevicesvs.h" />
+    <ClInclude Include="grdevicesxaml.h" />
     <ClInclude Include="msvcrt.h" />
     <ClInclude Include="eval.h" />
     <ClInclude Include="log.h" />
@@ -190,7 +196,6 @@
     <ClInclude Include="host.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="util.h" />
-    <ClInclude Include="vsgd.h" />
     <ClInclude Include="xamlbuilder.h" />
   </ItemGroup>
   <ItemGroup>
