@@ -115,7 +115,6 @@ namespace rhost {
                 std::string _delegated_device_type;
                 std::string _delegated_device_filename;
                 boost::uuids::uuid _device_id;
-                //plot* _active_plot;
                 plot_history _history;
             };
 
@@ -333,7 +332,6 @@ namespace rhost {
             }
 
             void delegating_device::new_page(const pGEcontext gc) {
-                //_active_plot = new plot(device_desc);
                 _history.append(std::shared_ptr<plot>(new plot(device_desc)));
 
                 auto dev = get_or_create_delegated_device();
@@ -438,12 +436,6 @@ namespace rhost {
             }
 
             void delegating_device::render_request(bool immediately) {
-                //if (_active_plot != nullptr && _active_plot->has_pending_render()) {
-                //    if (immediately || _active_plot->pending_render_timeout_elapsed()) {
-                //        _active_plot->render();
-                //    }
-                //}
-
                 auto plot = _history.get_active();
                 if (plot != nullptr) {
                     if (plot->has_pending_render()) {
@@ -488,7 +480,6 @@ namespace rhost {
                 _height(height),
                 _debug(false),
                 _history(dd),
-                //_active_plot(nullptr),
                 _delegated_device(nullptr),
                 _delegated_device_type(device_type),
                 _delegated_device_filename(""),
@@ -496,7 +487,6 @@ namespace rhost {
             }
 
             delegating_device::~delegating_device() {
-                //delete _active_plot;
             }
 
             pDevDesc delegating_device::get_or_create_delegated_device() {
@@ -536,10 +526,6 @@ namespace rhost {
             }
 
             void delegating_device::set_pending_render() {
-                //if (_active_plot != nullptr) {
-                //    _active_plot->set_pending_render();
-                //}
-
                 auto plot = _history.get_active();
                 if (plot != nullptr) {
                     plot->set_pending_render();
@@ -588,7 +574,6 @@ namespace rhost {
                 // We check every delegating device to give them opportunity to save to disk
                 // There appears to be no way of querying the type of device, so we maintain
                 // our own list.
-                auto now = boost::posix_time::second_clock::local_time();
                 for (auto it = delegating_devices.begin(); it != delegating_devices.end(); ++it) {
                     (*it)->render_request(immediately);
                 }
