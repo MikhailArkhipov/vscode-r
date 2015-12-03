@@ -137,8 +137,7 @@ namespace rhost {
                 if (winding) {
                     // Nonzero
                     stream << "F 1 ";
-                }
-                else {
+                } else {
                     // EvenOdd
                     stream << "F 0 ";
                 }
@@ -215,8 +214,7 @@ namespace rhost {
                     stream << "</TransformGroup>";
                     stream << "</Image.RenderTransform>";
                     stream << "</Image>";
-                }
-                else {
+                } else {
                     stream << " />";
                 }
 
