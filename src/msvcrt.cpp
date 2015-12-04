@@ -35,6 +35,7 @@ namespace rhost {
             }
         }
 
+        MSVCRT_EXPORT(calloc);
         MSVCRT_EXPORT(malloc);
         MSVCRT_EXPORT(free);
         MSVCRT_EXPORT(atexit);

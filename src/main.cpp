@@ -28,7 +28,9 @@
 #include "host.h"
 #include "Rapi.h"
 #include "util.h"
-#include "vsgd.h"
+#include "grdeviceside.h"
+#include "grdevicesxaml.h"
+#include "exports.h"
 
 using namespace rhost::log;
 namespace po = boost::program_options;
@@ -146,8 +148,10 @@ namespace rhost {
         readconsolecfg();
 
         DllInfo *dll = R_getEmbeddingDllInfo();
-        R_init_vsgd(dll);
         rhost::r_util::init(dll);
+        rhost::grdevices::xaml::init(dll);
+        rhost::grdevices::ide::init(dll);
+        rhost::exports::register_all(dll);
 
         CharacterMode = LinkDLL;
         setup_Rmainloop();

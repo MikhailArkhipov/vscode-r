@@ -1,24 +1,24 @@
 /* ****************************************************************************
- *
- * Copyright (c) Microsoft Corporation. All rights reserved. 
- *
- *
- * This file is part of Microsoft R Host.
- * 
- * Microsoft R Host is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 2 of the License, or
- * (at your option) any later version.
- *
- * Microsoft R Host is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Microsoft R Host.  If not, see <http://www.gnu.org/licenses/>.
- *
- * ***************************************************************************/
+*
+* Copyright (c) Microsoft Corporation. All rights reserved.
+*
+*
+* This file is part of Microsoft R Host.
+*
+* Microsoft R Host is free software: you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation, either version 2 of the License, or
+* (at your option) any later version.
+*
+* Microsoft R Host is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with Microsoft R Host.  If not, see <http://www.gnu.org/licenses/>.
+*
+* ***************************************************************************/
 
 // This file combines various bits and pieces of R API in a single header file.
 //
@@ -63,6 +63,8 @@
 extern "C" {
     extern __declspec(dllimport) int R_NaInt;
 
+    int *(LOGICAL)(SEXP x);
+    int *(INTEGER)(SEXP x);
     double *(REAL)(SEXP x);
     SEXP(CAR)(SEXP e);
     SEXP(CDR)(SEXP e);
@@ -186,14 +188,69 @@ extern "C" {
     extern __declspec(dllimport) Rboolean mbcslocale;
 #endif
 
+#define MAX_GRAPHICS_SYSTEMS 24
+
+    typedef enum {
+        GE_InitState = 0,
+        GE_FinaliseState = 1,
+        GE_SaveState = 2,
+        GE_RestoreState = 6,
+        GE_CopyState = 3,
+        GE_SaveSnapshotState = 4,
+        GE_RestoreSnapshotState = 5,
+        GE_CheckPlot = 7,
+        GE_ScalePS = 8
+    } GEevent;
+
     typedef struct _GEDevDesc GEDevDesc;
+
+    typedef SEXP(*GEcallback)(GEevent, GEDevDesc *, SEXP);
+
+    typedef struct {
+        void *systemSpecific;
+        GEcallback callback;
+    } GESystemDesc;
+
+    struct _GEDevDesc {
+        pDevDesc dev;
+        Rboolean displayListOn;
+        SEXP displayList;
+        SEXP DLlastElt;
+        SEXP savedSnapshot;
+        Rboolean dirty;
+        Rboolean recordGraphics;
+        GESystemDesc *gesd[MAX_GRAPHICS_SYSTEMS];
+        Rboolean ask;
+    };
+
     typedef GEDevDesc* pGEDevDesc;
 
-    void GEaddDevice2(pGEDevDesc, const char *);
-    void GEaddDevice2f(pGEDevDesc, const char *, const char *);
-    void GEkillDevice(pGEDevDesc);
-    pGEDevDesc GEcreateDevDesc(pDevDesc dev);
+    extern void GEaddDevice2(pGEDevDesc, const char *);
+    extern void GEaddDevice2f(pGEDevDesc, const char *, const char *);
+    extern void GEkillDevice(pGEDevDesc);
+    extern pGEDevDesc GEcreateDevDesc(pDevDesc dev);
+    extern pGEDevDesc GEgetDevice(int);
 
-    void R_CheckDeviceAvailable(void);
-    Rboolean R_CheckDeviceAvailableBool(void);
+    extern void R_CheckDeviceAvailable(void);
+    extern Rboolean R_CheckDeviceAvailableBool(void);
+
+    extern pGEDevDesc GEcurrentDevice(void);
+    extern Rboolean GEdeviceDirty(pGEDevDesc dd);
+    extern void GEdirtyDevice(pGEDevDesc dd);
+    extern Rboolean GEcheckState(pGEDevDesc dd);
+    extern Rboolean GErecording(SEXP call, pGEDevDesc dd);
+    extern void GErecordGraphicOperation(SEXP op, SEXP args, pGEDevDesc dd);
+    extern void GEinitDisplayList(pGEDevDesc dd);
+    extern void GEplayDisplayList(pGEDevDesc dd);
+    extern void GEcopyDisplayList(int fromDevice);
+    extern SEXP GEcreateSnapshot(pGEDevDesc dd);
+    extern void GEplaySnapshot(SEXP snapshot, pGEDevDesc dd);
+    extern void GEonExit(void);
+    extern void GEnullDevice(void);
+
+    extern int Rf_curDevice(void);
+    extern int Rf_selectDevice(int);
+    extern int Rf_ndevNumber(pDevDesc);
+    extern int Rf_NumDevices(void);
+    extern pGEDevDesc Rf_desc2GEDesc(pDevDesc dd);
 }
