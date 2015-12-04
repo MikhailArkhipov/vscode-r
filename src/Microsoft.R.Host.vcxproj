@@ -169,7 +169,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="exports.cpp" />
-    <ClCompile Include="grdevicesvs.cpp" />
+    <ClCompile Include="grdeviceside.cpp" />
     <ClCompile Include="grdevicesxaml.cpp" />
     <ClCompile Include="msvcrt.cpp" />
     <ClCompile Include="eval.cpp" />
@@ -183,7 +183,7 @@
   <ItemGroup>
     <ClInclude Include="exports.h" />
     <ClInclude Include="grdevices.h" />
-    <ClInclude Include="grdevicesvs.h" />
+    <ClInclude Include="grdeviceside.h" />
     <ClInclude Include="grdevicesxaml.h" />
     <ClInclude Include="msvcrt.h" />
     <ClInclude Include="eval.h" />

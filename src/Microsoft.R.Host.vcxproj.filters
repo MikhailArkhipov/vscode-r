@@ -10,8 +10,8 @@
     <ClCompile Include="host.cpp" />
     <ClCompile Include="msvcrt.cpp" />
     <ClCompile Include="exports.cpp" />
-    <ClCompile Include="grdevicesvs.cpp" />
     <ClCompile Include="grdevicesxaml.cpp" />
+    <ClCompile Include="grdeviceside.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h" />
@@ -28,8 +28,8 @@
     <ClInclude Include="resource.h" />
     <ClInclude Include="exports.h" />
     <ClInclude Include="grdevices.h" />
-    <ClInclude Include="grdevicesvs.h" />
     <ClInclude Include="grdevicesxaml.h" />
+    <ClInclude Include="grdeviceside.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

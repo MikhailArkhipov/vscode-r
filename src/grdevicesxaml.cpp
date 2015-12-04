@@ -2,7 +2,6 @@
 #include "xamlbuilder.h"
 #include "Rgraphicsapi.h"
 #include "msvcrt.h"
-#include "util.h"
 #include "grdevices.h"
 #include "exports.h"
 
@@ -24,7 +23,10 @@ namespace rhost {
             ///////////////////////////////////////////////////////////////////////
             class xaml_device : public graphics_device {
             public:
-                static xaml_device * create(std::string filename, double width, double height);
+                static std::unique_ptr<xaml_device> create(std::string filename, double width, double height);
+
+                xaml_device(pDevDesc dd, std::string filename, double width, double height, std::string background_color, std::string font_family);
+                virtual ~xaml_device();
 
             public:
                 virtual void activate();
@@ -54,8 +56,7 @@ namespace rhost {
                 virtual int hold_flush(int level);
 
             private:
-                xaml_device(pDevDesc dd, std::string filename, double width, double height, std::string background_color, std::string font_family);
-                virtual ~xaml_device();
+                std::string get_raster_file_path();
 
             private:
                 double _width;
@@ -207,14 +208,12 @@ namespace rhost {
                 f.write((char*)raster, 4 * w * h);
             }
 
-            xaml_device * xaml_device::create(std::string filename, double width, double height) {
-                pDevDesc dd = static_cast<pDevDesc>(rhost::msvcrt::malloc(sizeof(DevDesc)));
-                memset(dd, 0, sizeof(DevDesc));
+            std::unique_ptr<xaml_device> xaml_device::create(std::string filename, double width, double height) {
+                pDevDesc dd = static_cast<pDevDesc>(rhost::msvcrt::calloc(1, sizeof(DevDesc)));
 
                 int startfill = R_RGB(255, 255, 255);
 
-                xaml_device * xdd = new xaml_device(dd, filename, width, height, r_color_to_xaml(startfill), DEFAULT_FONT_NAME);
-                dd->deviceSpecific = xdd;
+                auto xdd = std::make_unique<xaml_device>(dd, filename, width, height, r_color_to_xaml(startfill), DEFAULT_FONT_NAME);
 
                 dd->left = 0;
                 dd->right = width;
@@ -261,6 +260,8 @@ namespace rhost {
                 dd->canGenMouseUp = R_FALSE;
                 dd->canGenKeybd = R_FALSE;
 
+                dd->deviceSpecific = xdd.get();
+
                 return xdd;
             }
 
@@ -287,6 +288,7 @@ namespace rhost {
             void xaml_device::close() {
                 _xaml.clip_end();
                 _xaml.write_xaml(_filename);
+                delete this;
             }
 
             void xaml_device::deactivate() {
@@ -360,7 +362,7 @@ namespace rhost {
             }
 
             void xaml_device::raster(unsigned int *raster, int w, int h, double x, double y, double width, double height, double rot, Rboolean interpolate, const pGEcontext gc) {
-                auto path = rhost::util::get_temp_file_path();
+                auto path = get_raster_file_path();
                 double left = x;
                 double top = _height - y;
 
@@ -439,6 +441,17 @@ namespace rhost {
             {
             }
 
+            std::string xaml_device::get_raster_file_path() {
+                // TODO: change this to use same folder/name as _filename
+                // but with an incrementing integer suffix, and a .bmp extension
+                char folderpath[1024];
+                char filepath[1024];
+                GetTempPathA(1024, folderpath);
+                GetTempFileNameA(folderpath, "rt", 0, filepath);
+
+                return std::string(filepath);
+            }
+
             ///////////////////////////////////////////////////////////////////////
             // Exported R routines
             ///////////////////////////////////////////////////////////////////////
@@ -460,8 +473,10 @@ namespace rhost {
                 R_CheckDeviceAvailable();
                 BEGIN_SUSPEND_INTERRUPTS{
                     auto dev = xaml_device::create(f, *w, *h);
-                pGEDevDesc gdd = GEcreateDevDesc(dev->device_desc);
-                GEaddDevice2f(gdd, "xaml", f);
+                    pGEDevDesc gdd = GEcreateDevDesc(dev->device_desc);
+                    GEaddDevice2f(gdd, "xaml", f);
+                    // Owner is DevDesc::deviceSpecific, and is released in close()
+                    dev.release();
                 } END_SUSPEND_INTERRUPTS;
 
                 return R_NilValue;

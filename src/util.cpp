@@ -88,16 +88,6 @@ namespace rhost {
             ::WideCharToMultiByte(CP_ACP, 0, ws.c_str(), (int)ws.length(), &oemString[0], (int)oemString.size(), &defaultChar, &f);
             return oemString;
         }
-
-        std::string get_temp_file_path() {
-            // TODO: do we need to use unicode version?
-            char folderpath[1024];
-            char filepath[1024];
-            GetTempPathA(1024, folderpath);
-            GetTempFileNameA(folderpath, "rt", 0, filepath);
-
-            return std::string(filepath);
-        }
     }
 }
 

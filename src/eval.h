@@ -92,7 +92,7 @@ namespace rhost {
         }
 
         template <class FBefore, class FAfter>
-        inline r_eval_result<std::string> r_try_eval_str(const std::string& expr, SEXP env, ParseStatus& parse_status, FBefore before = [] {}, FAfter after = [] {}) {
+        inline r_eval_result<std::string> r_try_eval_str(const std::string& expr, SEXP env, ParseStatus& parse_status, FBefore before, FAfter after) {
             using namespace rhost::util;
 
             r_eval_result<std::string> result;
@@ -120,6 +120,12 @@ namespace rhost {
             }
 
             return result;
+        }
+
+        inline r_eval_result<std::string> r_try_eval_str(const std::string& expr, SEXP env, ParseStatus& parse_status) {
+            auto before = [&] {};
+            auto after = [&] {};
+            return r_try_eval_str(expr, env, parse_status, before, after);
         }
 
         void interrupt_eval();

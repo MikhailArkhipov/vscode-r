@@ -96,8 +96,6 @@ namespace rhost {
         std::string from_utf8(const std::string& u8s);
         const std::locale& single_byte_locale();
 
-        std::string get_temp_file_path();
-
         inline void append(picojson::array& msg) {
         }
 

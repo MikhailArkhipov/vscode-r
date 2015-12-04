@@ -23,6 +23,7 @@
 #pragma once
 #include "stdafx.h"
 #include "Rapi.h"
+#include "util.h"
 
 namespace rhost {
     namespace host {
@@ -61,7 +62,7 @@ namespace rhost {
         template<class... Args>
         inline std::string send_message(const char* name, const Args&... args) {
             picojson::array args_array;
-            append(args_array, args...);
+            rhost::util::append(args_array, args...);
             return send_message(name, args_array);
         }
 

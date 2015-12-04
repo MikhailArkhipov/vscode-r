@@ -4,7 +4,7 @@
 
 namespace rhost {
     namespace grdevices {
-        namespace vs {
+        namespace ide {
             void init(DllInfo *dll);
         }
     }

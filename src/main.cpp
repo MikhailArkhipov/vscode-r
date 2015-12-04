@@ -28,7 +28,7 @@
 #include "host.h"
 #include "Rapi.h"
 #include "util.h"
-#include "grdevicesvs.h"
+#include "grdeviceside.h"
 #include "grdevicesxaml.h"
 #include "exports.h"
 
@@ -150,7 +150,7 @@ namespace rhost {
         DllInfo *dll = R_getEmbeddingDllInfo();
         rhost::r_util::init(dll);
         rhost::grdevices::xaml::init(dll);
-        rhost::grdevices::vs::init(dll);
+        rhost::grdevices::ide::init(dll);
         rhost::exports::register_all(dll);
 
         CharacterMode = LinkDLL;

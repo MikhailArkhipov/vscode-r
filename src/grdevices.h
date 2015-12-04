@@ -14,6 +14,10 @@ namespace rhost {
         public:
             pDevDesc device_desc;
 
+            virtual ~graphics_device()
+            {
+            }
+
             virtual void activate() = 0;
             virtual void circle(double x, double y, double r, pGEcontext gc) = 0;
             virtual void clip(double x0, double x1, double y0, double y1) = 0;
@@ -62,7 +66,6 @@ namespace rhost {
                 device_desc->close = [](pDevDesc dd) {
                     return rhost::util::exceptions_to_errors([&] {
                         reinterpret_cast<graphics_device*>(dd->deviceSpecific)->close();
-                        delete reinterpret_cast<graphics_device*>(dd->deviceSpecific);
                     });
                 };
                 device_desc->deactivate = [](pDevDesc dd) {
@@ -170,10 +173,6 @@ namespace rhost {
                         return reinterpret_cast<graphics_device*>(dd->deviceSpecific)->hold_flush(level);
                     });
                 };
-            }
-
-            virtual ~graphics_device()
-            {
             }
         };
     }
