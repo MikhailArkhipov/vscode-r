@@ -82,6 +82,20 @@ extern "C" {
         FUNSXP = 99,
     };
 
+    enum {
+        CTXT_TOPLEVEL = 0,
+        CTXT_NEXT = 1,
+        CTXT_BREAK = 2,
+        CTXT_LOOP = 3,
+        CTXT_FUNCTION = 4,
+        CTXT_CCODE = 8,
+        CTXT_RETURN = 12,
+        CTXT_BROWSER = 16,
+        CTXT_GENERIC = 20,
+        CTXT_RESTART = 32,
+        CTXT_BUILTIN = 64
+    };
+
     typedef struct RCNTXT {
         struct RCNTXT *nextcontext;
         int callflag;
