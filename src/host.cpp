@@ -416,7 +416,27 @@ namespace rhost {
                     send_message("\\");
                 }
 
-                if (!allow_callbacks) {
+                if (!allow_callbacks && len >= 3) {
+                    bool is_browser = false;
+                    for (RCNTXT* ctxt = R_GlobalContext; ctxt != nullptr; ctxt = ctxt->nextcontext) {
+                        if (ctxt->callflag & CTXT_BROWSER) {
+                            is_browser = true;
+                            break;
+
+                        }
+
+                    }
+
+                    if (is_browser) {
+                        // If this is a Browse prompt, raising an error is not a proper way to reject it -
+                        // it will simply start an infinite loop with every new error producing such prompt.
+                        // Instead, just tell the interpreter to continue execution.
+                        buf[0] = 'c';
+                        buf[1] = '\n';
+                        buf[2] = '\0';
+                        return 1;
+                    }
+
                     Rf_error("ReadConsole: blocking callback not allowed during evaluation.");
                 }
 
