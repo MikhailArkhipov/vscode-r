@@ -72,21 +72,25 @@ namespace rhost {
                 va_list va2;
                 va_copy(va2, va);
                 char buf[0x1000], *pbuf = buf;
-                count = msvcrt::vsnprintf(buf, sizeof buf, format, va2);
+                size_t bufsize = sizeof buf;
+                count = msvcrt::vsnprintf(buf, bufsize, format, va2);
                 va_end(va2);
 
                 std::unique_ptr<char[]> buf_deleter;
-                if (count < 0) { // error
-                    return count;
-                } else if (count >= sizeof buf) {
-                    // It didn't fit in the stack buffer, so heap-allocate a buffer of just the right size.
-                    buf_deleter.reset(pbuf = new char[count + 1]);
-                    va_copy(va2, va);
-                    count = msvcrt::vsnprintf(pbuf, count + 1, format, va2);
-                    va_end(va2);
-                    if (count < 0) { // error
-                        return count;
+                while (count < 0) {
+                    // If it didn't fit in the buffer, heap-allocate a larger buffer.
+                    bufsize *= 2;
+                    if (bufsize >= 100 * 1024 * 1024) {
+                        throw std::exception("Output is too long");
                     }
+
+                    // If we run out of memory, new will throw std::bad_alloc, which will
+                    // be translated to Rf_error at the boundary.
+                    buf_deleter.reset(pbuf = new char[bufsize *= 2]);
+
+                    va_copy(va2, va);
+                    count = msvcrt::vsnprintf(pbuf, bufsize, format, va2);
+                    va_end(va2);
                 }
 
                 if (!_eof_marker.empty()) {
