@@ -131,7 +131,7 @@ namespace rhost {
                     return overflow_suffix("");
                 }
 
-                unique_sexp value_char(Rf_asChar(value));
+                protected_sexp value_char(Rf_asChar(value));
                 return overflow_suffix(R_CHAR(value_char.get()));
             }
 
@@ -148,7 +148,7 @@ namespace rhost {
                     return eof_marker("");
                 }
 
-                unique_sexp value_char(Rf_asChar(value));
+                protected_sexp value_char(Rf_asChar(value));
                 return eof_marker(R_CHAR(value_char.get()));
             }
 
@@ -277,7 +277,7 @@ namespace rhost {
 
         extern "C" SEXP send_message(SEXP name_sexp, SEXP args_sexp) {
             return with_cancellation([&] {
-                unique_sexp name_char(Rf_asChar(name_sexp));
+                protected_sexp name_char(Rf_asChar(name_sexp));
                 const char* name = R_CHAR(name_char.get());
 
                 auto args = parse_args_sexp(args_sexp);
@@ -289,13 +289,13 @@ namespace rhost {
 
         extern "C" SEXP send_message_and_get_response(SEXP name_sexp, SEXP args_sexp) {
             return with_cancellation([&] {
-                unique_sexp name_char(Rf_asChar(name_sexp));
+                protected_sexp name_char(Rf_asChar(name_sexp));
                 const char* name = R_CHAR(name_char.get());
 
                 auto args = parse_args_sexp(args_sexp);
                 auto response = host::send_message_and_get_response(name, args);
 
-                unique_sexp response_args(Rf_allocVector3(STRSXP, response.args.size(), nullptr));
+                protected_sexp response_args(Rf_allocVector3(STRSXP, response.args.size(), nullptr));
                 for (size_t i = 0; i < response.args.size(); ++i) {
                     auto s = response.args[i].serialize();
                     SET_STRING_ELT(response_args.get(), i, Rf_mkChar(from_utf8(s).c_str()));
