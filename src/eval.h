@@ -86,8 +86,6 @@ namespace rhost {
                 }
             }
 
-            Rf_unprotect(1);
-
             return results;
         }
 
