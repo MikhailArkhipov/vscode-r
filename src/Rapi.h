@@ -267,8 +267,8 @@ extern "C" {
     extern int Rf_initialize_R(int ac, char** av);
     extern int Rf_initEmbeddedR(int argc, char** argv);
     extern void Rf_endEmbeddedR(int fatal);
-    extern SEXP Rf_protect(SEXP);
-    extern void Rf_unprotect(int);
+    //extern SEXP Rf_protect(SEXP);
+    //extern void Rf_unprotect(int);
     extern void Rf_unprotect_ptr(SEXP);
     extern SEXP Rf_allocVector3(SEXPTYPE, R_xlen_t, /*R_allocator_t*/ void*);
     extern R_len_t Rf_length(SEXP);

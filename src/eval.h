@@ -38,15 +38,15 @@ namespace rhost {
         };
 
         template <class FBefore, class FAfter>
-        inline std::vector<r_eval_result<util::unique_sexp>> r_try_eval(const std::string& expr, SEXP env, ParseStatus& parse_status, FBefore before = [] {}, FAfter after = [] {}) {
+        inline std::vector<r_eval_result<util::protected_sexp>> r_try_eval(const std::string& expr, SEXP env, ParseStatus& parse_status, FBefore before = [] {}, FAfter after = [] {}) {
             using namespace rhost::util;
 
-            std::vector<r_eval_result<unique_sexp>> results;
+            std::vector<r_eval_result<protected_sexp>> results;
 
-            unique_sexp sexp_expr(Rf_allocVector3(STRSXP, 1, nullptr));
+            protected_sexp sexp_expr(Rf_allocVector3(STRSXP, 1, nullptr));
             SET_STRING_ELT(sexp_expr.get(), 0, Rf_mkChar(expr.c_str()));
 
-            unique_sexp sexp_parsed(Rf_protect(R_ParseVector(sexp_expr.get(), -1, &parse_status, R_NilValue)));
+            protected_sexp sexp_parsed(R_ParseVector(sexp_expr.get(), -1, &parse_status, R_NilValue));
             if (parse_status == PARSE_OK) {
                 results.resize(Rf_length(sexp_parsed.get()));
                 for (int i = 0; i < results.size(); ++i) {
@@ -86,8 +86,6 @@ namespace rhost {
                 }
             }
 
-            Rf_unprotect(1);
-
             return results;
         }
 
@@ -106,7 +104,7 @@ namespace rhost {
                 result.error = last.error;
 
                 if (last.has_value) {
-                    unique_sexp sexp_char(Rf_asChar(last.value.get()));
+                    protected_sexp sexp_char(Rf_asChar(last.value.get()));
                     const char* s = R_CHAR(sexp_char.get());
                     if (s) {
                         result.has_value = true;

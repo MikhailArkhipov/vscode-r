@@ -81,7 +81,34 @@ namespace rhost {
             }
         };
 
-        typedef std::unique_ptr<SEXP, SEXP_delete> unique_sexp;
+        class protected_sexp : public std::unique_ptr<SEXP, SEXP_delete> {
+        public:
+            using unique_ptr::unique_ptr;
+
+            protected_sexp() {}
+
+            protected_sexp(SEXP other) :
+                unique_ptr(other)
+            {
+                R_PreserveObject(other);
+            }
+
+            protected_sexp(const protected_sexp& other) :
+                protected_sexp(other.get()) {}
+
+            protected_sexp(protected_sexp&& other) :
+                unique_ptr(std::move(other)) {}
+
+            using unique_ptr::operator=;
+
+            protected_sexp& operator= (SEXP other) {
+                return *this = std::move(protected_sexp(other));
+            }
+
+            protected_sexp& operator= (const protected_sexp& other) {
+                return *this = other.get();
+            }
+        };
 
         std::string to_utf8(const char* buf, size_t len);
 
