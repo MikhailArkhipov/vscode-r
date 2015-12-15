@@ -28,7 +28,6 @@
 #include "host.h"
 #include "Rapi.h"
 #include "util.h"
-#include "vsgd.h"
 #include "detours.h"
 #include "grdeviceside.h"
 #include "grdevicesxaml.h"

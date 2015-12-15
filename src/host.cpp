@@ -1,24 +1,24 @@
 /* ****************************************************************************
- *
- * Copyright (c) Microsoft Corporation. All rights reserved.
- *
- *
- * This file is part of Microsoft R Host.
- *
- * Microsoft R Host is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 2 of the License, or
- * (at your option) any later version.
- *
- * Microsoft R Host is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Microsoft R Host.  If not, see <http://www.gnu.org/licenses/>.
- *
- * ***************************************************************************/
+*
+* Copyright (c) Microsoft Corporation. All rights reserved.
+*
+*
+* This file is part of Microsoft R Host.
+*
+* Microsoft R Host is free software: you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation, either version 2 of the License, or
+* (at your option) any later version.
+*
+* Microsoft R Host is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with Microsoft R Host.  If not, see <http://www.gnu.org/licenses/>.
+*
+* ***************************************************************************/
 
 #include "host.h"
 #include "log.h"
@@ -440,13 +440,6 @@ namespace rhost {
                     Rf_error("ReadConsole: blocking callback not allowed during evaluation.");
                 }
 
-<<<<<<< HEAD
-            extern "C" void Busy(int which) {
-                with_cancellation([&] {
-                    send_message(*ws_conn, which ? "~+" : "~-");
-                });
-            }
-=======
                 readconsole_done();
 
                 for (std::string retry_reason;;) {
@@ -467,7 +460,6 @@ namespace rhost {
                     if (!arg.is<std::string>()) {
                         fatal_error("ReadConsole: response argument must be string or null.");
                     }
->>>>>>> d7462a62077eb7cee77dbe283a9344c6875c78d2
 
                     auto s = from_utf8(arg.get<std::string>());
                     if (s.size() >= len) {
@@ -484,36 +476,6 @@ namespace rhost {
         extern "C" void WriteConsoleEx(const char* buf, int len, int otype) {
             with_cancellation([&] {
                 send_message((otype ? "!!" : "!"), to_utf8_json(buf));
-            });
-        }
-
-        extern "C" void ShowMessage(const char* s) {
-            with_cancellation([&] {
-                send_message("![]", to_utf8_json(s));
-            });
-        }
-
-        extern "C" int YesNoCancel(const char* s) {
-            return with_cancellation([&] {
-                if (!allow_callbacks) {
-                    Rf_error("YesNoCancel: blocking callback not allowed during evaluation.");
-                }
-
-                auto msg = send_message_and_get_response("?", get_context(), to_utf8_json(s));
-                if (msg.args.size() != 1 || !msg.args[0].is<std::string>()) {
-                    fatal_error("YesNoCancel: response argument must be a string.");
-                }
-
-                auto& r = msg.args[0].get<std::string>();
-                if (r == "N") {
-                    return -1;
-                } else if (r == "C") {
-                    return 0;
-                } else if (r == "Y") {
-                    return 1;
-                } else {
-                    fatal_error("YesNoCancel: response argument must be 'Y', 'N' or 'C'.");
-                }
             });
         }
 
@@ -770,23 +732,10 @@ namespace rhost {
             rp.YesNoCancel = YesNoCancel;
             rp.Busy = Busy;
         }
-<<<<<<< HEAD
-
-        void plot_xaml(const std::string& filepath) {
-            with_cancellation([&] {
-                send_message(*ws_conn, "PlotXaml", to_utf8(filepath));
-            });
-        }
-
-        void browser(const std::string& url) {
-            with_cancellation([&] {
-                send_message(*ws_conn, "Browser", to_utf8(url));
-            });
-        }
 
         extern "C" void ShowMessage(const char* s) {
             with_cancellation([&] {
-                send_message(*ws_conn, "![]", to_utf8_json(s));
+                send_message("![]", to_utf8_json(s));
             });
         }
 
@@ -796,7 +745,7 @@ namespace rhost {
                     Rf_error("ShowMessageBox: blocking callback not allowed during evaluation.");
                 }
 
-                auto msg = send_message_and_get_response(*ws_conn, cmd, get_context(), to_utf8_json(s));
+                auto msg = send_message_and_get_response(cmd, get_context(), to_utf8_json(s));
                 if (msg.args.size() != 1 || !msg.args[0].is<std::string>()) {
                     fatal_error("ShowMessageBox: response argument must be a string.");
                 }
@@ -827,7 +776,5 @@ namespace rhost {
         extern "C" int OkCancel(const char* s) {
             return ShowMessageBox(s, "???");
         }
-=======
->>>>>>> d7462a62077eb7cee77dbe283a9344c6875c78d2
     }
 }

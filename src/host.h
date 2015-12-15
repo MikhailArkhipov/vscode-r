@@ -40,14 +40,12 @@ namespace rhost {
         std::future<void> wait_for_client(const boost::asio::ip::tcp::endpoint& endpoint);
         std::future<void> connect_to_server(const websocketpp::uri& uri);
         void register_callbacks(structRstart& rp);
-        void plot_xaml(const std::string& xaml);
-        void browser(const std::string& url);
+        void terminate_if_closed();
 
         extern "C" void ShowMessage(const char* s);
         extern "C" int YesNoCancel(const char* s);
         extern "C" int OkCancel(const char* s);
         extern "C" int YesNo(const char* s);
-        void terminate_if_closed();
 
         extern boost::signals2::signal<void()> callback_started;
         extern boost::signals2::signal<void()> readconsole_done;
