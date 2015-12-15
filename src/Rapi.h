@@ -270,8 +270,10 @@ extern "C" {
     //extern SEXP Rf_protect(SEXP);
     //extern void Rf_unprotect(int);
     extern void Rf_unprotect_ptr(SEXP);
+    extern SEXP Rf_allocVector(SEXPTYPE, R_xlen_t);
     extern SEXP Rf_allocVector3(SEXPTYPE, R_xlen_t, /*R_allocator_t*/ void*);
     extern R_len_t Rf_length(SEXP);
+    extern void Rf_defineVar(SEXP, SEXP, SEXP);
     extern SEXP Rf_findVar(SEXP, SEXP);
     extern SEXP Rf_eval(SEXP, SEXP);
     extern void Rf_onintr();
@@ -300,7 +302,9 @@ extern "C" {
 
     extern SEXP Rf_mkChar(const char*);
     extern SEXP Rf_mkString(const char*);
+    extern SEXP Rf_install(const char*);
     extern SEXP Rf_installChar(SEXP);
+    extern SEXP Rf_classgets(SEXP, SEXP);
 
     extern void setup_Rmainloop(void);
     extern void run_Rmainloop(void);

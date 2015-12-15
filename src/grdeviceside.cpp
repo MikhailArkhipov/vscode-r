@@ -37,12 +37,19 @@ namespace rhost {
             class plot {
             public:
                 plot(pDevDesc dd);
+                virtual ~plot();
 
                 void set_pending_render();
                 bool has_pending_render() const;
                 bool pending_render_timeout_elapsed() const;
                 void render();
-                void render_from_snapshot();
+                void render_from_display_list();
+                void render_from_snapshot(double width, double height);
+
+            private:
+                std::string get_snapshot_varname();
+                void save_snapshot_variable();
+                void replay_snapshot_variable();
 
             private:
                 boost::uuids::uuid _plot_id;
@@ -53,23 +60,32 @@ namespace rhost {
                 double _snapshot_render_height;
                 std::string _snapshot_render_filename;
                 std::string _snapshot_filename;
+                std::string _snapshot_varname;
             };
 
             class plot_history {
             public:
                 plot_history(pDevDesc dd);
 
-                plot* get_active();
+                plot* get_active() const;
                 void move_next();
                 void move_previous();
 
+                void new_page();
                 void append(std::unique_ptr<plot> plot);
                 void clear();
+
+                void resize(double width, double height);
+                void render_from_snapshot(double width, double height);
+
+                int plot_count() const;
+                int active_plot_index() const;
 
             private:
                 std::vector<std::unique_ptr<plot>>::iterator _active_plot;
                 std::vector<std::unique_ptr<plot>> _plots;
                 pDevDesc _device_desc;
+                bool _replaying;
             };
 
             class ide_device : public graphics_device {
@@ -119,12 +135,17 @@ namespace rhost {
                 void history_next();
                 void history_previous();
 
+                int plot_count() const;
+                int active_plot_index() const;
+
+                void select();
+                void output_and_kill_file_device();
+
             private:
                 std::string get_render_file_path();
                 pDevDesc get_or_create_file_device();
                 pDevDesc create_file_device();
                 void sync_file_device();
-                void output_and_kill_file_device();
                 void set_pending_render();
 
                 static pDevDesc create_file_device(const std::string& device_type, const std::string& filename, double width, double height);
@@ -155,6 +176,15 @@ namespace rhost {
                 _has_pending_render(false) {
             }
 
+            plot::~plot() {
+                if (!_snapshot_filename.empty()) {
+                    ::DeleteFileA(_snapshot_filename.c_str());
+                }
+                if (!_snapshot_render_filename.empty()) {
+                    ::DeleteFileA(_snapshot_render_filename.c_str());
+                }
+            }
+
             void plot::set_pending_render() {
                 _has_pending_render = true;
                 _last_pending_render_time = boost::posix_time::ptime(boost::posix_time::second_clock::local_time());
@@ -179,17 +209,65 @@ namespace rhost {
 
                 auto xdd = reinterpret_cast<ide_device*>(_device_desc->deviceSpecific);
                 auto path = xdd->save();
-                xdd->send(path);
+
+                if (!_snapshot_render_filename.empty()) {
+                    ::DeleteFileA(_snapshot_render_filename.c_str());
+                }
 
                 _snapshot_render_filename = path;
                 _snapshot_render_width = xdd->width();
                 _snapshot_render_height = xdd->height();
+
+                if (_snapshot_varname.empty()) {
+                    _snapshot_varname = get_snapshot_varname();
+                    save_snapshot_variable();
+                }
+
+                xdd->send(path);
             }
 
-            void plot::render_from_snapshot() {
-                // TODO: check if the snapshot render matches requested size, if not, render again from snapshot
+            void plot::render_from_display_list() {
+                pGEDevDesc ge_dev_desc = Rf_desc2GEDesc(_device_desc);
+                GEplayDisplayList(ge_dev_desc);
+
+                render();
+            }
+
+            void plot::render_from_snapshot(double width, double height) {
+                // Check if we already have a rendered file for the requested size
+                if (_snapshot_render_width == width && _snapshot_render_height == height) {
+                    auto xdd = reinterpret_cast<ide_device*>(_device_desc->deviceSpecific);
+                    xdd->send(_snapshot_render_filename);
+                }
+                else {
+                    replay_snapshot_variable();
+                }
+            }
+
+            void plot::replay_snapshot_variable() {
                 auto xdd = reinterpret_cast<ide_device*>(_device_desc->deviceSpecific);
-                xdd->send(_snapshot_render_filename);
+                xdd->output_and_kill_file_device();
+
+                rhost::util::protected_sexp snapshot(Rf_findVar(Rf_install(_snapshot_varname.c_str()), R_GlobalEnv));
+                pGEDevDesc ge_dev_desc = Rf_desc2GEDesc(_device_desc);
+
+                GEplaySnapshot(snapshot.get(), ge_dev_desc);
+            }
+
+            void plot::save_snapshot_variable() {
+                pGEDevDesc ge_dev_desc = Rf_desc2GEDesc(_device_desc);
+                rhost::util::protected_sexp snapshot(GEcreateSnapshot(ge_dev_desc));
+
+                rhost::util::protected_sexp klass(Rf_mkString("recordedplot"));
+                Rf_classgets(snapshot.get(), klass.get());
+
+                Rf_defineVar(Rf_install(_snapshot_varname.c_str()), snapshot.get(), R_GlobalEnv);
+            }
+
+            std::string plot::get_snapshot_varname() {
+                std::string name = std::string(".SavedPlot") + boost::uuids::to_string(_plot_id);
+                boost::algorithm::replace_all(name, "-", "");
+                return name;
             }
 
             ///////////////////////////////////////////////////////////////////////
@@ -197,11 +275,12 @@ namespace rhost {
             ///////////////////////////////////////////////////////////////////////
 
             plot_history::plot_history(pDevDesc dd) :
-                _device_desc(dd) {
+                _device_desc(dd),
+                _replaying(false) {
                 _active_plot = _plots.begin();
             }
 
-            plot* plot_history::get_active() {
+            plot* plot_history::get_active() const {
                 if (_active_plot == _plots.end()) {
                     return nullptr;
                 }
@@ -225,6 +304,15 @@ namespace rhost {
                 }
             }
 
+            void plot_history::new_page() {
+                if (!_replaying) {
+                    pGEDevDesc ge_dev_desc = Rf_desc2GEDesc(_device_desc);
+                    auto snapshot = ge_dev_desc->savedSnapshot;
+                    append(std::make_unique<plot>(_device_desc));
+                    // TODO: save snapshot
+                }
+            }
+
             void plot_history::append(std::unique_ptr<plot> p) {
                 _plots.push_back(std::move(p));
                 _active_plot = std::prev(_plots.end(), 1);
@@ -232,6 +320,46 @@ namespace rhost {
 
             void plot_history::clear() {
                 // TODO
+            }
+
+            void plot_history::resize(double width, double height) {
+                if (_active_plot == std::prev(_plots.end(), 1)) {
+                    _replaying = true;
+                    auto plot = _active_plot->get();
+                    plot->render_from_display_list();
+                    _replaying = false;
+                }
+                else {
+                    render_from_snapshot(width, height);
+                }
+            }
+
+            void plot_history::render_from_snapshot(double width, double height) {
+                _replaying = true;
+                auto plot = _active_plot->get();
+                if (plot != nullptr) {
+                    plot->render_from_snapshot(width, height);
+                }
+                _replaying = false;
+            }
+
+            int plot_history::plot_count() const {
+                return (int)_plots.size();
+            }
+
+            int plot_history::active_plot_index() const {
+                auto active_plot = get_active();
+                if (active_plot != nullptr) {
+                    int index = 0;
+                    for (auto it = _plots.begin(); it != _plots.end(); it++) {
+                        if (active_plot == (*it).get()) {
+                            return index;
+                        }
+                        index++;
+                    }
+                }
+
+                return -1;
             }
 
             ///////////////////////////////////////////////////////////////////////
@@ -320,7 +448,9 @@ namespace rhost {
             }
 
             void ide_device::close() {
-                // TODO: send an 'empty' plot to ide to clear the plot window
+                // send an 'empty' plot to ide to clear the plot window
+                send("");
+
                 closed();
                 delete this;
             }
@@ -362,7 +492,7 @@ namespace rhost {
             }
 
             void ide_device::new_page(const pGEcontext gc) {
-                _history.append(std::make_unique<plot>(device_desc));
+                _history.new_page();
 
                 auto dev = get_or_create_file_device();
                 if (dev->newPage != nullptr) {
@@ -476,6 +606,11 @@ namespace rhost {
                 }
             }
 
+            void ide_device::select() {
+                auto num = Rf_ndevNumber(device_instance->device_desc);
+                Rf_selectDevice(num);
+            }
+
             void ide_device::resize(double width, double height) {
                 output_and_kill_file_device();
 
@@ -484,10 +619,7 @@ namespace rhost {
 
                 _file_device = create_file_device();
 
-                pGEDevDesc ge_dev_desc = Rf_desc2GEDesc(device_desc);
-                GEplayDisplayList(ge_dev_desc);
-
-                render_request(true);
+                _history.resize(width, height);
             }
 
             std::string ide_device::save() {
@@ -573,18 +705,20 @@ namespace rhost {
 
             void ide_device::history_next() {
                 _history.move_next();
-                auto plot = _history.get_active();
-                if (plot != nullptr) {
-                    plot->render_from_snapshot();
-                }
+                _history.render_from_snapshot(_width, _height);
             }
 
             void ide_device::history_previous() {
                 _history.move_previous();
-                auto plot = _history.get_active();
-                if (plot != nullptr) {
-                    plot->render_from_snapshot();
-                }
+                _history.render_from_snapshot(_width, _height);
+            }
+
+            int ide_device::plot_count() const {
+                return _history.plot_count();
+            }
+
+            int ide_device::active_plot_index() const {
+                return _history.active_plot_index();
             }
 
             pDevDesc ide_device::create_file_device(const std::string& device_type, const std::string& filename, double width, double height) {
@@ -628,11 +762,11 @@ namespace rhost {
                 R_CheckDeviceAvailable();
                 BEGIN_SUSPEND_INTERRUPTS{
                     auto dev = ide_device::create("png", default_width, default_height);
-                    pGEDevDesc gdd = GEcreateDevDesc(dev->device_desc);
-                    GEaddDevice2(gdd, "ide");
-                    // Owner is DevDesc::deviceSpecific, and is released in close()
-                    dev->closed.connect([&] { device_instance = nullptr; });
-                    device_instance = dev.release();
+                pGEDevDesc gdd = GEcreateDevDesc(dev->device_desc);
+                GEaddDevice2(gdd, "ide");
+                // Owner is DevDesc::deviceSpecific, and is released in close()
+                dev->closed.connect([&] { device_instance = nullptr; });
+                device_instance = dev.release();
                 } END_SUSPEND_INTERRUPTS;
 
                 return R_NilValue;
@@ -651,6 +785,7 @@ namespace rhost {
                 default_height = *h;
 
                 if (device_instance != nullptr) {
+                    device_instance->select();
                     device_instance->resize(*w, *h);
                 }
 
@@ -659,6 +794,7 @@ namespace rhost {
 
             extern "C" SEXP ide_graphicsdevice_next_plot(SEXP args) {
                 if (device_instance != nullptr) {
+                    device_instance->select();
                     device_instance->history_next();
                 }
 
@@ -667,10 +803,26 @@ namespace rhost {
 
             extern "C" SEXP ide_graphicsdevice_previous_plot(SEXP args) {
                 if (device_instance != nullptr) {
+                    device_instance->select();
                     device_instance->history_previous();
                 }
 
                 return R_NilValue;
+            }
+
+            extern "C" SEXP ide_graphicsdevice_history_info(SEXP args) {
+                // zero-based index active plot, number of plots
+                auto value = Rf_allocVector(INTSXP, 2);
+                if (device_instance != nullptr) {
+                    INTEGER(value)[0] = device_instance->active_plot_index();
+                    INTEGER(value)[1] = device_instance->plot_count();
+                }
+                else {
+                    INTEGER(value)[0] = -1;
+                    INTEGER(value)[1] = 0;
+                }
+
+                return value;
             }
 
             static R_ExternalMethodDef external_methods[] = {
@@ -678,7 +830,8 @@ namespace rhost {
                 { "rtvs::External.ide_graphicsdevice_resize", (DL_FUNC)&ide_graphicsdevice_resize, 2 },
                 { "rtvs::External.ide_graphicsdevice_next_plot", (DL_FUNC)&ide_graphicsdevice_next_plot, 0 },
                 { "rtvs::External.ide_graphicsdevice_previous_plot", (DL_FUNC)&ide_graphicsdevice_previous_plot, 0 },
-                { }
+                { "rtvs::External.ide_graphicsdevice_history_info", (DL_FUNC)&ide_graphicsdevice_history_info, 0 },
+                {}
             };
 
             void init(DllInfo *dll) {
