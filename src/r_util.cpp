@@ -304,6 +304,75 @@ namespace rhost {
             });
         }
 
+        CCODE do_parse;
+        SEXP instrumentation_callback;
+
+        extern "C" SEXP detoured_parse(SEXP call, SEXP op, SEXP args, SEXP env) {
+            // Because this invokes do_parse, which will use Rf_error to report errors anyway,
+            // there's no point in using exceptions_to_errors. Therefore, the body of this function
+            // must not rely on destructors being run during unwinding - so no STL classes, nor
+            // protected_sexp.
+
+            assert(do_parse);
+            SEXP result = Rf_protect(do_parse(call, op, args, env));
+
+            if (instrumentation_callback != R_NilValue) {
+                static bool in_callback = false;
+                if (!in_callback) {
+                    in_callback = true;
+
+                    SEXP call = Rf_protect(Rf_allocList(2));
+                    SET_TYPEOF(call, LANGSXP);
+                    SETCAR(call, instrumentation_callback);
+
+                    SEXP arg = CDR(call);
+                    SETCAR(arg, result);
+
+                    auto protected_eval = [&] {
+                        SEXP instrumented = Rf_eval(call, R_GlobalEnv);
+                        if (instrumented != R_NilValue) {
+                            result = instrumented;
+                        }
+                    };
+                    typedef decltype(protected_eval) protected_eval_t;
+
+                    if (!R_ToplevelExec([](void* arg) { (*reinterpret_cast<protected_eval_t*>(arg))(); }, &protected_eval)) {
+                        const char* err = R_curErrorBuf();
+                        log::logf("detoured_parse: callback error: %s\n", err);
+                    }
+
+                    Rf_unprotect(1);
+                    in_callback = false;
+                }
+            }
+
+            Rf_unprotect(1);
+            return result;
+        }
+
+        extern "C" SEXP set_instrumentation_callback(SEXP func) {
+            return exceptions_to_errors([&] {
+                if (!do_parse) {
+                    FUNTAB* funtab = R_FunTab;
+                    for (;;) {
+                        if (!funtab->name) {
+                            throw std::exception("R_FunTab does not contain an entry for 'parse'.");
+                        } else if (strcmp(funtab->name, "parse") == 0) {
+                            break;
+                        } else {
+                            ++funtab;
+                        }
+                    }
+
+                    do_parse = funtab->cfun;
+                    funtab->cfun = detoured_parse;
+                }
+
+                instrumentation_callback = func;
+                return R_NilValue;
+            });
+        }
+
         R_CallMethodDef call_methods[] = {
             { "rtvs::Call.unevaluated_promise", (DL_FUNC)unevaluated_promise, 2 },
             { "rtvs::Call.memory_connection", (DL_FUNC)memory_connection_new, 4 },
@@ -311,6 +380,7 @@ namespace rhost {
             { "rtvs::Call.memory_connection_overflown", (DL_FUNC)memory_connection_overflown, 1 },
             { "rtvs::Call.send_message", (DL_FUNC)send_message, 2 },
             { "rtvs::Call.send_message_and_get_response", (DL_FUNC)send_message_and_get_response, 2 },
+            { "rtvs::Call.set_instrumentation_callback", (DL_FUNC)set_instrumentation_callback, 1 },
             { }
         };
 
