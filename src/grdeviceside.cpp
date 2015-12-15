@@ -59,7 +59,6 @@ namespace rhost {
                 double _snapshot_render_width;
                 double _snapshot_render_height;
                 std::string _snapshot_render_filename;
-                std::string _snapshot_filename;
                 std::string _snapshot_varname;
             };
 
@@ -177,9 +176,6 @@ namespace rhost {
             }
 
             plot::~plot() {
-                if (!_snapshot_filename.empty()) {
-                    ::DeleteFileA(_snapshot_filename.c_str());
-                }
                 if (!_snapshot_render_filename.empty()) {
                     ::DeleteFileA(_snapshot_render_filename.c_str());
                 }
