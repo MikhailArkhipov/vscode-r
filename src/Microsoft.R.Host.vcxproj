@@ -168,6 +168,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="exports.cpp" />
+    <ClCompile Include="grdeviceside.cpp" />
+    <ClCompile Include="grdevicesxaml.cpp" />
     <ClCompile Include="msvcrt.cpp" />
     <ClCompile Include="eval.cpp" />
     <ClCompile Include="log.cpp" />
@@ -177,10 +180,13 @@
     <ClCompile Include="host.cpp" />
     <ClCompile Include="detours.cpp" />
     <ClCompile Include="util.cpp" />
-    <ClCompile Include="vsgd.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="detours.h" />
+    <ClInclude Include="exports.h" />
+    <ClInclude Include="grdevices.h" />
+    <ClInclude Include="grdeviceside.h" />
+    <ClInclude Include="grdevicesxaml.h" />
     <ClInclude Include="msvcrt.h" />
     <ClInclude Include="eval.h" />
     <ClInclude Include="log.h" />
@@ -192,7 +198,6 @@
     <ClInclude Include="host.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="util.h" />
-    <ClInclude Include="vsgd.h" />
     <ClInclude Include="xamlbuilder.h" />
   </ItemGroup>
   <ItemGroup>
@@ -200,12 +205,6 @@
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Resource.rc" />
-  </ItemGroup>
-  <ItemGroup>
-    <FilesToSign Include="$(OutDir)\$(ProjectName).exe">
-      <Authenticode>Microsoft</Authenticode>
-      <StrongName>StrongName</StrongName>
-    </FilesToSign>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
@@ -230,5 +229,4 @@
     <Error Condition="!Exists('..\NugetPackages\minhook.1.3.2.1\build\native\minhook.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\NugetPackages\minhook.1.3.2.1\build\native\minhook.targets'))" />
   </Target>
   <Import Project="$(SolutionDir)\R.Build.Version.targets" />
-  <Import Project="$(SolutionDir)\..\NugetPackages\MicroBuild.Core.0.1.1\build\MicroBuild.Core.targets" Condition="Exists('$(SolutionDir)\..\NugetPackages\MicroBuild.Core.0.1.1\build\MicroBuild.Core.targets')" />
 </Project>

@@ -2,7 +2,6 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="vsgd.cpp" />
     <ClCompile Include="r_util.cpp" />
     <ClCompile Include="util.cpp" />
     <ClCompile Include="log.cpp" />
@@ -11,6 +10,9 @@
     <ClCompile Include="host.cpp" />
     <ClCompile Include="msvcrt.cpp" />
     <ClCompile Include="detours.cpp" />
+    <ClCompile Include="exports.cpp" />
+    <ClCompile Include="grdevicesxaml.cpp" />
+    <ClCompile Include="grdeviceside.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h" />
@@ -18,7 +20,6 @@
     <ClInclude Include="util.h" />
     <ClInclude Include="Rgraphicsapi.h" />
     <ClInclude Include="xamlbuilder.h" />
-    <ClInclude Include="vsgd.h" />
     <ClInclude Include="r_util.h" />
     <ClInclude Include="eval.h" />
     <ClInclude Include="log.h" />
@@ -27,6 +28,10 @@
     <ClInclude Include="msvcrt.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="detours.h" />
+    <ClInclude Include="exports.h" />
+    <ClInclude Include="grdevices.h" />
+    <ClInclude Include="grdevicesxaml.h" />
+    <ClInclude Include="grdeviceside.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

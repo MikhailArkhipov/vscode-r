@@ -25,6 +25,7 @@
 
 namespace rhost {
     namespace msvcrt {
+        extern void* (*calloc)(size_t num, size_t size);
         extern void* (*malloc)(size_t size);
         extern void (*free)(void *memblock);
         extern int (*atexit)(void(*func)(void));

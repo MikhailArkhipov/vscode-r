@@ -82,6 +82,20 @@ extern "C" {
         FUNSXP = 99,
     };
 
+    enum {
+        CTXT_TOPLEVEL = 0,
+        CTXT_NEXT = 1,
+        CTXT_BREAK = 2,
+        CTXT_LOOP = 3,
+        CTXT_FUNCTION = 4,
+        CTXT_CCODE = 8,
+        CTXT_RETURN = 12,
+        CTXT_BROWSER = 16,
+        CTXT_GENERIC = 20,
+        CTXT_RESTART = 32,
+        CTXT_BUILTIN = 64
+    };
+
     typedef struct RCNTXT {
         struct RCNTXT *nextcontext;
         int callflag;
@@ -253,8 +267,8 @@ extern "C" {
     extern int Rf_initialize_R(int ac, char** av);
     extern int Rf_initEmbeddedR(int argc, char** argv);
     extern void Rf_endEmbeddedR(int fatal);
-    extern SEXP Rf_protect(SEXP);
-    extern void Rf_unprotect(int);
+    //extern SEXP Rf_protect(SEXP);
+    //extern void Rf_unprotect(int);
     extern void Rf_unprotect_ptr(SEXP);
     extern SEXP Rf_allocVector3(SEXPTYPE, R_xlen_t, /*R_allocator_t*/ void*);
     extern R_len_t Rf_length(SEXP);
