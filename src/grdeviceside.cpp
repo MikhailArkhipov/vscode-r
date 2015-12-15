@@ -177,7 +177,7 @@ namespace rhost {
 
             plot::~plot() {
                 if (!_snapshot_render_filename.empty()) {
-                    ::DeleteFileA(_snapshot_render_filename.c_str());
+                    remove(_snapshot_render_filename.c_str());
                 }
             }
 
@@ -207,7 +207,7 @@ namespace rhost {
                 auto path = xdd->save();
 
                 if (!_snapshot_render_filename.empty()) {
-                    ::DeleteFileA(_snapshot_render_filename.c_str());
+                    remove(_snapshot_render_filename.c_str());
                 }
 
                 _snapshot_render_filename = path;
@@ -344,18 +344,12 @@ namespace rhost {
             }
 
             int plot_history::active_plot_index() const {
-                auto active_plot = get_active();
-                if (active_plot != nullptr) {
-                    int index = 0;
-                    for (auto it = _plots.begin(); it != _plots.end(); it++) {
-                        if (active_plot == (*it).get()) {
-                            return index;
-                        }
-                        index++;
-                    }
+                if (_active_plot == _plots.end()) {
+                    return -1;
                 }
 
-                return -1;
+                int index = static_cast<int>(_active_plot - _plots.begin());
+                return index;
             }
 
             ///////////////////////////////////////////////////////////////////////
