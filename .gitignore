@@ -82,3 +82,4 @@ UpgradeLog*.htm
 *.sdf
 *.opensdf
 src/GeneratedVersion.h
+src/Microsoft.R.Host.VC.opendb
