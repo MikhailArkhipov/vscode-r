@@ -178,9 +178,11 @@
     <ClCompile Include="RPlotHost.cpp" />
     <ClCompile Include="r_util.cpp" />
     <ClCompile Include="host.cpp" />
+    <ClCompile Include="detours.cpp" />
     <ClCompile Include="util.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="detours.h" />
     <ClInclude Include="exports.h" />
     <ClInclude Include="grdevices.h" />
     <ClInclude Include="grdeviceside.h" />
@@ -212,6 +214,7 @@
     <Import Project="$(SolutionDir)\..\NugetPackages\boost_regex-vc140.1.59.0.0\build\native\boost_regex-vc140.targets" Condition="Exists('$(SolutionDir)\..\NugetPackages\boost_regex-vc140.1.59.0.0\build\native\boost_regex-vc140.targets')" />
     <Import Project="$(SolutionDir)\..\NugetPackages\boost_program_options-vc140.1.59.0.0\build\native\boost_program_options-vc140.targets" Condition="Exists('$(SolutionDir)\..\NugetPackages\boost_program_options-vc140.1.59.0.0\build\native\boost_program_options-vc140.targets')" />
     <Import Project="$(SolutionDir)\..\NugetPackages\boost_locale-vc140.1.59.0.0\build\native\boost_locale-vc140.targets" Condition="Exists('$(SolutionDir)\..\NugetPackages\boost_locale-vc140.1.59.0.0\build\native\boost_locale-vc140.targets')" />
+    <Import Project="..\NugetPackages\minhook.1.3.2.1\build\native\minhook.targets" Condition="Exists('..\NugetPackages\minhook.1.3.2.1\build\native\minhook.targets')" />
   </ImportGroup>
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
@@ -223,6 +226,7 @@
     <Error Condition="!Exists('$(SolutionDir)\..\NugetPackages\boost_regex-vc140.1.59.0.0\build\native\boost_regex-vc140.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\..\NugetPackages\boost_regex-vc140.1.59.0.0\build\native\boost_regex-vc140.targets'))" />
     <Error Condition="!Exists('$(SolutionDir)\..\NugetPackages\boost_program_options-vc140.1.59.0.0\build\native\boost_program_options-vc140.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\..\NugetPackages\boost_program_options-vc140.1.59.0.0\build\native\boost_program_options-vc140.targets'))" />
     <Error Condition="!Exists('$(SolutionDir)\..\NugetPackages\boost_locale-vc140.1.59.0.0\build\native\boost_locale-vc140.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\..\NugetPackages\boost_locale-vc140.1.59.0.0\build\native\boost_locale-vc140.targets'))" />
+    <Error Condition="!Exists('..\NugetPackages\minhook.1.3.2.1\build\native\minhook.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\NugetPackages\minhook.1.3.2.1\build\native\minhook.targets'))" />
   </Target>
   <Import Project="$(SolutionDir)\R.Build.Version.targets" />
 </Project>

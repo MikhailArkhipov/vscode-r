@@ -28,6 +28,7 @@
 #include "host.h"
 #include "Rapi.h"
 #include "util.h"
+#include "detours.h"
 #include "grdeviceside.h"
 #include "grdevicesxaml.h"
 #include "exports.h"
@@ -140,6 +141,7 @@ namespace rhost {
         rp.SaveAction = SA_NOSAVE;
 
         rhost::host::register_callbacks(rp);
+        rhost::detours::init_ui_detours();
 
         R_SetParams(&rp);
         R_set_command_line_arguments(args.argc, args.argv.data());
@@ -175,5 +177,6 @@ int main(int argc, char** argv) {
         return rhost::run(argc, argv);
     } __finally {
         flush_log();
+        rhost::detours::terminate_ui_detours();
     }
 }

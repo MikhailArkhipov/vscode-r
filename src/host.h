@@ -1,10 +1,10 @@
 /* ****************************************************************************
  *
- * Copyright (c) Microsoft Corporation. All rights reserved. 
+ * Copyright (c) Microsoft Corporation. All rights reserved.
  *
  *
  * This file is part of Microsoft R Host.
- * 
+ *
  * Microsoft R Host is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 2 of the License, or
@@ -41,6 +41,11 @@ namespace rhost {
         std::future<void> connect_to_server(const websocketpp::uri& uri);
         void register_callbacks(structRstart& rp);
         void terminate_if_closed();
+
+        extern "C" void ShowMessage(const char* s);
+        extern "C" int YesNoCancel(const char* s);
+        extern "C" int OkCancel(const char* s);
+        extern "C" int YesNo(const char* s);
 
         extern boost::signals2::signal<void()> callback_started;
         extern boost::signals2::signal<void()> readconsole_done;
