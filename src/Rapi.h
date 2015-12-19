@@ -332,6 +332,13 @@ extern "C" {
     extern SEXP CDR(SEXP e);
     extern SEXP SETCDR(SEXP x, SEXP y);
 
+    extern int RDEBUG(SEXP x);
+    extern int RSTEP(SEXP x);
+    extern int RTRACE(SEXP x);
+    extern void SET_RDEBUG(SEXP x, int v);
+    extern void SET_RSTEP(SEXP x, int v);
+    extern void SET_RTRACE(SEXP x, int v);
+
 #ifdef _WIN32
     extern char *getDLLVersion(void), *getRUser(void), *get_R_HOME(void);
     extern void setup_term_ui(void);
