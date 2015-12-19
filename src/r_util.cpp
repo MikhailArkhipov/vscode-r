@@ -373,6 +373,15 @@ namespace rhost {
             });
         }
 
+        extern "C" SEXP is_rdebug(SEXP obj) {
+            return RDEBUG(obj) ? R_TrueValue : R_FalseValue;
+        }
+
+        extern "C" SEXP set_rdebug(SEXP obj, SEXP debug) {
+            SET_RDEBUG(obj, Rf_asLogical(debug));
+            return R_NilValue;
+        }
+
         R_CallMethodDef call_methods[] = {
             { "rtvs::Call.unevaluated_promise", (DL_FUNC)unevaluated_promise, 2 },
             { "rtvs::Call.memory_connection", (DL_FUNC)memory_connection_new, 4 },
@@ -381,6 +390,8 @@ namespace rhost {
             { "rtvs::Call.send_message", (DL_FUNC)send_message, 2 },
             { "rtvs::Call.send_message_and_get_response", (DL_FUNC)send_message_and_get_response, 2 },
             { "rtvs::Call.set_instrumentation_callback", (DL_FUNC)set_instrumentation_callback, 1 },
+            { "rtvs::Call.is_rdebug", (DL_FUNC)is_rdebug, 1 },
+            { "rtvs::Call.set_rdebug", (DL_FUNC)set_rdebug, 2 },
             { }
         };
 
