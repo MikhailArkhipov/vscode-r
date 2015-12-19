@@ -42,9 +42,16 @@ namespace rhost {
             }
         }
 
-        void init_log() {
-            char filename[MAX_PATH + 1 + MAX_PATH] = {};
-            GetTempPathA(sizeof filename, filename);
+        void init_log(const std::string& log_suffix) {
+            std::string filename;
+            filename.resize(MAX_PATH);
+            GetTempPathA(static_cast<DWORD>(filename.size()), &filename[0]);
+            filename.resize(strlen(filename.c_str()));
+            filename += "/Microsoft.R.Host_";
+
+            if (!log_suffix.empty()) {
+                filename += log_suffix + "_";
+            }
 
             time_t t;
             time(&t);
@@ -52,10 +59,17 @@ namespace rhost {
             tm tm;
             localtime_s(&tm, &t);
 
-            size_t len = strlen(filename);
-            strftime(filename + len, sizeof filename - len, "/Microsoft.R.Host_%Y%m%d_%H%M%S.log", &tm);
+            size_t len = filename.size();
+            filename.resize(len + 1 + MAX_PATH);
+            auto it = filename.begin() + len;
+            strftime(&*it, filename.end() - it, "%Y%m%d_%H%M%S", &tm);
+            filename.resize(strlen(filename.c_str()));
 
-            logfile = _fsopen(filename, "wc", _SH_DENYWR);
+            // Add PID to prevent conflicts in case two hosts with the same suffix
+            // get started at the same time.
+            filename += "_pid" + std::to_string(getpid()) + ".log";
+        
+            logfile = _fsopen(filename.c_str(), "wc", _SH_DENYWR);
             if (logfile) {
                 // Logging happens often, so use a large buffer to avoid hitting the disk all the time.
                 setvbuf(logfile, nullptr, _IOFBF, 0x100000);
