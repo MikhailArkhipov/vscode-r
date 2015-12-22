@@ -25,7 +25,7 @@
 
 namespace rhost {
     namespace log {
-        void init_log();
+        void init_log(const std::string& log_suffix);
 
         void vlogf(const char* format, va_list va);
 
