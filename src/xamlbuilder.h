@@ -29,9 +29,6 @@
 
 #define XAML_XMLNS "http://schemas.microsoft.com/winfx/2006/xaml/presentation"
 
-// Re-enable this code if we want to use base-64 encoded bitmaps (with appropriate namespace/assembly name)
-//#define VS_XMLNS "clr-namespace:Microsoft.VisualStudioTools.Wpf;assembly=XamlViewer"
-
 namespace rhost {
     namespace graphics {
         class xaml_builder {
@@ -162,38 +159,6 @@ namespace rhost {
                 _xaml.push_back(stream.str());
             }
 
-            // TODO: currently unused, not sure if we'll end up using it or not.  keeping in case we do.
-            //void bitmap_embedded_base64(double top, double left, double width, double height, double rotation, bool interpolate, const std::string& base64_encoded_data) {
-            //    std::ostringstream stream;
-
-            //    stream << "<Image";
-            //    write_attr("Canvas.Left", left, stream);
-            //    write_attr("Canvas.Top", top, stream);
-            //    write_attr("Width", width, stream);
-            //    write_attr("Height", height, stream);
-            //    if (!interpolate) {
-            //        stream << " RenderOptions.BitmapScalingMode=\"NearestNeighbor\"";
-            //    }
-            //    stream << " >";
-            //    if (rotation != 0) {
-            //        stream << "<Image.RenderTransform>";
-            //        stream << "<TransformGroup>";
-            //        stream << "<RotateTransform Angle=\"" << rotation << "\" />";
-            //        stream << "</TransformGroup>";
-            //        stream << "</Image.RenderTransform>";
-            //    }
-            //    stream << "<Image.Source>";
-            //    stream << "<vs:Base64ImageSource>";
-            //    stream << "<vs:Base64ImageSource.Base64>";
-            //    stream << base64_encoded_data;
-            //    stream << "</vs:Base64ImageSource.Base64>";
-            //    stream << "</vs:Base64ImageSource>";
-            //    stream << "</Image.Source>";
-            //    stream << "</Image>";
-
-            //    _xaml.push_back(stream.str());
-            //}
-
             void bitmap_external_file(double top, double left, double width, double height, double rotation, bool interpolate, const std::string& filepath) {
                 std::ostringstream stream;
 
@@ -283,8 +248,6 @@ namespace rhost {
             void write_xaml(std::ofstream& f) {
                 f << "<Canvas";
                 write_attr("xmlns", "http://schemas.microsoft.com/winfx/2006/xaml/presentation", f);
-                // Re-enable this code if we want to use base-64 encoded bitmaps
-                //write_attr("xmlns:vs", VS_XMLNS, f);
                 write_attr("Height", _height, f);
                 write_attr("Width", _width, f);
                 write_attr("Background", _background_color, f);

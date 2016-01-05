@@ -383,15 +383,15 @@ namespace rhost {
         }
 
         R_CallMethodDef call_methods[] = {
-            { "rtvs::Call.unevaluated_promise", (DL_FUNC)unevaluated_promise, 2 },
-            { "rtvs::Call.memory_connection", (DL_FUNC)memory_connection_new, 4 },
-            { "rtvs::Call.memory_connection_tochar", (DL_FUNC)memory_connection_tochar, 1 },
-            { "rtvs::Call.memory_connection_overflown", (DL_FUNC)memory_connection_overflown, 1 },
-            { "rtvs::Call.send_message", (DL_FUNC)send_message, 2 },
-            { "rtvs::Call.send_message_and_get_response", (DL_FUNC)send_message_and_get_response, 2 },
-            { "rtvs::Call.set_instrumentation_callback", (DL_FUNC)set_instrumentation_callback, 1 },
-            { "rtvs::Call.is_rdebug", (DL_FUNC)is_rdebug, 1 },
-            { "rtvs::Call.set_rdebug", (DL_FUNC)set_rdebug, 2 },
+            { "Microsoft.R.Host::Call.unevaluated_promise", (DL_FUNC)unevaluated_promise, 2 },
+            { "Microsoft.R.Host::Call.memory_connection", (DL_FUNC)memory_connection_new, 4 },
+            { "Microsoft.R.Host::Call.memory_connection_tochar", (DL_FUNC)memory_connection_tochar, 1 },
+            { "Microsoft.R.Host::Call.memory_connection_overflown", (DL_FUNC)memory_connection_overflown, 1 },
+            { "Microsoft.R.Host::Call.send_message", (DL_FUNC)send_message, 2 },
+            { "Microsoft.R.Host::Call.send_message_and_get_response", (DL_FUNC)send_message_and_get_response, 2 },
+            { "Microsoft.R.Host::Call.set_instrumentation_callback", (DL_FUNC)set_instrumentation_callback, 1 },
+            { "Microsoft.R.Host::Call.is_rdebug", (DL_FUNC)is_rdebug, 1 },
+            { "Microsoft.R.Host::Call.set_rdebug", (DL_FUNC)set_rdebug, 2 },
             { }
         };
 
