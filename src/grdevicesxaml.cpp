@@ -505,7 +505,7 @@ namespace rhost {
             }
 
             static R_ExternalMethodDef external_methods[] = {
-                { "rtvs::External.xaml_graphicsdevice_new", (DL_FUNC)&xaml_graphicsdevice_new, 3 },
+                { "Microsoft.R.Host::External.xaml_graphicsdevice_new", (DL_FUNC)&xaml_graphicsdevice_new, 3 },
                 { }
             };
 

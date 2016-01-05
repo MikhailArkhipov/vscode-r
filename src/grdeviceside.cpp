@@ -816,11 +816,11 @@ namespace rhost {
             }
 
             static R_ExternalMethodDef external_methods[] = {
-                { "rtvs::External.ide_graphicsdevice_new", (DL_FUNC)&ide_graphicsdevice_new, 0 },
-                { "rtvs::External.ide_graphicsdevice_resize", (DL_FUNC)&ide_graphicsdevice_resize, 2 },
-                { "rtvs::External.ide_graphicsdevice_next_plot", (DL_FUNC)&ide_graphicsdevice_next_plot, 0 },
-                { "rtvs::External.ide_graphicsdevice_previous_plot", (DL_FUNC)&ide_graphicsdevice_previous_plot, 0 },
-                { "rtvs::External.ide_graphicsdevice_history_info", (DL_FUNC)&ide_graphicsdevice_history_info, 0 },
+                { "Microsoft.R.Host::External.ide_graphicsdevice_new", (DL_FUNC)&ide_graphicsdevice_new, 0 },
+                { "Microsoft.R.Host::External.ide_graphicsdevice_resize", (DL_FUNC)&ide_graphicsdevice_resize, 2 },
+                { "Microsoft.R.Host::External.ide_graphicsdevice_next_plot", (DL_FUNC)&ide_graphicsdevice_next_plot, 0 },
+                { "Microsoft.R.Host::External.ide_graphicsdevice_previous_plot", (DL_FUNC)&ide_graphicsdevice_previous_plot, 0 },
+                { "Microsoft.R.Host::External.ide_graphicsdevice_history_info", (DL_FUNC)&ide_graphicsdevice_history_info, 0 },
                 {}
             };
 
