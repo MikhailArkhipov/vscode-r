@@ -23,7 +23,6 @@
 #include "stdafx.h"
 #include "msvcrt.h"
 #include "log.h"
-#include "RPlotHost.h"
 #include "r_util.h"
 #include "host.h"
 #include "Rapi.h"
@@ -41,7 +40,6 @@ namespace rhost {
         std::string name;
         boost::optional<boost::asio::ip::tcp::endpoint> listen_endpoint;
         boost::optional<websocketpp::uri> connect_uri;
-        boost::optional<HWND> plot_window_parent;
 
         std::vector<std::string> unrecognized;
         int argc;
@@ -55,11 +53,10 @@ namespace rhost {
             help("rhost-help", new po::untyped_value(true), "Produce help message."),
             name("rhost-name", po::value<std::string>(), "Name of this host instance."),
             listen("rhost-listen", po::value<boost::asio::ip::tcp::endpoint>(), "Listen for incoming connections on the specified IP address and port."),
-            connect("rhost-connect", po::value<websocketpp::uri>(), "Connect to a websocket server at the specified URI."),
-            reparent_plot_windows("rhost-reparent-plot-windows", po::value<int64_t>(), "Reparent R plot windows to the specified HWND.");
+            connect("rhost-connect", po::value<websocketpp::uri>(), "Connect to a websocket server at the specified URI.");
 
         po::options_description desc;
-        for (auto&& opt : { help, name, listen, connect, reparent_plot_windows }) {
+        for (auto&& opt : { help, name, listen, connect }) {
             boost::shared_ptr<po::option_description> popt(new po::option_description(opt));
             desc.add(popt);
         }
@@ -106,11 +103,6 @@ namespace rhost {
             std::exit(EXIT_FAILURE);
         }
 
-        auto reparent_plot_windows_arg = vm.find(reparent_plot_windows.long_name());
-        if (reparent_plot_windows_arg != vm.end()) {
-            args.plot_window_parent = reinterpret_cast<HWND>(reparent_plot_windows_arg->second.as<int64_t>());
-        }
-
         args.argv.push_back(argv[0]);
         for (auto& s : args.unrecognized) {
             args.argv.push_back(&s[0]);
@@ -124,11 +116,6 @@ namespace rhost {
     int run(command_line_args& args) {
         init_log(args.name);
 
-        if (args.plot_window_parent) {
-            rplots::RPlotHost::Init(*args.plot_window_parent);
-            msvcrt::atexit([] { rplots::RPlotHost::Terminate(); });
-        }
-        
         if (args.listen_endpoint) {
             rhost::host::wait_for_client(*args.listen_endpoint).get();
         } else if (args.connect_uri) {

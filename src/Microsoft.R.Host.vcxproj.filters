@@ -5,7 +5,6 @@
     <ClCompile Include="r_util.cpp" />
     <ClCompile Include="util.cpp" />
     <ClCompile Include="log.cpp" />
-    <ClCompile Include="RPlotHost.cpp" />
     <ClCompile Include="eval.cpp" />
     <ClCompile Include="host.cpp" />
     <ClCompile Include="msvcrt.cpp" />
@@ -23,7 +22,6 @@
     <ClInclude Include="r_util.h" />
     <ClInclude Include="eval.h" />
     <ClInclude Include="log.h" />
-    <ClInclude Include="RPlotHost.h" />
     <ClInclude Include="host.h" />
     <ClInclude Include="msvcrt.h" />
     <ClInclude Include="resource.h" />
