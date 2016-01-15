@@ -274,6 +274,7 @@ extern "C" {
     extern SEXP Rf_allocVector3(SEXPTYPE, R_xlen_t, /*R_allocator_t*/ void*);
     extern SEXP Rf_allocList(int);
     extern R_len_t Rf_length(SEXP);
+    extern SEXP Rf_duplicate(SEXP);
     extern void Rf_defineVar(SEXP, SEXP, SEXP);
     extern SEXP Rf_findVar(SEXP, SEXP);
     extern SEXP Rf_eval(SEXP, SEXP);
