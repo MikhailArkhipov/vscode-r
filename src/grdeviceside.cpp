@@ -44,12 +44,12 @@ namespace rhost {
                 bool pending_render_timeout_elapsed() const;
                 void render();
                 void render_from_display_list();
-                void render_from_snapshot(double width, double height);
+                void render_from_snapshot();
+                void set_snapshot(const rhost::util::protected_sexp& snapshot);
 
             private:
                 std::string get_snapshot_varname();
                 void save_snapshot_variable();
-                void replay_snapshot_variable();
 
             private:
                 boost::uuids::uuid _plot_id;
@@ -75,7 +75,7 @@ namespace rhost {
                 void clear();
 
                 void resize(double width, double height);
-                void render_from_snapshot(double width, double height);
+                void render_from_snapshot();
 
                 int plot_count() const;
                 int active_plot_index() const;
@@ -229,18 +229,7 @@ namespace rhost {
                 render();
             }
 
-            void plot::render_from_snapshot(double width, double height) {
-                // Check if we already have a rendered file for the requested size
-                if (_snapshot_render_width == width && _snapshot_render_height == height) {
-                    auto xdd = reinterpret_cast<ide_device*>(_device_desc->deviceSpecific);
-                    xdd->send(_snapshot_render_filename);
-                }
-                else {
-                    replay_snapshot_variable();
-                }
-            }
-
-            void plot::replay_snapshot_variable() {
+            void plot::render_from_snapshot() {
                 auto xdd = reinterpret_cast<ide_device*>(_device_desc->deviceSpecific);
                 xdd->output_and_kill_file_device();
 
@@ -250,8 +239,22 @@ namespace rhost {
                 GEplaySnapshot(snapshot.get(), ge_dev_desc);
             }
 
+            void plot::set_snapshot(const rhost::util::protected_sexp& snapshot) {
+                // Ignore if we already created a snapshot
+                if (_snapshot_varname.empty()) {
+                    _snapshot_varname = get_snapshot_varname();
+
+                    rhost::util::protected_sexp klass(Rf_mkString("recordedplot"));
+                    Rf_classgets(snapshot.get(), klass.get());
+
+                    rhost::util::protected_sexp duplicated_snapshot(Rf_duplicate(snapshot.get()));
+                    Rf_defineVar(Rf_install(_snapshot_varname.c_str()), duplicated_snapshot.get(), R_GlobalEnv);
+                }
+            }
+
             void plot::save_snapshot_variable() {
                 pGEDevDesc ge_dev_desc = Rf_desc2GEDesc(_device_desc);
+
                 rhost::util::protected_sexp snapshot(GEcreateSnapshot(ge_dev_desc));
 
                 rhost::util::protected_sexp klass(Rf_mkString("recordedplot"));
@@ -302,10 +305,18 @@ namespace rhost {
 
             void plot_history::new_page() {
                 if (!_replaying) {
-                    pGEDevDesc ge_dev_desc = Rf_desc2GEDesc(_device_desc);
-                    auto snapshot = ge_dev_desc->savedSnapshot;
+                    auto previous_plot = get_active();
+                    if (previous_plot != nullptr) {
+                        pGEDevDesc ge_dev_desc = Rf_desc2GEDesc(_device_desc);
+                        util::protected_sexp snapshot(ge_dev_desc->savedSnapshot);
+                        if (previous_plot->has_pending_render()) {
+                            previous_plot->set_snapshot(snapshot);
+                            previous_plot->render();
+                        }
+                    }
+
+                    // Create a plot object for this new page
                     append(std::make_unique<plot>(_device_desc));
-                    // TODO: save snapshot
                 }
             }
 
@@ -319,22 +330,24 @@ namespace rhost {
             }
 
             void plot_history::resize(double width, double height) {
-                if (_active_plot == std::prev(_plots.end(), 1)) {
-                    _replaying = true;
-                    auto plot = _active_plot->get();
-                    plot->render_from_display_list();
-                    _replaying = false;
-                }
-                else {
-                    render_from_snapshot(width, height);
+                auto plot = get_active();
+                if (plot != nullptr) {
+                    if (plot->has_pending_render()) {
+                        _replaying = true;
+                        auto plot = _active_plot->get();
+                        plot->render_from_display_list();
+                        _replaying = false;
+                    } else {
+                        render_from_snapshot();
+                    }
                 }
             }
 
-            void plot_history::render_from_snapshot(double width, double height) {
+            void plot_history::render_from_snapshot() {
                 _replaying = true;
                 auto plot = _active_plot->get();
                 if (plot != nullptr) {
-                    plot->render_from_snapshot(width, height);
+                    plot->render_from_snapshot();
                 }
                 _replaying = false;
             }
@@ -695,12 +708,12 @@ namespace rhost {
 
             void ide_device::history_next() {
                 _history.move_next();
-                _history.render_from_snapshot(_width, _height);
+                _history.render_from_snapshot();
             }
 
             void ide_device::history_previous() {
                 _history.move_previous();
-                _history.render_from_snapshot(_width, _height);
+                _history.render_from_snapshot();
             }
 
             int ide_device::plot_count() const {
