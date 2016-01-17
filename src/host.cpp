@@ -171,7 +171,7 @@ namespace rhost {
 
             const auto& expr = from_utf8(msg.args[0].get<std::string>());
             SEXP env = nullptr;
-            bool is_cancelable = false, json_result = false;
+            bool is_cancelable = false, json_result = false, protect_env = true;
 
             for (auto it = msg.name.begin() + 1; it != msg.name.end(); ++it) {
                 switch (char c = *it) {
@@ -181,6 +181,9 @@ namespace rhost {
                         fatal_error("'%s': multiple environment flags specified.", msg.name.c_str());
                     }
                     env = (c == 'B') ? R_BaseEnv : R_EmptyEnv;
+                    break;
+                case 'U':
+                    protect_env = false;
                     break;
                 case 'j':
                     json_result = true;
@@ -233,7 +236,8 @@ namespace rhost {
                     was_after_invoked = true;
                 };
 
-                result = r_try_eval_str(expr, env, ps, before, after);
+                protected_sexp eval_env(protect_env ? Rf_NewEnvironment(R_NilValue, R_NilValue, env) : env);
+                result = r_try_eval_str(expr, eval_env.get(), ps, before, after);
 
                 // If eval was canceled, the "after" block was never executed (since it is normally run within the eval
                 // context, and so cancelation unwinds it along with everything else in that context), so we need to run
