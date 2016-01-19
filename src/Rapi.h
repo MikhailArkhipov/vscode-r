@@ -307,6 +307,7 @@ extern "C" {
     extern SEXP Rf_install(const char*);
     extern SEXP Rf_installChar(SEXP);
     extern SEXP Rf_classgets(SEXP, SEXP);
+    extern SEXP Rf_NewEnvironment(SEXP, SEXP, SEXP);
 
     extern void setup_Rmainloop(void);
     extern void run_Rmainloop(void);
