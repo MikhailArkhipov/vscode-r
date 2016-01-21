@@ -328,6 +328,10 @@ namespace rhost {
                     SEXP arg = CDR(call);
                     SETCAR(arg, result);
 
+                    // Reset debug flag to avoid eval entering Browse mode.
+                    int rdebug = RDEBUG(R_GlobalEnv);
+                    SET_RDEBUG(R_GlobalEnv, 0);
+
                     auto protected_eval = [&] {
                         SEXP instrumented = Rf_eval(call, R_GlobalEnv);
                         if (instrumented != R_NilValue) {
@@ -340,6 +344,8 @@ namespace rhost {
                         const char* err = R_curErrorBuf();
                         log::logf("detoured_parse: callback error: %s\n", err);
                     }
+
+                    SET_RDEBUG(R_GlobalEnv, rdebug);
 
                     Rf_unprotect(1);
                     in_callback = false;
