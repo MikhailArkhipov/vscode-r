@@ -64,4 +64,5 @@
 #pragma warning(pop)
 
 #include "windows.h"
+#include "dbghelp.h"
 #include "minhook.h"

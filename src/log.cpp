@@ -30,7 +30,23 @@ using namespace std::literals;
 namespace rhost {
     namespace log {
         namespace {
-            std::mutex log_mutex;
+#ifdef WIN32
+            const MINIDUMP_TYPE fulldump_type = MINIDUMP_TYPE(
+                MiniDumpWithFullMemory |
+                MiniDumpWithDataSegs |
+                MiniDumpWithHandleData |
+                MiniDumpWithProcessThreadData |
+                MiniDumpWithFullMemoryInfo |
+                MiniDumpWithThreadInfo |
+                MiniDumpIgnoreInaccessibleMemory |
+                MiniDumpWithTokenInformation |
+                MiniDumpWithModuleHeaders);
+
+            const DWORD fatal_error_exception_code = 0xE0000001;
+#endif
+
+            std::mutex log_mutex, terminate_mutex;
+            std::string log_filename, stackdump_filename, fulldump_filename;
             FILE* logfile;
             int indent;
 
@@ -42,34 +58,92 @@ namespace rhost {
             }
         }
 
-        void init_log(const std::string& log_suffix) {
-            std::string filename;
-            filename.resize(MAX_PATH);
-            GetTempPathA(static_cast<DWORD>(filename.size()), &filename[0]);
-            filename.resize(strlen(filename.c_str()));
-            filename += "/Microsoft.R.Host_";
+#ifdef WIN32
+        void create_minidump(_EXCEPTION_POINTERS* ei) {
+            // Don't let another thread interrupt us by terminating while we're doing this.
+            std::lock_guard<std::mutex> terminate_lock(terminate_mutex);
 
-            if (!log_suffix.empty()) {
-                filename += log_suffix + "_";
+            MINIDUMP_EXCEPTION_INFORMATION mei;
+            mei.ThreadId = GetCurrentThreadId();
+            mei.ExceptionPointers = ei;
+            mei.ClientPointers = FALSE;
+
+            // Create a regular minidump.
+            HANDLE dump_file = CreateFileA(stackdump_filename.c_str(), GENERIC_ALL, 0, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+            if (MiniDumpWriteDump(GetCurrentProcess(), GetCurrentProcessId(), dump_file, MiniDumpNormal, &mei, nullptr, nullptr)) {
+                logf("Stack-only minidump written out to %s\n", stackdump_filename.c_str());
+            } else {
+                logf("Failed to write stack-only minidump to %s\n", stackdump_filename.c_str());
             }
+            CloseHandle(dump_file);
+            flush_log();
 
-            time_t t;
-            time(&t);
+            // Create a full heap minidump with as much data as possible.
+            dump_file = CreateFileA(fulldump_filename.c_str(), GENERIC_ALL, 0, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+            if (MiniDumpWriteDump(GetCurrentProcess(), GetCurrentProcessId(), dump_file, fulldump_type, &mei, nullptr, nullptr)) {
+                logf("Full minidump written out to %s\n", fulldump_filename.c_str());
+            } else {
+                logf("Failed to write full minidump to %s\n", fulldump_filename.c_str());
+            }
+            CloseHandle(dump_file);
+            flush_log();
+        }
 
-            tm tm;
-            localtime_s(&tm, &t);
+        LONG WINAPI unhandled_exception_filter(_EXCEPTION_POINTERS* ei) {
+            // Prevent recursion if an unhandled exception happens inside the filter itself.
+            static bool in_unhandled_exception_filter;
+            if (in_unhandled_exception_filter) {
+                return EXCEPTION_CONTINUE_SEARCH;
+            }
+            in_unhandled_exception_filter = true;
 
-            size_t len = filename.size();
-            filename.resize(len + 1 + MAX_PATH);
-            auto it = filename.begin() + len;
-            strftime(&*it, filename.end() - it, "%Y%m%d_%H%M%S", &tm);
-            filename.resize(strlen(filename.c_str()));
+            // Flush log, so that if anything below fails (e.g. if heap is corrupted too badly, or
+            // if we're out of memory), at least the stuff that's already in the log gets written
+            flush_log();
 
-            // Add PID to prevent conflicts in case two hosts with the same suffix
-            // get started at the same time.
-            filename += "_pid" + std::to_string(getpid()) + ".log";
+            logf("Terminating process due to unhandled Win32 exception 0x%x\n", ei->ExceptionRecord->ExceptionCode);
+            flush_log();
+            create_minidump(ei);
+
+            in_unhandled_exception_filter = false;
+            return EXCEPTION_CONTINUE_SEARCH;
+        }
+#endif
+
+        void init_log(const std::string& log_suffix) {
+            {
+                std::string filename;
+                filename.resize(MAX_PATH);
+                GetTempPathA(static_cast<DWORD>(filename.size()), &filename[0]);
+                filename.resize(strlen(filename.c_str()));
+                filename += "/Microsoft.R.Host_";
+
+                if (!log_suffix.empty()) {
+                    filename += log_suffix + "_";
+                }
+
+                time_t t;
+                time(&t);
+
+                tm tm;
+                localtime_s(&tm, &t);
+
+                size_t len = filename.size();
+                filename.resize(len + 1 + MAX_PATH);
+                auto it = filename.begin() + len;
+                strftime(&*it, filename.end() - it, "%Y%m%d_%H%M%S", &tm);
+                filename.resize(strlen(filename.c_str()));
+
+                // Add PID to prevent conflicts in case two hosts with the same suffix
+                // get started at the same time.
+                filename += "_pid" + std::to_string(getpid());
+
+                log_filename = filename + ".log";
+                stackdump_filename = filename + ".stack.dmp";
+                fulldump_filename = filename + ".full.dmp";
+            }
         
-            logfile = _fsopen(filename.c_str(), "wc", _SH_DENYWR);
+            logfile = _fsopen(log_filename.c_str(), "wc", _SH_DENYWR);
             if (logfile) {
                 // Logging happens often, so use a large buffer to avoid hitting the disk all the time.
                 setvbuf(logfile, nullptr, _IOFBF, 0x100000);
@@ -77,10 +151,14 @@ namespace rhost {
                 // Start a thread that will flush the buffer periodically.
                 std::thread(log_flush_thread).detach();
             } else {
-                std::string error = "Error creating logfile: " + std::string(filename) + "\r\n";
+                std::string error = "Error creating logfile: " + std::string(log_filename) + "\r\n";
                 fputs(error.c_str(), stderr);
                 MessageBoxA(HWND_DESKTOP, error.c_str(), "Microsoft R Host", MB_OK | MB_ICONWARNING);
             }
+
+#ifdef WIN32
+            SetUnhandledExceptionFilter(unhandled_exception_filter);
+#endif
         }
 
         void vlogf(const char* format, va_list va) {
@@ -136,6 +214,8 @@ namespace rhost {
 
 
         void terminate(bool unexpected, const char* format, va_list va) {
+            std::lock_guard<std::mutex> terminate_lock(terminate_mutex);
+
             char message[0xFFFF];
             vsprintf_s(message, format, va);
 
@@ -155,8 +235,17 @@ namespace rhost {
                     msgbox_text += c;
                 }
                 
-                assert(false);
                 MessageBoxA(HWND_DESKTOP, msgbox_text.c_str(), "Microsoft R Host Process fatal error", MB_OK | MB_ICONERROR);
+
+                // Raise and catch an exception so that minidump with a stacktrace can be produced from it.
+                [&] {
+                    terminate_mutex.unlock();
+                    __try {
+                        RaiseException(fatal_error_exception_code, 0, 0, nullptr);
+                    } __except(unhandled_exception_filter(GetExceptionInformation()), EXCEPTION_CONTINUE_EXECUTION) {
+                    }
+                    terminate_mutex.lock();
+                }();
             }
             
             R_Suicide(message);
