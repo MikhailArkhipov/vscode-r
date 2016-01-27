@@ -239,10 +239,15 @@ namespace rhost {
                 auto xdd = reinterpret_cast<ide_device*>(_device_desc->deviceSpecific);
                 xdd->output_and_kill_file_device();
 
-                rhost::util::protected_sexp snapshot(Rf_findVar(Rf_install(_snapshot_varname.c_str()), R_GlobalEnv));
-                pGEDevDesc ge_dev_desc = Rf_desc2GEDesc(_device_desc);
+                auto snapshot_sexp = Rf_findVar(Rf_install(_snapshot_varname.c_str()), R_GlobalEnv);
+                if (snapshot_sexp != R_UnboundValue && snapshot_sexp != R_NilValue) {
+                    rhost::util::protected_sexp snapshot(snapshot_sexp);
+                    pGEDevDesc ge_dev_desc = Rf_desc2GEDesc(_device_desc);
 
-                GEplaySnapshot(snapshot.get(), ge_dev_desc);
+                    GEplaySnapshot(snapshot.get(), ge_dev_desc);
+                } else {
+                    Rf_error("Plot snapshot is missing. Plot history may be corrupted. You should restart your session.");
+                }
             }
 
             void plot::set_snapshot(const rhost::util::protected_sexp& snapshot) {
