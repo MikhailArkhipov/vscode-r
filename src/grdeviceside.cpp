@@ -58,7 +58,7 @@ namespace rhost {
                 boost::posix_time::ptime _last_pending_render_time;
                 double _snapshot_render_width;
                 double _snapshot_render_height;
-                std::string _snapshot_render_filename;
+                std::tr2::sys::path _snapshot_render_filename;
                 std::string _snapshot_varname;
             };
 
@@ -128,8 +128,8 @@ namespace rhost {
                 void resize(double width, double height);
                 double width() const { return _width; }
                 double height() const { return _height; }
-                std::string save();
-                void send(std::string filename);
+                std::tr2::sys::path save();
+                void send(const std::tr2::sys::path& filename);
 
                 void history_next();
                 void history_previous();
@@ -141,13 +141,13 @@ namespace rhost {
                 void output_and_kill_file_device();
 
             private:
-                std::string get_render_file_path();
+                std::tr2::sys::path get_render_file_path();
                 pDevDesc get_or_create_file_device();
                 pDevDesc create_file_device();
                 void sync_file_device();
                 void set_pending_render();
 
-                static pDevDesc create_file_device(const std::string& device_type, const std::string& filename, double width, double height);
+                static pDevDesc create_file_device(const std::string& device_type, const std::tr2::sys::path& filename, double width, double height);
 
             private:
                 double _width;
@@ -155,7 +155,7 @@ namespace rhost {
                 bool _debug;
                 pDevDesc _file_device;
                 std::string _file_device_type;
-                std::string _file_device_filename;
+                std::tr2::sys::path _file_device_filename;
                 plot_history _history;
             };
 
@@ -177,7 +177,10 @@ namespace rhost {
 
             plot::~plot() {
                 if (!_snapshot_render_filename.empty()) {
-                    remove(_snapshot_render_filename.c_str());
+                    try {
+                        std::tr2::sys::remove(_snapshot_render_filename);
+                    } catch (const std::tr2::sys::filesystem_error&) {
+                    }
                 }
             }
 
@@ -207,7 +210,10 @@ namespace rhost {
                 auto path = xdd->save();
 
                 if (!_snapshot_render_filename.empty()) {
-                    remove(_snapshot_render_filename.c_str());
+                    try {
+                        std::tr2::sys::remove(_snapshot_render_filename);
+                    } catch (const std::tr2::sys::filesystem_error&) {
+                    }
                 }
 
                 _snapshot_render_filename = path;
@@ -452,7 +458,7 @@ namespace rhost {
 
             void ide_device::close() {
                 // send an 'empty' plot to ide to clear the plot window
-                send("");
+                send(std::tr2::sys::path(""));
 
                 closed();
                 delete this;
@@ -625,17 +631,17 @@ namespace rhost {
                 _history.resize(width, height);
             }
 
-            std::string ide_device::save() {
+            std::tr2::sys::path ide_device::save() {
                 auto path = _file_device_filename;
                 sync_file_device();
                 output_and_kill_file_device();
                 return path;
             }
 
-            void ide_device::send(std::string path) {
-                rhost::log::logf("ide_device: plot='%s'\n", path.c_str());
+            void ide_device::send(const std::tr2::sys::path& filename) {
+                auto path_copy(filename);
                 rhost::host::with_cancellation([&] {
-                    rhost::host::send_message("Plot", rhost::util::to_utf8(path));
+                    rhost::host::send_message("Plot", rhost::util::to_utf8(path_copy.make_preferred().string()));
                 });
             }
 
@@ -652,15 +658,11 @@ namespace rhost {
             ide_device::~ide_device() {
             }
 
-            std::string ide_device::get_render_file_path() {
-                // TODO: change filename to use a uuid
-                // TODO: decide if we really want them in the temp folder
-                char folderpath[1024];
-                char filepath[1024];
-                GetTempPathA(1024, folderpath);
-                GetTempFileNameA(folderpath, "rt", 0, filepath);
-
-                return std::string(filepath) + std::string(".") + _file_device_type;
+            std::tr2::sys::path ide_device::get_render_file_path() {
+                auto file_path = std::tr2::sys::temp_directory_path();
+                auto file_name = std::string("rhost-ide-plot-") + boost::uuids::to_string(uuid_generator()) + std::string(".") + _file_device_type;
+                file_path /= file_name;
+                return file_path;
             }
 
             pDevDesc ide_device::get_or_create_file_device() {
@@ -696,7 +698,7 @@ namespace rhost {
                 // Blank our state, next call to graphics primitive (if any) will create 
                 // a new file device on demand
                 _file_device = nullptr;
-                _file_device_filename = "";
+                _file_device_filename = std::tr2::sys::path();
             }
 
             void ide_device::set_pending_render() {
@@ -724,11 +726,8 @@ namespace rhost {
                 return _history.active_plot_index();
             }
 
-            pDevDesc ide_device::create_file_device(const std::string& device_type, const std::string& filename, double width, double height) {
-                std::string fixed_filename(filename);
-                boost::algorithm::replace_all(fixed_filename, "\\", "/");
-
-                auto expr = boost::format("%1%(filename='%2%', width=%3%, height=%4%)") % device_type % fixed_filename % width % height;
+            pDevDesc ide_device::create_file_device(const std::string& device_type, const std::tr2::sys::path& filename, double width, double height) {
+                auto expr = boost::format("%1%(filename='%2%', width=%3%, height=%4%)") % device_type % filename.generic_string() % width % height;
 
                 // Create the file device via the public R API
                 ParseStatus ps;
