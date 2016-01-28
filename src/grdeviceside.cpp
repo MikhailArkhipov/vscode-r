@@ -229,7 +229,7 @@ namespace rhost {
             }
 
             void plot::render_from_display_list() {
-                rhost::util::errors_to_exception([&] {
+                rhost::util::errors_to_exceptions([&] {
                     pGEDevDesc ge_dev_desc = Rf_desc2GEDesc(_device_desc);
                     GEplayDisplayList(ge_dev_desc);
                 });
@@ -241,7 +241,7 @@ namespace rhost {
                 auto xdd = reinterpret_cast<ide_device*>(_device_desc->deviceSpecific);
                 xdd->output_and_kill_file_device();
 
-                rhost::util::errors_to_exception([&] {
+                rhost::util::errors_to_exceptions([&] {
                     auto snapshot = Rf_findVar(Rf_install(_snapshot_varname.c_str()), R_GlobalEnv);
                     if (snapshot != R_UnboundValue && snapshot != R_NilValue) {
                         Rf_protect(snapshot);
@@ -259,7 +259,7 @@ namespace rhost {
                 if (_snapshot_varname.empty()) {
                     _snapshot_varname = get_snapshot_varname();
 
-                    rhost::util::errors_to_exception([&] {
+                    rhost::util::errors_to_exceptions([&] {
                         SEXP klass = Rf_protect(Rf_mkString("recordedplot"));
                         Rf_classgets(snapshot.get(), klass);
 
@@ -272,7 +272,7 @@ namespace rhost {
             }
 
             void plot::save_snapshot_variable() {
-                rhost::util::errors_to_exception([&] {
+                rhost::util::errors_to_exceptions([&] {
                     pGEDevDesc ge_dev_desc = Rf_desc2GEDesc(_device_desc);
 
                     SEXP snapshot = Rf_protect(GEcreateSnapshot(ge_dev_desc));
@@ -633,7 +633,7 @@ namespace rhost {
             }
 
             void ide_device::select() {
-                rhost::util::errors_to_exception([&] {
+                rhost::util::errors_to_exceptions([&] {
                     auto num = Rf_ndevNumber(device_instance->device_desc);
                     Rf_selectDevice(num);
                 });
@@ -698,7 +698,7 @@ namespace rhost {
             }
 
             void ide_device::sync_file_device() {
-                rhost::util::errors_to_exception([&] {
+                rhost::util::errors_to_exceptions([&] {
                     int file_device_num = Rf_ndevNumber(_file_device);
                     int ide_device_num = Rf_ndevNumber(device_desc);
 
@@ -709,7 +709,7 @@ namespace rhost {
             }
 
             void ide_device::output_and_kill_file_device() {
-                rhost::util::errors_to_exception([&] {
+                rhost::util::errors_to_exceptions([&] {
                     // The device number is not constant, so get the current number
                     int file_device_num = Rf_ndevNumber(_file_device);
 
@@ -756,13 +756,13 @@ namespace rhost {
                 ParseStatus ps;
                 auto result = rhost::eval::r_try_eval_str(expr.str(), R_GlobalEnv, ps);
                 if (result.has_error) {
-                    throw std::exception(result.error.c_str());
+                    throw rhost::util::r_error(result.error.c_str());
                 }
 
                 pDevDesc dev_desc = nullptr;
 
                 // Retrieve the device descriptor of the current device (the one created above)
-                rhost::util::errors_to_exception([&] {
+                rhost::util::errors_to_exceptions([&] {
                     int device_num = Rf_curDevice();
                     pGEDevDesc ge_dev_desc = GEgetDevice(device_num);
                     dev_desc = ge_dev_desc->dev;

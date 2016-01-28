@@ -172,11 +172,22 @@ namespace rhost {
             return true;
         }
 
+        class r_error : std::runtime_error {
+        public:
+            explicit r_error(const std::string& msg)
+                : std::runtime_error(msg) {
+            }
+
+            explicit r_error(const char* msg)
+                : std::runtime_error(msg) {
+            }
+        };
+
         template <class FExecute>
-        inline void errors_to_exception(FExecute protected_eval) {
+        inline void errors_to_exceptions(FExecute protected_eval) {
             if (!r_top_level_exec(protected_eval)) {
                 const char* err = R_curErrorBuf();
-                throw std::exception(err);
+                throw r_error(err);
             }
         }
     }
