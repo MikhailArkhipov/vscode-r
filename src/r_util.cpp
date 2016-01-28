@@ -332,18 +332,12 @@ namespace rhost {
                     int rdebug = RDEBUG(R_GlobalEnv);
                     SET_RDEBUG(R_GlobalEnv, 0);
 
-                    auto protected_eval = [&] {
+                    rhost::util::r_top_level_exec([&] {
                         SEXP instrumented = Rf_eval(call, R_GlobalEnv);
                         if (instrumented != R_NilValue) {
                             result = instrumented;
                         }
-                    };
-                    typedef decltype(protected_eval) protected_eval_t;
-
-                    if (!R_ToplevelExec([](void* arg) { (*reinterpret_cast<protected_eval_t*>(arg))(); }, &protected_eval)) {
-                        const char* err = R_curErrorBuf();
-                        log::logf("detoured_parse: callback error: %s\n", err);
-                    }
+                    }, __FUNCTION__);
 
                     SET_RDEBUG(R_GlobalEnv, rdebug);
 

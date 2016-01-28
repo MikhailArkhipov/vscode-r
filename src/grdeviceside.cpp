@@ -229,8 +229,10 @@ namespace rhost {
             }
 
             void plot::render_from_display_list() {
-                pGEDevDesc ge_dev_desc = Rf_desc2GEDesc(_device_desc);
-                GEplayDisplayList(ge_dev_desc);
+                rhost::util::errors_to_exception([&] {
+                    pGEDevDesc ge_dev_desc = Rf_desc2GEDesc(_device_desc);
+                    GEplayDisplayList(ge_dev_desc);
+                });
 
                 render();
             }
@@ -239,15 +241,17 @@ namespace rhost {
                 auto xdd = reinterpret_cast<ide_device*>(_device_desc->deviceSpecific);
                 xdd->output_and_kill_file_device();
 
-                auto snapshot_sexp = Rf_findVar(Rf_install(_snapshot_varname.c_str()), R_GlobalEnv);
-                if (snapshot_sexp != R_UnboundValue && snapshot_sexp != R_NilValue) {
-                    rhost::util::protected_sexp snapshot(snapshot_sexp);
-                    pGEDevDesc ge_dev_desc = Rf_desc2GEDesc(_device_desc);
-
-                    GEplaySnapshot(snapshot.get(), ge_dev_desc);
-                } else {
-                    Rf_error("Plot snapshot is missing. Plot history may be corrupted. You should restart your session.");
-                }
+                rhost::util::errors_to_exception([&] {
+                    auto snapshot = Rf_findVar(Rf_install(_snapshot_varname.c_str()), R_GlobalEnv);
+                    if (snapshot != R_UnboundValue && snapshot != R_NilValue) {
+                        Rf_protect(snapshot);
+                        pGEDevDesc ge_dev_desc = Rf_desc2GEDesc(_device_desc);
+                        GEplaySnapshot(snapshot, ge_dev_desc);
+                        Rf_unprotect(1);
+                    } else {
+                        Rf_error("Plot snapshot is missing. Plot history may be corrupted. You should restart your session.");
+                    }
+                });
             }
 
             void plot::set_snapshot(const rhost::util::protected_sexp& snapshot) {
@@ -255,23 +259,31 @@ namespace rhost {
                 if (_snapshot_varname.empty()) {
                     _snapshot_varname = get_snapshot_varname();
 
-                    rhost::util::protected_sexp klass(Rf_mkString("recordedplot"));
-                    Rf_classgets(snapshot.get(), klass.get());
+                    rhost::util::errors_to_exception([&] {
+                        SEXP klass = Rf_protect(Rf_mkString("recordedplot"));
+                        Rf_classgets(snapshot.get(), klass);
 
-                    rhost::util::protected_sexp duplicated_snapshot(Rf_duplicate(snapshot.get()));
-                    Rf_defineVar(Rf_install(_snapshot_varname.c_str()), duplicated_snapshot.get(), R_GlobalEnv);
+                        SEXP duplicated_snapshot = Rf_protect(Rf_duplicate(snapshot.get()));
+                        Rf_defineVar(Rf_install(_snapshot_varname.c_str()), duplicated_snapshot, R_GlobalEnv);
+
+                        Rf_unprotect(2);
+                    });
                 }
             }
 
             void plot::save_snapshot_variable() {
-                pGEDevDesc ge_dev_desc = Rf_desc2GEDesc(_device_desc);
+                rhost::util::errors_to_exception([&] {
+                    pGEDevDesc ge_dev_desc = Rf_desc2GEDesc(_device_desc);
 
-                rhost::util::protected_sexp snapshot(GEcreateSnapshot(ge_dev_desc));
+                    SEXP snapshot = Rf_protect(GEcreateSnapshot(ge_dev_desc));
 
-                rhost::util::protected_sexp klass(Rf_mkString("recordedplot"));
-                Rf_classgets(snapshot.get(), klass.get());
+                    SEXP klass = Rf_protect(Rf_mkString("recordedplot"));
+                    Rf_classgets(snapshot, klass);
 
-                Rf_defineVar(Rf_install(_snapshot_varname.c_str()), snapshot.get(), R_GlobalEnv);
+                    Rf_defineVar(Rf_install(_snapshot_varname.c_str()), snapshot, R_GlobalEnv);
+
+                    Rf_unprotect(2);
+                });
             }
 
             std::string plot::get_snapshot_varname() {
@@ -621,8 +633,10 @@ namespace rhost {
             }
 
             void ide_device::select() {
-                auto num = Rf_ndevNumber(device_instance->device_desc);
-                Rf_selectDevice(num);
+                rhost::util::errors_to_exception([&] {
+                    auto num = Rf_ndevNumber(device_instance->device_desc);
+                    Rf_selectDevice(num);
+                });
             }
 
             void ide_device::resize(double width, double height) {
@@ -684,21 +698,25 @@ namespace rhost {
             }
 
             void ide_device::sync_file_device() {
-                int file_device_num = Rf_ndevNumber(_file_device);
-                int ide_device_num = Rf_ndevNumber(device_desc);
+                rhost::util::errors_to_exception([&] {
+                    int file_device_num = Rf_ndevNumber(_file_device);
+                    int ide_device_num = Rf_ndevNumber(device_desc);
 
-                Rf_selectDevice(file_device_num);
-                GEcopyDisplayList(ide_device_num);
-                Rf_selectDevice(ide_device_num);
+                    Rf_selectDevice(file_device_num);
+                    GEcopyDisplayList(ide_device_num);
+                    Rf_selectDevice(ide_device_num);
+                });
             }
 
             void ide_device::output_and_kill_file_device() {
-                // The device number is not constant, so get the current number
-                int file_device_num = Rf_ndevNumber(_file_device);
+                rhost::util::errors_to_exception([&] {
+                    // The device number is not constant, so get the current number
+                    int file_device_num = Rf_ndevNumber(_file_device);
 
-                // Killing the device will call close, which will save the file to disk
-                pGEDevDesc ge_dev_desc = GEgetDevice(file_device_num);
-                GEkillDevice(ge_dev_desc);
+                    // Killing the device will call close, which will save the file to disk
+                    pGEDevDesc ge_dev_desc = GEgetDevice(file_device_num);
+                    GEkillDevice(ge_dev_desc);
+                });
 
                 // Blank our state, next call to graphics primitive (if any) will create 
                 // a new file device on demand
@@ -738,13 +756,18 @@ namespace rhost {
                 ParseStatus ps;
                 auto result = rhost::eval::r_try_eval_str(expr.str(), R_GlobalEnv, ps);
                 if (result.has_error) {
-                    // TODO: throw exception
+                    throw std::exception(result.error.c_str());
                 }
 
+                pDevDesc dev_desc = nullptr;
+
                 // Retrieve the device descriptor of the current device (the one created above)
-                int device_num = Rf_curDevice();
-                pGEDevDesc ge_dev_desc = GEgetDevice(device_num);
-                pDevDesc dev_desc = ge_dev_desc->dev;
+                rhost::util::errors_to_exception([&] {
+                    int device_num = Rf_curDevice();
+                    pGEDevDesc ge_dev_desc = GEgetDevice(device_num);
+                    dev_desc = ge_dev_desc->dev;
+                });
+
                 return dev_desc;
             }
 
@@ -759,77 +782,86 @@ namespace rhost {
             ///////////////////////////////////////////////////////////////////////
 
             extern "C" SEXP ide_graphicsdevice_new(SEXP args) {
-                R_GE_checkVersionOrDie(R_GE_version);
+                return rhost::util::exceptions_to_errors([&] {
+                    R_GE_checkVersionOrDie(R_GE_version);
 
-                if (device_instance != nullptr) {
-                    // TODO: issue some error
+                    if (device_instance != nullptr) {
+                        // TODO: issue some error
+                        return R_NilValue;
+                    }
+
+                    R_CheckDeviceAvailable();
+                    BEGIN_SUSPEND_INTERRUPTS{
+                        auto dev = ide_device::create("png", default_width, default_height);
+                    pGEDevDesc gdd = GEcreateDevDesc(dev->device_desc);
+                    GEaddDevice2(gdd, "ide");
+                    // Owner is DevDesc::deviceSpecific, and is released in close()
+                    dev->closed.connect([&] { device_instance = nullptr; });
+                    device_instance = dev.release();
+                    } END_SUSPEND_INTERRUPTS;
+
                     return R_NilValue;
-                }
-
-                R_CheckDeviceAvailable();
-                BEGIN_SUSPEND_INTERRUPTS{
-                    auto dev = ide_device::create("png", default_width, default_height);
-                pGEDevDesc gdd = GEcreateDevDesc(dev->device_desc);
-                GEaddDevice2(gdd, "ide");
-                // Owner is DevDesc::deviceSpecific, and is released in close()
-                dev->closed.connect([&] { device_instance = nullptr; });
-                device_instance = dev.release();
-                } END_SUSPEND_INTERRUPTS;
-
-                return R_NilValue;
+                });
             }
 
             extern "C" SEXP ide_graphicsdevice_resize(SEXP args) {
-                args = CDR(args);
-                SEXP width = CAR(args);
-                args = CDR(args);
-                SEXP height = CAR(args);
+                return rhost::util::exceptions_to_errors([&] {
+                    args = CDR(args);
+                    SEXP width = CAR(args);
+                    args = CDR(args);
+                    SEXP height = CAR(args);
 
-                double *w = REAL(width);
-                double *h = REAL(height);
+                    double *w = REAL(width);
+                    double *h = REAL(height);
 
-                default_width = *w;
-                default_height = *h;
+                    default_width = *w;
+                    default_height = *h;
 
-                if (device_instance != nullptr) {
-                    device_instance->select();
-                    device_instance->resize(*w, *h);
-                }
+                    if (device_instance != nullptr) {
+                        device_instance->select();
+                        device_instance->resize(*w, *h);
+                    }
 
-                return R_NilValue;
+                    return R_NilValue;
+                });
             }
 
             extern "C" SEXP ide_graphicsdevice_next_plot(SEXP args) {
-                if (device_instance != nullptr) {
-                    device_instance->select();
-                    device_instance->history_next();
-                }
+                return rhost::util::exceptions_to_errors([&] {
+                    if (device_instance != nullptr) {
+                        device_instance->select();
+                        device_instance->history_next();
+                    }
 
-                return R_NilValue;
+                    return R_NilValue;
+                });
             }
 
             extern "C" SEXP ide_graphicsdevice_previous_plot(SEXP args) {
-                if (device_instance != nullptr) {
-                    device_instance->select();
-                    device_instance->history_previous();
-                }
+                return rhost::util::exceptions_to_errors([&] {
+                    if (device_instance != nullptr) {
+                        device_instance->select();
+                        device_instance->history_previous();
+                    }
 
-                return R_NilValue;
+                    return R_NilValue;
+                });
             }
 
             extern "C" SEXP ide_graphicsdevice_history_info(SEXP args) {
-                // zero-based index active plot, number of plots
-                auto value = Rf_allocVector(INTSXP, 2);
-                if (device_instance != nullptr) {
-                    INTEGER(value)[0] = device_instance->active_plot_index();
-                    INTEGER(value)[1] = device_instance->plot_count();
-                }
-                else {
-                    INTEGER(value)[0] = -1;
-                    INTEGER(value)[1] = 0;
-                }
+                return rhost::util::exceptions_to_errors([&] {
+                    // zero-based index active plot, number of plots
+                    auto value = Rf_allocVector(INTSXP, 2);
+                    if (device_instance != nullptr) {
+                        INTEGER(value)[0] = device_instance->active_plot_index();
+                        INTEGER(value)[1] = device_instance->plot_count();
+                    } else {
+                        INTEGER(value)[0] = -1;
+                        INTEGER(value)[1] = 0;
+                    }
 
-                return value;
+                    return value;
+                });
             }
 
             static R_ExternalMethodDef external_methods[] = {

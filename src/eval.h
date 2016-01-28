@@ -64,20 +64,17 @@ namespace rhost {
                     int rdebug = RDEBUG(env);
                     SET_RDEBUG(env, 0);
 
-                    auto protected_eval = [](void* pdata) {
-                        auto& eval_data = *static_cast<eval_data_t*>(pdata);
+                    result.has_error = !rhost::util::r_top_level_exec([&] {
                         eval_data.before();
                         was_eval_canceled = false;
                         eval_data.result.value.reset(Rf_eval(eval_data.expr, eval_data.env));
                         eval_data.after();
-                    };
+                    });
+                    result.is_canceled = was_eval_canceled;
+                    was_eval_canceled = false;
 
                     // Restore debug flag.
                     SET_RDEBUG(env, rdebug);
-
-                    result.has_error = !R_ToplevelExec(protected_eval, &eval_data);
-                    result.is_canceled = was_eval_canceled;
-                    was_eval_canceled = false;
 
                     if (result.value) {
                         result.has_value = true;
