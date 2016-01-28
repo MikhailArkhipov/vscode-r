@@ -23,6 +23,7 @@
 #pragma once
 #include "stdafx.h"
 #include "Rapi.h"
+#include "log.h"
 
 #define SCOPE_WARDEN(NAME, ...)                \
     auto xx##NAME##xx = [&]() { __VA_ARGS__ }; \
@@ -148,6 +149,45 @@ namespace rhost {
                 return f();
             } catch (std::exception& ex) {
                 Rf_error(ex.what());
+            }
+        }
+
+        // Executes the callback in its own context, protecting the caller from
+        // any call to Rf_error.
+        // Do not use C++ objects that rely on their destructor running in the callback.
+        // Returns true on if there are no errors, false otherwise (Rf_error was called).
+        // Note that if there are any errors, they have been displayed already.
+        // Meaning, there's no need to fetch the error message, turn it into a
+        // std::exception, only to have exceptions_to_error report the same
+        // error a second time!
+        template <class FExecute>
+        inline bool r_top_level_exec(FExecute protected_eval, const char* log_error_prefix = nullptr) {
+            if (!R_ToplevelExec([](void* arg) { (*reinterpret_cast<FExecute*>(arg))(); }, &protected_eval)) {
+                const char* err = R_curErrorBuf();
+                if (log_error_prefix != nullptr) {
+                    log::logf("%s: error: %s\n", log_error_prefix, err);
+                }
+                return false;
+            }
+            return true;
+        }
+
+        class r_error : std::runtime_error {
+        public:
+            explicit r_error(const std::string& msg)
+                : std::runtime_error(msg) {
+            }
+
+            explicit r_error(const char* msg)
+                : std::runtime_error(msg) {
+            }
+        };
+
+        template <class FExecute>
+        inline void errors_to_exceptions(FExecute protected_eval) {
+            if (!r_top_level_exec(protected_eval)) {
+                const char* err = R_curErrorBuf();
+                throw r_error(err);
             }
         }
     }
