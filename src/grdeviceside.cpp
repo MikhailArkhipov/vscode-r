@@ -850,19 +850,21 @@ namespace rhost {
 
             extern "C" SEXP ide_graphicsdevice_history_info(SEXP args) {
                 return rhost::util::exceptions_to_errors([&] {
-                    // zero-based index active plot, number of plots
-                    auto value = Rf_allocVector(VECSXP, 2);
-                    SET_VECTOR_ELT(value, 0, Rf_allocVector(INTSXP, 1));
-                    SET_VECTOR_ELT(value, 1, Rf_allocVector(INTSXP, 1));
+                    // zero-based index of active plot, number of plots
+                    auto plotIndex = Rf_allocVector(INTSXP, 1);
+                    auto plotCount = Rf_allocVector(INTSXP, 1);
 
                     if (device_instance != nullptr) {
-                        *INTEGER(VECTOR_ELT(value, 0)) = device_instance->active_plot_index();
-                        *INTEGER(VECTOR_ELT(value, 1)) = device_instance->plot_count();
+                        *INTEGER(plotIndex) = device_instance->active_plot_index();
+                        *INTEGER(plotCount) = device_instance->plot_count();
                     } else {
-                        *INTEGER(VECTOR_ELT(value, 0)) = -1;
-                        *INTEGER(VECTOR_ELT(value, 1)) = 0;
+                        *INTEGER(plotIndex) = -1;
+                        *INTEGER(plotCount) = 0;
                     }
 
+                    auto value = Rf_allocVector(VECSXP, 2);
+                    SET_VECTOR_ELT(value, 0, plotIndex);
+                    SET_VECTOR_ELT(value, 1, plotCount);
                     return value;
                 });
             }
