@@ -171,7 +171,7 @@ namespace rhost {
 
             const auto& expr = from_utf8(msg.args[0].get<std::string>());
             SEXP env = nullptr;
-            bool is_cancelable = false, json_result = false, protect_env = true;
+            bool is_cancelable = false, json_result = false, new_env = false;
 
             for (auto it = msg.name.begin() + 1; it != msg.name.end(); ++it) {
                 switch (char c = *it) {
@@ -182,8 +182,8 @@ namespace rhost {
                     }
                     env = (c == 'B') ? R_BaseEnv : R_EmptyEnv;
                     break;
-                case 'U':
-                    protect_env = false;
+                case 'N':
+                    new_env = true;
                     break;
                 case 'j':
                     json_result = true;
@@ -236,7 +236,7 @@ namespace rhost {
                     was_after_invoked = true;
                 };
 
-                protected_sexp eval_env(protect_env ? Rf_NewEnvironment(R_NilValue, R_NilValue, env) : env);
+                protected_sexp eval_env(new_env ? Rf_NewEnvironment(R_NilValue, R_NilValue, env) : env);
                 result = r_try_eval_str(expr, eval_env.get(), ps, before, after);
 
                 // If eval was canceled, the "after" block was never executed (since it is normally run within the eval
