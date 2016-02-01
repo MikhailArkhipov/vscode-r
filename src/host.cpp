@@ -420,17 +420,15 @@ namespace rhost {
                     send_message("\\");
                 }
 
-                if (!allow_callbacks && len >= 3) {
-                    bool is_browser = false;
-                    for (RCNTXT* ctxt = R_GlobalContext; ctxt != nullptr; ctxt = ctxt->nextcontext) {
-                        if (ctxt->callflag & CTXT_BROWSER) {
-                            is_browser = true;
-                            break;
-
-                        }
-
+                bool is_browser = false;
+                for (RCNTXT* ctxt = R_GlobalContext; ctxt != nullptr; ctxt = ctxt->nextcontext) {
+                    if (ctxt->callflag & CTXT_BROWSER) {
+                        is_browser = true;
+                        break;
                     }
+                }
 
+                if (!allow_callbacks && len >= 3) {
                     if (is_browser) {
                         // If this is a Browse prompt, raising an error is not a proper way to reject it -
                         // it will simply start an infinite loop with every new error producing such prompt.
@@ -442,6 +440,18 @@ namespace rhost {
                     }
 
                     Rf_error("ReadConsole: blocking callback not allowed during evaluation.");
+                }
+
+                // Check for and perform auto-stepping on the current instruction if necessary.
+                if (is_browser && R_Srcref && R_Srcref != R_NilValue) {
+                    static SEXP auto_step_over_symbol = Rf_install("Microsoft.R.Host::auto_step_over");
+                    int auto_step_over = Rf_asLogical(Rf_getAttrib(R_Srcref, auto_step_over_symbol));
+                    if (auto_step_over && auto_step_over != R_NaInt) {
+                        buf[0] = 'n';
+                        buf[1] = '\n';
+                        buf[2] = '\0';
+                        return 1;
+                    }
                 }
 
                 readconsole_done();

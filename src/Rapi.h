@@ -1,10 +1,10 @@
 /* ****************************************************************************
  *
- * Copyright (c) Microsoft Corporation. All rights reserved. 
+ * Copyright (c) Microsoft Corporation. All rights reserved.
  *
  *
  * This file is part of Microsoft R Host.
- * 
+ *
  * Microsoft R Host is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 2 of the License, or
@@ -20,19 +20,19 @@
  *
  * ***************************************************************************/
 
-// This file combines various bits and pieces of R API in a single header file.
-//
-// The main reason for its existence is that R headers themselves are not immediately usable
-// after checkout: some parts expect R to be at least partially built to generate config.h
-// etc, or rely on various macros defined in R makefiles. By moving all this code here and
-// cleaning it up, it is readily usable.
-//
-// The following R header files were used as a basis to produce this file:
-// - Rembedded.h
-// - Rinternals.h
-// - R_ext/Boolean.h
-// - R_ext/Rdynload.h
-// - R_ext/RStartup.h
+ // This file combines various bits and pieces of R API in a single header file.
+ //
+ // The main reason for its existence is that R headers themselves are not immediately usable
+ // after checkout: some parts expect R to be at least partially built to generate config.h
+ // etc, or rely on various macros defined in R makefiles. By moving all this code here and
+ // cleaning it up, it is readily usable.
+ //
+ // The following R header files were used as a basis to produce this file:
+ // - Rembedded.h
+ // - Rinternals.h
+ // - R_ext/Boolean.h
+ // - R_ext/Rdynload.h
+ // - R_ext/RStartup.h
 
 #pragma once
 #include "stdafx.h"
@@ -194,7 +194,7 @@ extern "C" {
     typedef struct Rconn {
         char* class_;
         char* description;
-        int enc; 
+        int enc;
         char mode[5];
         Rboolean text, isopen, incomplete, canread, canwrite, canseek, blocking, isGzcon;
         Rboolean(*open)(struct Rconn *);
@@ -281,6 +281,7 @@ extern "C" {
     extern void Rf_onintr();
     __declspec(noreturn) extern void Rf_error(const char *, ...);
     extern void Rf_init_con(Rconnection, const char *description, int enc, const char* const mode);
+    extern SEXP Rf_deparse1(SEXP, Rboolean, int);
 
     extern Rboolean Rf_isNull(SEXP s);
     extern Rboolean Rf_isSymbol(SEXP s);
@@ -308,6 +309,7 @@ extern "C" {
     extern SEXP Rf_installChar(SEXP);
     extern SEXP Rf_classgets(SEXP, SEXP);
     extern SEXP Rf_NewEnvironment(SEXP, SEXP, SEXP);
+    extern SEXP Rf_getAttrib(SEXP, SEXP);
 
     extern void setup_Rmainloop(void);
     extern void run_Rmainloop(void);
@@ -388,7 +390,7 @@ extern "C" {
     void R_ProcessEvents();
     void R_Suicide(const char *);
 
-    typedef SEXP (*CCODE)(SEXP, SEXP, SEXP, SEXP);
+    typedef SEXP(*CCODE)(SEXP, SEXP, SEXP, SEXP);
 
     /* Information for Deparsing Expressions */
     typedef enum {
@@ -454,4 +456,20 @@ extern "C" {
     } FUNTAB;
 
     __declspec(dllimport) extern FUNTAB R_FunTab[];
+
+    enum {
+        KEEPINTEGER = 1,
+        QUOTEEXPRESSIONS = 2,
+        SHOWATTRIBUTES = 4,
+        USESOURCE = 8,
+        WARNINCOMPLETE = 16,
+        DELAYPROMISES = 32,
+        KEEPNA = 64,
+        S_COMPAT = 128,
+        HEXNUMERIC = 256,
+        DIGITS16 = 512,
+        SIMPLEDEPARSE = 0,
+        DEFAULTDEPARSE = KEEPINTEGER | KEEPNA,
+        FORSOURCING = KEEPNA | WARNINCOMPLETE | USESOURCE | SHOWATTRIBUTES | QUOTEEXPRESSIONS | KEEPINTEGER 
+    };
 }
