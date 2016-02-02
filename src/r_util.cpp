@@ -382,6 +382,45 @@ namespace rhost {
             return R_NilValue;
         }
 
+        extern "C" SEXP browser_set_debug(SEXP n_sexp) {
+            int n = Rf_asInteger(n_sexp);
+            if (n < 1) {
+                Rf_error("Number of contexts to skip must be positive.");
+            }
+
+            // Find the closest browser context, if any.
+            auto ctx = R_GlobalContext;
+            while (ctx && ctx->callflag != CTXT_TOPLEVEL) {
+                if (ctx->callflag == CTXT_BROWSER) {
+                    break;
+                }
+                ctx = ctx->nextcontext;
+            }
+            if (!ctx || ctx->callflag != CTXT_BROWSER) {
+                Rf_error("Step out can only be performed in a browser context.");
+            }
+
+            // Skip the first n function contexts.
+            while (ctx && ctx->callflag != CTXT_TOPLEVEL && n > 0) {
+                if (ctx->callflag & CTXT_FUNCTION) {
+                    n--;
+                }
+                ctx = ctx->nextcontext;
+            }
+
+            if (!ctx || ctx->callflag == CTXT_TOPLEVEL) {
+                Rf_error("Nowhere to step out to.");
+            }
+
+            if ((ctx->callflag & CTXT_FUNCTION) || (ctx->callflag & CTXT_LOOP)) {
+                SET_RDEBUG(ctx->cloenv, 1);
+            } else {
+                Rf_error("Cannot step out into the designated context - unsupported context type %d", ctx->callflag);
+            }
+
+            return R_NilValue;
+        }
+
         R_CallMethodDef call_methods[] = {
             { "Microsoft.R.Host::Call.unevaluated_promise", (DL_FUNC)unevaluated_promise, 2 },
             { "Microsoft.R.Host::Call.memory_connection", (DL_FUNC)memory_connection_new, 4 },
@@ -392,6 +431,7 @@ namespace rhost {
             { "Microsoft.R.Host::Call.set_instrumentation_callback", (DL_FUNC)set_instrumentation_callback, 1 },
             { "Microsoft.R.Host::Call.is_rdebug", (DL_FUNC)is_rdebug, 1 },
             { "Microsoft.R.Host::Call.set_rdebug", (DL_FUNC)set_rdebug, 2 },
+            { "Microsoft.R.Host::Call.browser_set_debug", (DL_FUNC)browser_set_debug, 1 },
             { }
         };
 
