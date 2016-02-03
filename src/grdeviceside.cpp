@@ -42,7 +42,7 @@ namespace rhost {
                 void set_pending_render();
                 bool has_pending_render() const;
                 bool pending_render_timeout_elapsed() const;
-                void render();
+                void render(bool save_snapshot);
                 void render_from_display_list();
                 void render_from_snapshot();
                 void set_snapshot(const rhost::util::protected_sexp& snapshot);
@@ -199,7 +199,7 @@ namespace rhost {
                 return elapsed.total_milliseconds() >= 50;
             }
 
-            void plot::render() {
+            void plot::render(bool save_snapshot) {
                 if (!has_pending_render()) {
                     return;
                 }
@@ -220,8 +220,10 @@ namespace rhost {
                 _snapshot_render_width = xdd->width();
                 _snapshot_render_height = xdd->height();
 
-                if (_snapshot_varname.empty()) {
-                    _snapshot_varname = get_snapshot_varname();
+                if (save_snapshot) {
+                    if (_snapshot_varname.empty()) {
+                        _snapshot_varname = get_snapshot_varname();
+                    }
                     save_snapshot_variable();
                 }
 
@@ -234,7 +236,7 @@ namespace rhost {
                     GEplayDisplayList(ge_dev_desc);
                 });
 
-                render();
+                render(true);
             }
 
             void plot::render_from_snapshot() {
@@ -258,17 +260,17 @@ namespace rhost {
                 // Ignore if we already created a snapshot
                 if (_snapshot_varname.empty()) {
                     _snapshot_varname = get_snapshot_varname();
-
-                    rhost::util::errors_to_exceptions([&] {
-                        SEXP klass = Rf_protect(Rf_mkString("recordedplot"));
-                        Rf_classgets(snapshot.get(), klass);
-
-                        SEXP duplicated_snapshot = Rf_protect(Rf_duplicate(snapshot.get()));
-                        Rf_defineVar(Rf_install(_snapshot_varname.c_str()), duplicated_snapshot, R_GlobalEnv);
-
-                        Rf_unprotect(2);
-                    });
                 }
+
+                rhost::util::errors_to_exceptions([&] {
+                    SEXP klass = Rf_protect(Rf_mkString("recordedplot"));
+                    Rf_classgets(snapshot.get(), klass);
+
+                    SEXP duplicated_snapshot = Rf_protect(Rf_duplicate(snapshot.get()));
+                    Rf_defineVar(Rf_install(_snapshot_varname.c_str()), duplicated_snapshot, R_GlobalEnv);
+
+                    Rf_unprotect(2);
+                });
             }
 
             void plot::save_snapshot_variable() {
@@ -334,7 +336,7 @@ namespace rhost {
                         util::protected_sexp snapshot(ge_dev_desc->savedSnapshot);
                         if (previous_plot->has_pending_render()) {
                             previous_plot->set_snapshot(snapshot);
-                            previous_plot->render();
+                            previous_plot->render(false);
                         }
                     }
 
@@ -626,7 +628,7 @@ namespace rhost {
                 if (plot != nullptr) {
                     if (plot->has_pending_render()) {
                         if (immediately || plot->pending_render_timeout_elapsed()) {
-                            plot->render();
+                            plot->render(true);
                         }
                     }
                 }
@@ -880,9 +882,12 @@ namespace rhost {
 
             void init(DllInfo *dll) {
                 rhost::exports::add_external_methods(external_methods);
-
-                rhost::host::callback_started.connect([] { process_pending_render(false); });
-                rhost::host::readconsole_done.connect([] { process_pending_render(true); });
+                rhost::host::callback_started.connect([] {
+                    process_pending_render(false);
+                });
+                rhost::host::readconsole_done.connect([] {
+                    process_pending_render(true);
+                });
             }
         }
     }
