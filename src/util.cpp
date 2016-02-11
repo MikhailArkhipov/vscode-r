@@ -120,7 +120,7 @@ namespace rhost {
             // us to preserve characters written in non-default OS CP.
             std::string converted;
             // Max 8 bytes per character which should fit both UTF-8 and \uABCD
-            converted.resize(8 * ws.length()); 
+            converted.resize(8 * ws.length());
             char mbcharbuf[8];
             size_t j = 0;
             for (size_t i = 0; i < ws.length(); i++)
@@ -159,11 +159,9 @@ namespace boost {
                     auto port_str = s.substr(colon + 1);
                     try {
                         port = std::stoi(port_str);
-                    }
-                    catch (std::invalid_argument&) {
+                    } catch (std::invalid_argument&) {
                         throw po::validation_error(po::validation_error::invalid_option_value);
-                    }
-                    catch (std::out_of_range&) {
+                    } catch (std::out_of_range&) {
                         throw po::validation_error(po::validation_error::invalid_option_value);
                     }
                 }
@@ -171,8 +169,7 @@ namespace boost {
                 boost::asio::ip::address address;
                 try {
                     address = boost::asio::ip::address::from_string(host);
-                }
-                catch (boost::system::system_error&) {
+                } catch (boost::system::system_error&) {
                     throw po::validation_error(po::validation_error::invalid_option_value);
                 }
 
