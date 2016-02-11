@@ -59,7 +59,7 @@ namespace rhost {
         // Taken from R gnuwin32\console.c. Converts string that is partially
         // ANSI and partially UTF-8 to Unicode. UTF-8 fragment is bounded by
         // 02 FF FE at the start and by 03 FF FE at the end.
-        size_t enctowcs(wchar_t *wc, char *s, size_t n) {
+        size_t RString2Unicode(wchar_t *wc, char *s, size_t n) {
             char UTF8in[4] = "\002\377\376";
             char UTF8out[4] = "\003\377\376";
 
@@ -84,7 +84,7 @@ namespace rhost {
                 /* convert string starting at pb from UTF-8 */
                 nc += Rf_utf8towcs(wc + nc, pb, (pe - pb));
                 pe += 3;
-                nc += enctowcs(wc + nc, pe, n - nc);
+                nc += RString2Unicode(wc + nc, pe, n - nc);
             } else {
                 nc = mbstowcs(wc, s, n);
             }
@@ -101,11 +101,11 @@ namespace rhost {
             size_t cch = strlen(buf);
             if (cch > 0) {
                 ws.resize(cch);
-                enctowcs(&ws[0], (char*)buf, len);
+                RString2Unicode(&ws[0], (char*)buf, len);
             }
             // Now convert Unicode to UTF-8 for passing over to the host.
             std::wstring_convert<std::codecvt_utf8<wchar_t>> codecvt_utf8;
-            return codecvt_utf8.to_bytes(ws);
+            return codecvt_utf8.to_bytes(ws.c_str());
         }
 
         std::string from_utf8(const std::string& u8s) {
@@ -136,7 +136,7 @@ namespace rhost {
                 }
             }
             converted[j] = '\0';
-            return converted;
+            return std::string(converted.c_str());
         }
     }
 }
