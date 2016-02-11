@@ -43,6 +43,7 @@ namespace rhost {
                 bool has_pending_render() const;
                 bool pending_render_timeout_elapsed() const;
                 void render(bool save_snapshot);
+                void render_empty();
                 void render_from_display_list();
                 void render_from_snapshot();
                 void set_snapshot(const rhost::util::protected_sexp& snapshot);
@@ -50,6 +51,7 @@ namespace rhost {
             private:
                 std::string get_snapshot_varname();
                 void save_snapshot_variable();
+                void remove_snapshot_render_file();
 
             private:
                 boost::uuids::uuid _plot_id;
@@ -85,6 +87,20 @@ namespace rhost {
                 std::vector<std::unique_ptr<plot>> _plots;
                 pDevDesc _device_desc;
                 bool _replaying;
+
+                class replay_mode {
+                public:
+                    replay_mode(plot_history& history)
+                        : _history(history) {
+                        _history._replaying = true;
+                    }
+
+                    ~replay_mode() {
+                        _history._replaying = false;
+                    }
+                private:
+                    plot_history& _history;
+                };
             };
 
             class ide_device : public graphics_device {
@@ -129,6 +145,7 @@ namespace rhost {
                 double width() const { return _width; }
                 double height() const { return _height; }
                 std::tr2::sys::path save();
+                std::tr2::sys::path save_empty();
                 void send(const std::tr2::sys::path& filename);
 
                 void history_next();
@@ -176,6 +193,10 @@ namespace rhost {
             }
 
             plot::~plot() {
+                remove_snapshot_render_file();
+            }
+
+            void plot::remove_snapshot_render_file() {
                 if (!_snapshot_render_filename.empty()) {
                     try {
                         std::tr2::sys::remove(_snapshot_render_filename);
@@ -199,6 +220,16 @@ namespace rhost {
                 return elapsed.total_milliseconds() >= 50;
             }
 
+            void plot::render_empty() {
+                auto xdd = reinterpret_cast<ide_device*>(_device_desc->deviceSpecific);
+                auto path = xdd->save_empty();
+
+                remove_snapshot_render_file();
+
+                _snapshot_render_filename = path;
+                xdd->send(path);
+            }
+
             void plot::render(bool save_snapshot) {
                 if (!has_pending_render()) {
                     return;
@@ -209,12 +240,7 @@ namespace rhost {
                 auto xdd = reinterpret_cast<ide_device*>(_device_desc->deviceSpecific);
                 auto path = xdd->save();
 
-                if (!_snapshot_render_filename.empty()) {
-                    try {
-                        std::tr2::sys::remove(_snapshot_render_filename);
-                    } catch (const std::tr2::sys::filesystem_error&) {
-                    }
-                }
+                remove_snapshot_render_file();
 
                 _snapshot_render_filename = path;
                 _snapshot_render_width = xdd->width();
@@ -243,17 +269,21 @@ namespace rhost {
                 auto xdd = reinterpret_cast<ide_device*>(_device_desc->deviceSpecific);
                 xdd->output_and_kill_file_device();
 
-                rhost::util::errors_to_exceptions([&] {
-                    auto snapshot = Rf_findVar(Rf_install(_snapshot_varname.c_str()), R_GlobalEnv);
-                    if (snapshot != R_UnboundValue && snapshot != R_NilValue) {
-                        Rf_protect(snapshot);
-                        pGEDevDesc ge_dev_desc = Rf_desc2GEDesc(_device_desc);
-                        GEplaySnapshot(snapshot, ge_dev_desc);
-                        Rf_unprotect(1);
-                    } else {
-                        Rf_error("Plot snapshot is missing. Plot history may be corrupted. You should restart your session.");
-                    }
-                });
+                try {
+                    rhost::util::errors_to_exceptions([&] {
+                        auto snapshot = Rf_findVar(Rf_install(_snapshot_varname.c_str()), R_GlobalEnv);
+                        if (snapshot != R_UnboundValue && snapshot != R_NilValue) {
+                            Rf_protect(snapshot);
+                            pGEDevDesc ge_dev_desc = Rf_desc2GEDesc(_device_desc);
+                            GEplaySnapshot(snapshot, ge_dev_desc);
+                            Rf_unprotect(1);
+                        } else {
+                            Rf_error("Plot snapshot is missing. Plot history may be corrupted. You should restart your session.");
+                        }
+                    });
+                } catch (rhost::util::r_error&) {
+                    render_empty();
+                }
             }
 
             void plot::set_snapshot(const rhost::util::protected_sexp& snapshot) {
@@ -358,10 +388,9 @@ namespace rhost {
                 auto plot = get_active();
                 if (plot != nullptr) {
                     if (plot->has_pending_render()) {
-                        _replaying = true;
+                        auto replay = replay_mode(*this);
                         auto plot = _active_plot->get();
                         plot->render_from_display_list();
-                        _replaying = false;
                     } else {
                         render_from_snapshot();
                     }
@@ -369,12 +398,11 @@ namespace rhost {
             }
 
             void plot_history::render_from_snapshot() {
-                _replaying = true;
+                auto replay = replay_mode(*this);
                 auto plot = _active_plot->get();
                 if (plot != nullptr) {
                     plot->render_from_snapshot();
                 }
-                _replaying = false;
             }
 
             int plot_history::plot_count() const {
@@ -659,6 +687,13 @@ namespace rhost {
                 return path;
             }
 
+            std::tr2::sys::path ide_device::save_empty() {
+                auto path = get_render_file_path();
+                std::ofstream empty_file(path);
+                empty_file.close();
+                return path;
+            }
+
             void ide_device::send(const std::tr2::sys::path& filename) {
                 auto path_copy(filename);
                 rhost::host::with_cancellation([&] {
@@ -700,14 +735,19 @@ namespace rhost {
             }
 
             void ide_device::sync_file_device() {
-                rhost::util::errors_to_exceptions([&] {
-                    int file_device_num = Rf_ndevNumber(_file_device);
-                    int ide_device_num = Rf_ndevNumber(device_desc);
+                try {
+                    rhost::util::errors_to_exceptions([&] {
+                        int file_device_num = Rf_ndevNumber(_file_device);
+                        int ide_device_num = Rf_ndevNumber(device_desc);
 
-                    Rf_selectDevice(file_device_num);
-                    GEcopyDisplayList(ide_device_num);
-                    Rf_selectDevice(ide_device_num);
-                });
+                        Rf_selectDevice(file_device_num);
+                        GEcopyDisplayList(ide_device_num);
+                        Rf_selectDevice(ide_device_num);
+                    });
+                } catch (rhost::util::r_error&) {
+                    auto path = save_empty();
+                    send(path);
+                }
             }
 
             void ide_device::output_and_kill_file_device() {

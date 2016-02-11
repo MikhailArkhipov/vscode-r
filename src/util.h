@@ -172,7 +172,7 @@ namespace rhost {
             return true;
         }
 
-        class r_error : std::runtime_error {
+        class r_error : public std::runtime_error {
         public:
             explicit r_error(const std::string& msg)
                 : std::runtime_error(msg) {
