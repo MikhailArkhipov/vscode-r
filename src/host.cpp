@@ -44,6 +44,7 @@ namespace rhost {
         std::promise<void> connected_promise;
         std::shared_ptr<ws_connection_type> ws_conn;
         std::atomic<bool> is_connection_closed = false;
+        std::atomic<bool> is_waiting_for_wm = false;
         long long next_message_id = 0;
         bool allow_callbacks = true, allow_intr_in_CallBack = true;
 
@@ -346,12 +347,19 @@ namespace rhost {
                     // using longjmp, which will skip destructors for all our local variables. Instead, make
                     // CallBack a no-op until event processing is done, and then do a manual cancellation check.
                     allow_intr_in_CallBack = false;
+
                     R_ToplevelExec([](void*) {
                         // Errors can happen during event processing (from GUI windows such as graphs), and
                         // we don't want them to bubble up here, so run these in a fresh execution context.
+                        is_waiting_for_wm = true;
                         R_WaitEvent();
+                        is_waiting_for_wm = false;
                         R_ProcessEvents();
                     }, nullptr);
+
+                    // In case anything in R_WaitEvent failed and unwound the context before we could reset.
+                    is_waiting_for_wm = false;
+
                     allow_intr_in_CallBack = true;
 
                     terminate_if_closed();
@@ -390,9 +398,26 @@ namespace rhost {
             throw;
         }
 
+        // Unblock any pending with_response call that is waiting in a message loop.
         void unblock_message_loop() {
-            // Unblock any pending with_response call that is waiting in a message loop.
-            PostThreadMessage(main_thread_id, WM_NULL, 0, 0);
+            // Because PeekMessage can dispatch messages that were sent, which may in turn result 
+            // in nested evaluation of R code and nested message loops, sending a single WM_NULL
+            // may not be sufficient, so keep sending them until the waiting flag is cleared - 
+            // because WM_NULL is no-op, posting extra ones is harmless.
+            // However, we need to pause and give the other thread some time to process, otherwise
+            // we can flood its WM queue faster than it can process it, and it might never stop
+            // pumping events and return to PeekMessage.
+            auto delay = 10ms;
+            for (; is_waiting_for_wm; std::this_thread::sleep_for(delay)) {
+                PostThreadMessage(main_thread_id, WM_NULL, 0, 0);
+
+                // Further guard against overflowing the queue by posting to it too aggressively.
+                // If previous wait didn't help, give it a little more time to process next message,
+                // up to a reasonable limit.
+                if (delay < 5000ms) {
+                    delay *= 2;
+                }
+            } 
         }
 
         picojson::array get_context() {
