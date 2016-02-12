@@ -118,10 +118,9 @@ namespace rhost {
             // cannot be converted. Instead, we are going to encode 
             // unconvertable characters into "\uABCD" form. This allows
             // us to preserve characters written in non-default OS CP.
-            std::string converted;
             // Max 8 bytes per character which should fit both UTF-8 and \uABCD
-            converted.resize(8 * ws.length());
-            size_t j = 0;
+            std::string converted(8 * ws.length(), '\0');
+             size_t j = 0;
             for (size_t i = 0; i < ws.length(); i++)
             {
                 char mbcharbuf[8];
