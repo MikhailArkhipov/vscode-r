@@ -121,10 +121,10 @@ namespace rhost {
             std::string converted;
             // Max 8 bytes per character which should fit both UTF-8 and \uABCD
             converted.resize(8 * ws.length());
-            char mbcharbuf[8];
             size_t j = 0;
             for (size_t i = 0; i < ws.length(); i++)
             {
+                char mbcharbuf[8];
                 int mbcch = wctomb(mbcharbuf, ws[i]);
                 if (mbcch == -1) {
                     // Character could not be converted, encode it
@@ -136,7 +136,8 @@ namespace rhost {
                 }
             }
             converted[j] = '\0';
-            return std::string(converted.c_str());
+            converted.resize(j);
+            return converted;
         }
     }
 }
