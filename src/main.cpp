@@ -33,6 +33,7 @@
 #include "exports.h"
 
 using namespace rhost::log;
+using namespace rhost::util;
 namespace po = boost::program_options;
 
 namespace rhost {
@@ -113,6 +114,19 @@ namespace rhost {
         return args;
     }
 
+    void set_memory_limit() {
+#ifdef WIN32
+        ULONGLONG total;
+        if (!GetPhysicallyInstalledSystemMemory(&total)) {
+            return;
+        }
+
+        protected_sexp limit = Rf_allocVector(REALSXP, 1);
+        *REAL(limit.get()) = static_cast<double>(total / 1024);
+        r_top_level_exec([&] { in_memsize(limit.get()); });
+#endif
+    }
+
     int run(command_line_args& args) {
         init_log(args.name);
 
@@ -154,6 +168,8 @@ namespace rhost {
         CharacterMode = LinkDLL;
         setup_Rmainloop();
         CharacterMode = RGui;
+
+        set_memory_limit();
 
         run_Rmainloop();
 

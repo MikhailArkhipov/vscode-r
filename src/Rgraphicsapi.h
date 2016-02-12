@@ -61,14 +61,6 @@
 #define NA_INTEGER          R_NaInt
 
 extern "C" {
-    extern __declspec(dllimport) int R_NaInt;
-
-    int *(LOGICAL)(SEXP x);
-    int *(INTEGER)(SEXP x);
-    double *(REAL)(SEXP x);
-    SEXP(CAR)(SEXP e);
-    SEXP(CDR)(SEXP e);
-
     int R_GE_getVersion(void);
 
     void R_GE_checkVersionOrDie(int version);
