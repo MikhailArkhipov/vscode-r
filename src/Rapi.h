@@ -343,6 +343,10 @@ extern "C" {
     extern void SET_RSTEP(SEXP x, int v);
     extern void SET_RTRACE(SEXP x, int v);
 
+    extern int* LOGICAL(SEXP x);
+    extern int* INTEGER(SEXP x);
+    extern double* REAL(SEXP x);
+
 #ifdef _WIN32
     extern char *getDLLVersion(void), *getRUser(void), *get_R_HOME(void);
     extern void setup_term_ui(void);
@@ -351,6 +355,7 @@ extern "C" {
     extern int GA_initapp(int, char**);
     extern void GA_appcleanup(void);
     extern void readconsolecfg(void);
+    SEXP in_memsize(SEXP ssize);
 #endif
 
     typedef void * (*DL_FUNC)();
