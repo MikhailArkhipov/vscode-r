@@ -56,6 +56,41 @@ namespace rhost {
             return convert.to_bytes(ws);
         }
 #endif
+        // Taken from R gnuwin32\console.c. Converts string that is partially
+        // ANSI and partially UTF-8 to Unicode. UTF-8 fragment is bounded by
+        // 02 FF FE at the start and by 03 FF FE at the end.
+        size_t RString2Unicode(wchar_t *wc, char *s, size_t n) {
+            char UTF8in[4] = "\002\377\376";
+            char UTF8out[4] = "\003\377\376";
+
+            size_t nc = 0;
+            char *pb, *pe;
+
+            if ((pb = strchr(s, UTF8in[0])) && *(pb + 1) == UTF8in[1] && *(pb + 2) == UTF8in[2]) {
+                *pb = '\0';
+                nc += mbstowcs(wc, s, n);
+                pb += 3; pe = pb;
+
+                while (*pe &&
+                    !((pe = strchr(pe, UTF8out[0])) && *(pe + 1) == UTF8out[1] &&
+                        *(pe + 2) == UTF8out[2])) {
+                    pe++;
+                }
+                if (!*pe) {
+                    return nc;
+                }
+
+                *pe = '\0';
+                /* convert string starting at pb from UTF-8 */
+                nc += Rf_utf8towcs(wc + nc, pb, (pe - pb));
+                pe += 3;
+                nc += RString2Unicode(wc + nc, pe, n - nc);
+            } else {
+                nc = mbstowcs(wc, s, n);
+            }
+            return nc;
+        }
+
         std::string to_utf8(const char* buf, size_t len) {
             // Convert 8-bit characters to Unicode via Windows CP. This guarantees
             // if locale for non-Unicode programs is set correctly, user can type in
@@ -66,11 +101,11 @@ namespace rhost {
             size_t cch = strlen(buf);
             if (cch > 0) {
                 ws.resize(cch);
-                ::MultiByteToWideChar(CP_ACP, 0, buf, (int)cch, &ws[0], (int)ws.size());
+                RString2Unicode(&ws[0], (char*)buf, len);
             }
             // Now convert Unicode to UTF-8 for passing over to the host.
             std::wstring_convert<std::codecvt_utf8<wchar_t>> codecvt_utf8;
-            return codecvt_utf8.to_bytes(ws);
+            return codecvt_utf8.to_bytes(ws.c_str());
         }
 
         std::string from_utf8(const std::string& u8s) {
@@ -78,15 +113,30 @@ namespace rhost {
             std::wstring_convert<std::codecvt_utf8<wchar_t>> codecvt_utf8;
             auto ws = codecvt_utf8.from_bytes(u8s);
 
-            // Then convert Unicode to the default OS codepage.
-            // If locale for non-Unicode programs is set correctly, user can type in
-            // their language. See also the note in to_utf8() above.
-            char defaultChar = '?';
-            BOOL f;
-            std::string oemString;
-            oemString.resize(ws.length());
-            ::WideCharToMultiByte(CP_ACP, 0, ws.c_str(), (int)ws.length(), &oemString[0], (int)oemString.size(), &defaultChar, &f);
-            return oemString;
+            // Now convert to MBCS. Do it manually since WideCharToMultiByte
+            // requires specific code page and fails if character
+            // cannot be converted. Instead, we are going to encode 
+            // unconvertable characters into "\uABCD" form. This allows
+            // us to preserve characters written in non-default OS CP.
+            // Max 8 bytes per character which should fit both UTF-8 and \uABCD
+            std::string converted(8 * ws.length(), '\0');
+             size_t j = 0;
+            for (size_t i = 0; i < ws.length(); i++)
+            {
+                char mbcharbuf[8];
+                int mbcch = wctomb(mbcharbuf, ws[i]);
+                if (mbcch == -1) {
+                    // Character could not be converted, encode it
+                    sprintf(&converted[j], "\\u%04x", ws[i]);
+                    j += 6;
+                } else {
+                    memcpy(&converted[j], mbcharbuf, mbcch);
+                    j += mbcch;
+                }
+            }
+            converted[j] = '\0';
+            converted.resize(j);
+            return converted;
         }
     }
 }
