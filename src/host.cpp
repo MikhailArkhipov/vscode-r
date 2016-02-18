@@ -213,17 +213,21 @@ namespace rhost {
                 // before the restart context is torn down, so that untimely cancellation request for the outer eval doesn't
                 // cancel his one.
 
+                bool was_before_invoked = false;
                 auto before = [&] {
                     std::lock_guard<std::mutex> lock(eval_mutex);
                     eval_stack.push_back(eval_info(msg.id, is_cancelable));
+                    was_before_invoked = true;
                 };
 
                 bool was_after_invoked = false;
                 auto after = [&] {
                     std::lock_guard<std::mutex> lock(eval_mutex);
 
-                    assert(!eval_stack.empty());
-                    assert(eval_stack.end()[-1].id == msg.id);
+                    if (was_before_invoked) {
+                        assert(!eval_stack.empty());
+                        assert(eval_stack.end()[-1].id == msg.id);
+                    }
 
                     if (canceling_eval && msg.id == eval_cancel_target) {
                         // If we were unwinding the stack for cancellation purposes, and this eval was the target
@@ -233,7 +237,10 @@ namespace rhost {
                         canceling_eval = false;
                     }
 
-                    eval_stack.pop_back();
+                    if (was_before_invoked) {
+                        eval_stack.pop_back();
+                    }
+
                     was_after_invoked = true;
                 };
 
