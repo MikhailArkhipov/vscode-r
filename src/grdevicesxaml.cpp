@@ -490,7 +490,10 @@ namespace rhost {
                 double *w = REAL(width);
                 double *h = REAL(height);
 
-                R_GE_checkVersionOrDie(R_GE_version);
+                int ver = R_GE_getVersion();
+                if (ver < R_32_GE_version || ver > R_33_GE_version) {
+                    Rf_error("Graphics API version %d is not supported.", ver);
+                }
 
                 R_CheckDeviceAvailable();
                 BEGIN_SUSPEND_INTERRUPTS{

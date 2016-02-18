@@ -41,6 +41,9 @@
 
 #define R_GE_version 10
 
+#define R_32_GE_version 10
+#define R_33_GE_version 11
+
 #define R_RGB(r,g,b)        ((r)|((g)<<8)|((b)<<16)|0xFF000000)
 #define R_RGBA(r,g,b,a)     ((r)|((g)<<8)|((b)<<16)|((a)<<24))
 #define R_RED(col)          (((col))&255)
