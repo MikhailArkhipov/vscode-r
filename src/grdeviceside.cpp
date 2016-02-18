@@ -49,8 +49,7 @@ namespace rhost {
                 void set_snapshot(const rhost::util::protected_sexp& snapshot);
 
             private:
-                std::string get_snapshot_varname();
-                void save_snapshot_variable();
+                void create_snapshot();
                 void remove_snapshot_render_file();
 
             private:
@@ -61,7 +60,7 @@ namespace rhost {
                 double _snapshot_render_width;
                 double _snapshot_render_height;
                 std::tr2::sys::path _snapshot_render_filename;
-                std::string _snapshot_varname;
+                rhost::util::protected_sexp _snapshot;
             };
 
             class plot_history {
@@ -189,6 +188,7 @@ namespace rhost {
             plot::plot(pDevDesc dd) :
                 _plot_id(uuid_generator()),
                 _device_desc(dd),
+                _snapshot(nullptr),
                 _has_pending_render(false) {
             }
 
@@ -247,10 +247,7 @@ namespace rhost {
                 _snapshot_render_height = xdd->height();
 
                 if (save_snapshot) {
-                    if (_snapshot_varname.empty()) {
-                        _snapshot_varname = get_snapshot_varname();
-                    }
-                    save_snapshot_variable();
+                    create_snapshot();
                 }
 
                 xdd->send(path);
@@ -271,12 +268,10 @@ namespace rhost {
 
                 try {
                     rhost::util::errors_to_exceptions([&] {
-                        auto snapshot = Rf_findVar(Rf_install(_snapshot_varname.c_str()), R_GlobalEnv);
+                        auto snapshot = _snapshot.get();
                         if (snapshot != R_UnboundValue && snapshot != R_NilValue) {
-                            Rf_protect(snapshot);
                             pGEDevDesc ge_dev_desc = Rf_desc2GEDesc(_device_desc);
                             GEplaySnapshot(snapshot, ge_dev_desc);
-                            Rf_unprotect(1);
                         } else {
                             Rf_error("Plot snapshot is missing. Plot history may be corrupted. You should restart your session.");
                         }
@@ -287,41 +282,21 @@ namespace rhost {
             }
 
             void plot::set_snapshot(const rhost::util::protected_sexp& snapshot) {
-                // Ignore if we already created a snapshot
-                if (_snapshot_varname.empty()) {
-                    _snapshot_varname = get_snapshot_varname();
-                }
-
                 rhost::util::errors_to_exceptions([&] {
                     SEXP klass = Rf_protect(Rf_mkString("recordedplot"));
                     Rf_classgets(snapshot.get(), klass);
 
-                    SEXP duplicated_snapshot = Rf_protect(Rf_duplicate(snapshot.get()));
-                    Rf_defineVar(Rf_install(_snapshot_varname.c_str()), duplicated_snapshot, R_GlobalEnv);
+                    _snapshot = Rf_duplicate(snapshot.get());
 
-                    Rf_unprotect(2);
+                    Rf_unprotect(1);
                 });
             }
 
-            void plot::save_snapshot_variable() {
+            void plot::create_snapshot() {
                 rhost::util::errors_to_exceptions([&] {
                     pGEDevDesc ge_dev_desc = Rf_desc2GEDesc(_device_desc);
-
-                    SEXP snapshot = Rf_protect(GEcreateSnapshot(ge_dev_desc));
-
-                    SEXP klass = Rf_protect(Rf_mkString("recordedplot"));
-                    Rf_classgets(snapshot, klass);
-
-                    Rf_defineVar(Rf_install(_snapshot_varname.c_str()), snapshot, R_GlobalEnv);
-
-                    Rf_unprotect(2);
+                    _snapshot = GEcreateSnapshot(ge_dev_desc);
                 });
-            }
-
-            std::string plot::get_snapshot_varname() {
-                std::string name = std::string(".SavedPlot") + boost::uuids::to_string(_plot_id);
-                boost::algorithm::replace_all(name, "-", "");
-                return name;
             }
 
             ///////////////////////////////////////////////////////////////////////
