@@ -97,7 +97,7 @@ namespace rhost {
         inline r_eval_result<std::string> r_try_eval_str(const std::string& expr, SEXP env, ParseStatus& parse_status, FBefore before, FAfter after) {
             using namespace rhost::util;
 
-            r_eval_result<std::string> result;
+            r_eval_result<std::string> result = {};
 
             auto results = r_try_eval(expr, env, parse_status, before, after);
             if (!results.empty()) {
