@@ -792,7 +792,7 @@ namespace rhost {
             }
 
             pDevDesc ide_device::create_file_device(const std::string& device_type, const std::tr2::sys::path& filename, double width, double height) {
-                auto expr = boost::format("%1%(filename='%2%', width=%3%, height=%4%)") % device_type % filename.generic_string() % width % height;
+                auto expr = boost::format("%1%(filename='%2%', width=%3%, height=%4%, res=96)") % device_type % filename.generic_string() % width % height;
 
                 // Create the file device via the public R API
                 ParseStatus ps;
