@@ -116,14 +116,21 @@ namespace rhost {
 
     void set_memory_limit() {
 #ifdef WIN32
-        ULONGLONG total;
-        if (!GetPhysicallyInstalledSystemMemory(&total)) {
+        MEMORYSTATUSEX ms = {};
+        ms.dwLength = sizeof ms;
+        if (!GlobalMemoryStatusEx(&ms)) {
+            logf("Couldn't set R memory limit - GlobalMemoryStatusEx failed with GetLastError=%u\n", GetLastError());
             return;
         }
 
+        double memory_limit = static_cast<double>(ms.ullTotalPhys / 1024 / 1024);
+        logf("Setting R memory limit to %0.0f MB\n", memory_limit);
+
         protected_sexp limit = Rf_allocVector(REALSXP, 1);
-        *REAL(limit.get()) = static_cast<double>(total / 1024);
-        r_top_level_exec([&] { in_memsize(limit.get()); });
+        *REAL(limit.get()) = memory_limit;
+        if (!r_top_level_exec([&] { in_memsize(limit.get()); })) {
+            logf("Couldn't set R memory limit - in_memsize failed: %s\n", R_curErrorBuf());
+        }
 #endif
     }
 
