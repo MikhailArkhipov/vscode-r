@@ -205,7 +205,7 @@
     <ResourceCompile Include="Resource.rc" />
   </ItemGroup>
   <ItemGroup>
-    <FilesToSign Include="$(OutDir)\RHost.exe ">
+    <FilesToSign Include="$(OutDir)\Microsoft.R.Host.exe">
       <Authenticode>Microsoft</Authenticode>
     </FilesToSign>
   </ItemGroup>
