@@ -103,11 +103,17 @@ namespace rhost {
             using unique_ptr::operator=;
 
             protected_sexp& operator= (SEXP other) {
-                return *this = std::move(protected_sexp(other));
+                swap(protected_sexp(other));
+                return *this;
             }
 
             protected_sexp& operator= (const protected_sexp& other) {
                 return *this = other.get();
+            }
+
+            protected_sexp& operator= (protected_sexp&& other) {
+                swap(other);
+                return *this;
             }
         };
 
