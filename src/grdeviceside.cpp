@@ -370,7 +370,7 @@ namespace rhost {
                     // erase() returns an iterator that points to end() when removing the last item
                     // so adjust it to point to the new last item, if one is available
                     if (_active_plot == _plots.end() && _plots.size() > 0) {
-                        _active_plot = std::prev(_plots.end(), 1);
+                        _active_plot--;
                     }
                 }
             }
