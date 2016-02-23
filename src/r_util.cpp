@@ -382,14 +382,27 @@ namespace rhost {
             return R_NilValue;
         }
 
-        extern "C" SEXP browser_set_debug(SEXP n_sexp) {
+        extern "C" SEXP browser_set_debug(SEXP n_sexp, SEXP skip_toplevel_sexp) {
             int n = Rf_asInteger(n_sexp);
             if (n < 1) {
                 Rf_error("Number of contexts to skip must be positive.");
             }
 
-            // Find the closest browser context, if any.
+            int skip_toplevel = Rf_asInteger(skip_toplevel_sexp);
+            if (skip_toplevel < 0) {
+                Rf_error("Number of top-level contexts to skip must be non-negative.");
+            }
+
+            // Skip the requisite number of top-level contexts first.
             auto ctx = R_GlobalContext;
+            while (ctx && skip_toplevel) {
+                if (ctx->callflag == CTXT_TOPLEVEL) {
+                    --skip_toplevel;
+                }
+                ctx = ctx->nextcontext;
+            }
+
+            // Find the closest browser context, if any.
             while (ctx && ctx->callflag != CTXT_TOPLEVEL) {
                 if (ctx->callflag == CTXT_BROWSER) {
                     break;
@@ -431,7 +444,7 @@ namespace rhost {
             { "Microsoft.R.Host::Call.set_instrumentation_callback", (DL_FUNC)set_instrumentation_callback, 1 },
             { "Microsoft.R.Host::Call.is_rdebug", (DL_FUNC)is_rdebug, 1 },
             { "Microsoft.R.Host::Call.set_rdebug", (DL_FUNC)set_rdebug, 2 },
-            { "Microsoft.R.Host::Call.browser_set_debug", (DL_FUNC)browser_set_debug, 1 },
+            { "Microsoft.R.Host::Call.browser_set_debug", (DL_FUNC)browser_set_debug, 2 },
             { }
         };
 
