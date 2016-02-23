@@ -106,6 +106,15 @@ namespace rhost {
                 swap(protected_sexp(other));
                 return *this;
             }
+
+            protected_sexp& operator= (const protected_sexp& other) {
+                return *this = other.get();
+            }
+
+            protected_sexp& operator= (protected_sexp&& other) {
+                swap(other);
+                return *this;
+            }
         };
 
         std::string to_utf8(const char* buf, size_t len);
