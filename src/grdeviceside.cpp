@@ -74,6 +74,7 @@ namespace rhost {
                 void new_page();
                 void append(std::unique_ptr<plot> plot);
                 void clear();
+                void remove_active();
 
                 void resize(double width, double height);
                 void render_from_snapshot();
@@ -145,10 +146,13 @@ namespace rhost {
                 double height() const { return _height; }
                 std::tr2::sys::path save();
                 std::tr2::sys::path save_empty();
+                void send_clear();
                 void send(const std::tr2::sys::path& filename);
 
                 void history_next();
                 void history_previous();
+                void history_clear();
+                void history_remove_active();
 
                 int plot_count() const;
                 int active_plot_index() const;
@@ -356,7 +360,19 @@ namespace rhost {
             }
 
             void plot_history::clear() {
-                // TODO
+                _plots.clear();
+                _active_plot = _plots.begin();
+            }
+
+            void plot_history::remove_active() {
+                if (_active_plot != _plots.end()) {
+                    _active_plot = _plots.erase(_active_plot);
+                    // erase() returns an iterator that points to end() when removing the last item
+                    // so adjust it to point to the new last item, if one is available
+                    if (_active_plot == _plots.end() && _plots.size() > 0) {
+                        _active_plot--;
+                    }
+                }
             }
 
             void plot_history::resize(double width, double height) {
@@ -479,9 +495,7 @@ namespace rhost {
             }
 
             void ide_device::close() {
-                // send an 'empty' plot to ide to clear the plot window
-                send(std::tr2::sys::path(""));
-
+                send_clear();
                 closed();
                 delete this;
             }
@@ -669,6 +683,11 @@ namespace rhost {
                 return path;
             }
 
+            void ide_device::send_clear() {
+                // send an 'empty' plot to ide to clear the plot window
+                send(std::tr2::sys::path(""));
+            }
+
             void ide_device::send(const std::tr2::sys::path& filename) {
                 auto path_copy(filename);
                 rhost::host::with_cancellation([&] {
@@ -756,6 +775,20 @@ namespace rhost {
             void ide_device::history_previous() {
                 _history.move_previous();
                 _history.render_from_snapshot();
+            }
+
+            void ide_device::history_clear() {
+                _history.clear();
+                send_clear();
+            }
+
+            void ide_device::history_remove_active() {
+                _history.remove_active();
+                if (_history.plot_count() > 0) {
+                    _history.render_from_snapshot();
+                } else {
+                    send_clear();
+                }
             }
 
             int ide_device::plot_count() const {
@@ -889,12 +922,36 @@ namespace rhost {
                 });
             }
 
+            extern "C" SEXP ide_graphicsdevice_clear_plots(SEXP args) {
+                return rhost::util::exceptions_to_errors([&] {
+                    if (device_instance != nullptr) {
+                        device_instance->select();
+                        device_instance->history_clear();
+                    }
+
+                    return R_NilValue;
+                });
+            }
+
+            extern "C" SEXP ide_graphicsdevice_remove_plot(SEXP args) {
+                return rhost::util::exceptions_to_errors([&] {
+                    if (device_instance != nullptr) {
+                        device_instance->select();
+                        device_instance->history_remove_active();
+                    }
+
+                    return R_NilValue;
+                });
+            }
+
             static R_ExternalMethodDef external_methods[] = {
                 { "Microsoft.R.Host::External.ide_graphicsdevice_new", (DL_FUNC)&ide_graphicsdevice_new, 0 },
                 { "Microsoft.R.Host::External.ide_graphicsdevice_resize", (DL_FUNC)&ide_graphicsdevice_resize, 2 },
                 { "Microsoft.R.Host::External.ide_graphicsdevice_next_plot", (DL_FUNC)&ide_graphicsdevice_next_plot, 0 },
                 { "Microsoft.R.Host::External.ide_graphicsdevice_previous_plot", (DL_FUNC)&ide_graphicsdevice_previous_plot, 0 },
                 { "Microsoft.R.Host::External.ide_graphicsdevice_history_info", (DL_FUNC)&ide_graphicsdevice_history_info, 0 },
+                { "Microsoft.R.Host::External.ide_graphicsdevice_clear_plots", (DL_FUNC)&ide_graphicsdevice_clear_plots, 0 },
+                { "Microsoft.R.Host::External.ide_graphicsdevice_remove_plot", (DL_FUNC)&ide_graphicsdevice_remove_plot, 0 },
                 {}
             };
 
