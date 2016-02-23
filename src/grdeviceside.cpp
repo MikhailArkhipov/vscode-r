@@ -824,9 +824,12 @@ namespace rhost {
             ///////////////////////////////////////////////////////////////////////
 
             extern "C" SEXP ide_graphicsdevice_new(SEXP args) {
-                return rhost::util::exceptions_to_errors([&] {
-                    R_GE_checkVersionOrDie(R_GE_version);
+                int ver = R_GE_getVersion();
+                if (ver < R_32_GE_version || ver > R_33_GE_version) {
+                    Rf_error("Graphics API version %d is not supported.", ver);
+                }
 
+                return rhost::util::exceptions_to_errors([&] {
                     if (device_instance != nullptr) {
                         // TODO: issue some error
                         return R_NilValue;
