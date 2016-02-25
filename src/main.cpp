@@ -27,11 +27,13 @@
 #include "host.h"
 #include "Rapi.h"
 #include "util.h"
+#include "eval.h"
 #include "detours.h"
 #include "grdeviceside.h"
 #include "grdevicesxaml.h"
 #include "exports.h"
 
+using namespace rhost::eval;
 using namespace rhost::log;
 using namespace rhost::util;
 namespace po = boost::program_options;
@@ -134,6 +136,24 @@ namespace rhost {
 #endif
     }
 
+    void suggest_mro(structRstart& rp) {
+        ParseStatus ps;
+        auto res = r_try_eval_str("if (exists('Revo.version')) 'REVO' else 'CRAN'", R_BaseEnv, ps);
+
+        assert(res.has_value);
+        if (!res.has_value) {
+            return;
+        }
+
+        if (res.value == "REVO") {
+            // This is Revolution R or Microsoft R.
+            return;
+        }
+
+        static const char mro_banner[] = "Check out Microsoft's enhanced R distribution at http://go.microsoft.com/fwlink/?LinkId=734720. \n\n";
+        rp.WriteConsoleEx(mro_banner, strlen(mro_banner), 0);
+    }
+
     int run(command_line_args& args) {
         init_log(args.name);
 
@@ -152,7 +172,7 @@ namespace rhost {
         rp.rhome = get_R_HOME();
         rp.home = getRUser();
         rp.CharacterMode = RGui;
-        rp.R_Quiet = R_TRUE;
+        rp.R_Quiet = R_FALSE;
         rp.R_Interactive = R_TRUE;
         rp.RestoreAction = SA_RESTORE;
         rp.SaveAction = SA_NOSAVE;
@@ -177,6 +197,9 @@ namespace rhost {
         CharacterMode = RGui;
 
         set_memory_limit();
+
+        // setup_Rmainloop above prints out the license banner, so this will follow that.
+        suggest_mro(rp);
 
         run_Rmainloop();
 
