@@ -273,11 +273,11 @@ namespace rhost {
                 try {
                     rhost::util::errors_to_exceptions([&] {
                         auto snapshot = _snapshot.get();
-                        if (snapshot != R_UnboundValue && snapshot != R_NilValue) {
+                        if (snapshot != nullptr && snapshot != R_UnboundValue && snapshot != R_NilValue) {
                             pGEDevDesc ge_dev_desc = Rf_desc2GEDesc(_device_desc);
                             GEplaySnapshot(snapshot, ge_dev_desc);
                         } else {
-                            Rf_error("Plot snapshot is missing. Plot history may be corrupted. You should restart your session.");
+                            render_empty();
                         }
                     });
                 } catch (rhost::util::r_error&) {
