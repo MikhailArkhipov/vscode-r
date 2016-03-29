@@ -166,7 +166,14 @@ namespace rhost {
             case REALSXP: {
                 at_most_one(sexp);
                 double x = *REAL(sexp);
-                result = R_IsNA(x) ? js::value() : js::value(x);
+                if (R_IsNA(x)) {
+                    result = js::value();
+                } else {
+                    if (isinf(x) || isnan(x)) {
+                        json_error(sexp, "+Inf, -Inf and NaN cannot be serialized");
+                    }
+                    result = js::value(x);
+                }
                 break;
             }
 
