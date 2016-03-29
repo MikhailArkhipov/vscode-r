@@ -25,11 +25,13 @@
 #include "msvcrt.h"
 #include "eval.h"
 #include "util.h"
+#include "json.h"
 
 using namespace std::literals;
 using namespace rhost::log;
 using namespace rhost::util;
 using namespace rhost::eval;
+using namespace rhost::json;
 
 namespace rhost {
 	namespace host {
@@ -206,7 +208,7 @@ namespace rhost {
 				env = R_GlobalEnv;
 			}
 
-			r_eval_result<std::string> result;
+			r_eval_result<protected_sexp> result = {};
 			ParseStatus ps;
 			{
 				// We must not register this eval as a potential cancellation target before it gets a chance to establish
@@ -247,7 +249,11 @@ namespace rhost {
 				};
 
 				protected_sexp eval_env(new_env ? Rf_NewEnvironment(R_NilValue, R_NilValue, env) : env);
-				result = r_try_eval_str(expr, eval_env.get(), ps, before, after);
+
+				auto results = r_try_eval(expr, eval_env.get(), ps, before, after);
+				if (!results.empty()) {
+					result = results.back();
+				}
 
 				// If eval was canceled, the "after" block was never executed (since it is normally run within the eval
 				// context, and so cancelation unwinds it along with everything else in that context), so we need to run
@@ -288,14 +294,9 @@ namespace rhost {
 			}
 			if (result.has_value) {
 				if (json_result) {
-					auto err = picojson::parse(value, to_utf8(result.value));
-					if (!err.empty()) {
-						fatal_error(
-							"'%s': evaluation result couldn't be parsed as JSON: %s\n\n%s",
-							msg.name.c_str(), err.c_str(), result.value.c_str());
-					}
+					to_json(result.value.get(), value);
 				} else {
-					value = picojson::value(to_utf8(result.value));
+					value = to_utf8_json(R_CHAR(Rf_asChar(result.value.get())));
 				}
 			}
 

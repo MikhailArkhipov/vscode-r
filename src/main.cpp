@@ -151,7 +151,7 @@ namespace rhost {
         }
 
         static const char mro_banner[] = "Check out Microsoft's enhanced R distribution at http://go.microsoft.com/fwlink/?LinkId=734720. \n\n";
-        rp.WriteConsoleEx(mro_banner, strlen(mro_banner), 0);
+        rp.WriteConsoleEx(mro_banner, static_cast<int>(strlen(mro_banner)), 0);
     }
 
     int run(command_line_args& args) {
