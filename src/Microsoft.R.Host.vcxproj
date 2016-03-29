@@ -175,6 +175,7 @@
     <ClCompile Include="eval.cpp" />
     <ClCompile Include="log.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="json.cpp" />
     <ClCompile Include="r_util.cpp" />
     <ClCompile Include="host.cpp" />
     <ClCompile Include="detours.cpp" />
@@ -192,6 +193,7 @@
     <ClInclude Include="Rapi.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="Rgraphicsapi.h" />
+    <ClInclude Include="json.h" />
     <ClInclude Include="r_util.h" />
     <ClInclude Include="host.h" />
     <ClInclude Include="stdafx.h" />

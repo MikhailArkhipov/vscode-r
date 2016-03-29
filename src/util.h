@@ -196,6 +196,10 @@ namespace rhost {
                 throw r_error(err);
             }
         }
+
+        inline std::string deparse(SEXP sexp) {
+            return R_CHAR(STRING_ELT(Rf_deparse1line(sexp, R_FALSE), 0));
+        }
     }
 }
 
