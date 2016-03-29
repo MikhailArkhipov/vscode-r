@@ -118,12 +118,9 @@ namespace rhost {
         }
 
         bool to_json(SEXP sexp, js::value& result) {
-            if (Rf_length(sexp) == 0) {
-                result = js::value();
-                return true;
-            }
+            int type = TYPEOF(sexp);
 
-            switch (TYPEOF(sexp)) {
+            switch (type) {
             case NILSXP:
                 result = js::value();
                 return true;
@@ -144,7 +141,14 @@ namespace rhost {
                 result = js::value(js::object());
                 env_to_object(sexp, result.get<js::object>());
                 return true;
+            }
 
+            if (Rf_length(sexp) == 0) {
+                result = js::value();
+                return true;
+            }
+
+            switch (type) {
             case LGLSXP: {
                 at_most_one(sexp);
                 int x = *LOGICAL(sexp);
