@@ -433,7 +433,7 @@ namespace rhost {
         }
 
         extern "C" SEXP toJSON(SEXP obj) {
-            SEXP json = Rf_mkCharCE(to_json(obj).serialize().c_str(), CE_UTF8);
+            SEXP json = Rf_mkCharCE(exceptions_to_errors([&] { return to_json(obj).serialize(); }).c_str(), CE_UTF8);
             Rf_protect(json);
             SEXP result = Rf_allocVector(STRSXP, 1);
             SET_STRING_ELT(result, 0, json);
