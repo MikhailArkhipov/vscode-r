@@ -197,9 +197,9 @@ namespace rhost {
             }
         }
 
-		inline std::string deparse(SEXP sexp) {
-			return R_CHAR(Rf_deparse1line(sexp, R_FALSE));
-		}
+        inline std::string deparse(SEXP sexp) {
+            return R_CHAR(Rf_deparse1line(sexp, R_FALSE));
+        }
     }
 }
 

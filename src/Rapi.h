@@ -228,10 +228,10 @@ extern "C" {
 #ifdef _WIN32
     __declspec(dllimport) extern UImode CharacterMode;
     __declspec(dllimport) extern RCNTXT* R_GlobalContext;
-	__declspec(dllimport) extern SEXP
-		R_GlobalEnv, R_EmptyEnv, R_BaseEnv, R_BaseNamespace, R_Srcref, R_NilValue,
-		R_TrueValue, R_FalseValue, R_UnboundValue, R_MissingArg, R_LogicalNAValue,
-		R_NaString, R_BlankString, R_BlankScalarString, R_NamesSymbol;
+    __declspec(dllimport) extern SEXP
+        R_GlobalEnv, R_EmptyEnv, R_BaseEnv, R_BaseNamespace, R_Srcref, R_NilValue,
+        R_TrueValue, R_FalseValue, R_UnboundValue, R_MissingArg, R_LogicalNAValue,
+        R_NaString, R_BlankString, R_BlankScalarString, R_NamesSymbol;
     __declspec(dllimport) extern int R_DirtyImage;
     __declspec(dllimport) extern char *R_TempDir;
     __declspec(dllimport) extern int UserBreak;
@@ -264,8 +264,8 @@ extern "C" {
     extern void R_ReleaseObject(SEXP);
     extern Rboolean R_ToplevelExec(void(*fun)(void *), void *data);
     extern SEXP R_new_custom_connection(const char *description, const char *mode, const char *class_name, Rconnection *ptr);
-	extern SEXP R_lsInternal(SEXP, Rboolean);
-	extern SEXP R_lsInternal3(SEXP, Rboolean, Rboolean);
+    extern SEXP R_lsInternal(SEXP, Rboolean);
+    extern SEXP R_lsInternal3(SEXP, Rboolean, Rboolean);
 
     extern int Rf_initialize_R(int ac, char** av);
     extern int Rf_initEmbeddedR(int argc, char** argv);
@@ -285,9 +285,9 @@ extern "C" {
     __declspec(noreturn) extern void Rf_error(const char *, ...);
     extern void Rf_init_con(Rconnection, const char *description, int enc, const char* const mode);
     extern SEXP Rf_deparse1(SEXP, Rboolean, int);
-	extern SEXP Rf_deparse1s(SEXP);
-	extern SEXP Rf_deparse1line(SEXP, Rboolean);
-	extern SEXP Rf_namesgets(SEXP, SEXP);
+    extern SEXP Rf_deparse1s(SEXP);
+    extern SEXP Rf_deparse1line(SEXP, Rboolean);
+    extern SEXP Rf_namesgets(SEXP, SEXP);
 
     extern Rboolean Rf_isNull(SEXP s);
     extern Rboolean Rf_isSymbol(SEXP s);
@@ -299,8 +299,8 @@ extern "C" {
     extern Rboolean Rf_isString(SEXP s);
     extern Rboolean Rf_isObject(SEXP s);
 
-	extern Rboolean R_IsNA(double);
-	extern Rboolean R_IsNaN(double);
+    extern Rboolean R_IsNA(double);
+    extern Rboolean R_IsNaN(double);
 
     extern SEXP Rf_asChar(SEXP);
     extern SEXP Rf_coerceVector(SEXP, SEXPTYPE);
@@ -333,9 +333,9 @@ extern "C" {
     extern SEXP Rf_mkCharCE(const char*, cetype_t);
     extern SEXP Rf_mkCharLenCE(const char*, int, cetype_t);
     extern const char *Rf_reEnc(const char* x, cetype_t ce_in, cetype_t ce_out, int subst);
-	extern const char* Rf_translateChar(SEXP);
-	extern const char* Rf_translateChar0(SEXP);
-	extern const char* Rf_translateCharUTF8(SEXP);
+    extern const char* Rf_translateChar(SEXP);
+    extern const char* Rf_translateChar0(SEXP);
+    extern const char* Rf_translateCharUTF8(SEXP);
 
     extern void setup_Rmainloop(void);
     extern void run_Rmainloop(void);
@@ -373,10 +373,10 @@ extern "C" {
     extern int* INTEGER(SEXP x);
     extern double* REAL(SEXP x);
 
-	extern int IS_UTF8(SEXP x);
+    extern int IS_UTF8(SEXP x);
 
-	extern void* vmaxget(void);
-	extern void vmaxset(const void*);
+    extern void* vmaxget(void);
+    extern void vmaxset(const void*);
 
 #ifdef _WIN32
     extern char *getDLLVersion(void), *getRUser(void), *get_R_HOME(void);

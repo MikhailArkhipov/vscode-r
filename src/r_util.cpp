@@ -265,12 +265,12 @@ namespace rhost {
         picojson::array parse_args_sexp(SEXP args_sexp) {
             size_t len = Rf_length(args_sexp);
 
-			picojson::value json = to_json(args_sexp);
-			if (!json.is<picojson::array>()) {
-				fatal_error("send_message requires argument that serializes to JSON array; got %s", json.serialize().c_str());
-			}
+            picojson::value json = to_json(args_sexp);
+            if (!json.is<picojson::array>()) {
+                fatal_error("send_message requires argument that serializes to JSON array; got %s", json.serialize().c_str());
+            }
 
-			return json.get<picojson::array>();
+            return json.get<picojson::array>();
         }
 
         extern "C" SEXP send_message(SEXP name_sexp, SEXP args_sexp) {
