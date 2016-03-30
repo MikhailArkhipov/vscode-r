@@ -294,7 +294,11 @@ namespace rhost {
             }
             if (result.has_value) {
                 if (json_result) {
-                    to_json(result.value.get(), value);
+                    try {
+                        errors_to_exceptions([&] { to_json(result.value.get(), value); });
+                    } catch (r_error& err) {
+                        fatal_error("%s", err.what());
+                    }
                 } else {
                     value = to_utf8_json(R_CHAR(Rf_asChar(result.value.get())));
                 }
