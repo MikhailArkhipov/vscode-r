@@ -31,20 +31,25 @@ namespace rhost {
     namespace json {
         namespace {
             void json_error(SEXP sexp, const char* format, ...) {
-                logf("Fatal error: JSON serialization failed: ");
+                SEXP repr_sexp = STRING_ELT(Rf_deparse1line(sexp, R_FALSE), 0);
+                Rf_protect(repr_sexp);
+                const char* repr = R_CHAR(repr_sexp);
 
+                char buf[0x10000] = {};
+                snprintf(buf, sizeof buf, "JSON serialization failed for input:\n\n%s\n\n", repr);
+
+                size_t len = strlen(buf);
                 va_list va;
                 va_start(va, format);
-                vlogf(format, va);
+                vsnprintf(buf + len, sizeof buf - len, format, va);
                 va_end(format);
 
-                logf(":\n\n%s\n\n", deparse(sexp).c_str());
-                fatal_error("");
+                Rf_error("%s", buf);
             }
 
             void at_most_one(SEXP sexp) {
                 if (Rf_length(sexp) != 1) {
-                    json_error(sexp, "vector must have 0 or 1 elements");
+                    json_error(sexp, "Vector must have 0 or 1 elements.");
                 }
             }
 
@@ -66,20 +71,20 @@ namespace rhost {
             void list_to_object(SEXP sexp, SEXP names, js::object& result) {
                 R_len_t count = Rf_length(sexp);
                 if (Rf_length(names) != count) {
-                    json_error(sexp, "all elements in list must be named, but there are fewer names than elements");
+                    json_error(sexp, "All elements in list must be named, but there are fewer names than elements.");
                 }
 
                 for (R_len_t i = 0; i < count; ++i) {
                     SEXP name_sexp = STRING_ELT(names, i);
                     if (name_sexp == R_NaString) {
-                        json_error(sexp, "all elements in list must be named, but [[%d]] is not", i + 1);
+                        json_error(sexp, "All elements in list must be named, but [[%d]] is not.", i + 1);
                     }
 
                     const char* name = R_CHAR(name_sexp);
 
                     auto insert_result = result.insert(std::make_pair(name, js::value()));
                     if (!insert_result.second) {
-                        json_error(sexp, "duplicate name '%s' in list", name);
+                        json_error(sexp, "Duplicate name '%s' in list.", name);
                     }
 
                     auto iter = insert_result.first;
@@ -102,7 +107,7 @@ namespace rhost {
 
                     auto insert_result = result.insert(std::make_pair(name, js::value()));
                     if (!insert_result.second) {
-                        json_error(sexp, "duplicate name '%s' in environment", name);
+                        json_error(sexp, "Duplicate name '%s' in environment.", name);
                     }
 
                     auto iter = insert_result.first;
@@ -170,7 +175,7 @@ namespace rhost {
                     result = js::value();
                 } else {
                     if (isinf(x) || isnan(x)) {
-                        json_error(sexp, "+Inf, -Inf and NaN cannot be serialized");
+                        json_error(sexp, "+Inf, -Inf and NaN cannot be serialized.");
                     }
                     result = js::value(x);
                 }
@@ -192,7 +197,7 @@ namespace rhost {
             }
 
             default:
-                json_error(sexp, "Value must be one of: NULL; logical, integer, real, character vector; list; environment");
+                json_error(sexp, "Unsupported type - must be one of: NULL; logical, integer, real, character vector; list; environment.");
             }
 
             return result != js::value();

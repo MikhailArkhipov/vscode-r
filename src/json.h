@@ -41,11 +41,14 @@ namespace rhost {
         // Any input not covered by the rules above is considered invalid.
         //
         // Returns true if serialized value was NA, and false otherwise (even if it contains NA somewhere inside).
+        // Errors are reported via Rf_error.
         bool to_json(SEXP sexp, picojson::value& result);
 
+        // Same as above, but value is returned directly instead of being constructed in the provided location,
+        // and errors are reported as C++ exceptions.
         inline picojson::value to_json(SEXP sexp) {
             picojson::value result;
-            to_json(sexp, result);
+            rhost::util::errors_to_exceptions([&] { to_json(sexp, result); });
             return result;
         }
     }
