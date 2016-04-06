@@ -26,11 +26,13 @@
 #include "log.h"
 #include "util.h"
 #include "host.h"
+#include "json.h"
 #include "exports.h"
 
 using namespace rhost::log;
 using namespace rhost::util;
 using namespace rhost::host;
+using namespace rhost::json;
 
 namespace rhost {
     namespace r_util {
@@ -262,17 +264,13 @@ namespace rhost {
 
         picojson::array parse_args_sexp(SEXP args_sexp) {
             size_t len = Rf_length(args_sexp);
-            picojson::array args(len);
 
-            for (size_t i = 0; i < len; ++i) {
-                const char* arg = R_CHAR(STRING_ELT(args_sexp, i));
-                auto err = picojson::parse(args[i], to_utf8(arg));
-                if (!err.empty()) {
-                    fatal_error("Malformed outgoing message argument #%zu: %s", i, err.c_str());
-                }
+            picojson::value json = to_json(args_sexp);
+            if (!json.is<picojson::array>()) {
+                fatal_error("send_message requires argument that serializes to JSON array; got %s", json.serialize().c_str());
             }
 
-            return args;
+            return json.get<picojson::array>();
         }
 
         extern "C" SEXP send_message(SEXP name_sexp, SEXP args_sexp) {
@@ -382,14 +380,27 @@ namespace rhost {
             return R_NilValue;
         }
 
-        extern "C" SEXP browser_set_debug(SEXP n_sexp) {
+        extern "C" SEXP browser_set_debug(SEXP n_sexp, SEXP skip_toplevel_sexp) {
             int n = Rf_asInteger(n_sexp);
             if (n < 1) {
                 Rf_error("Number of contexts to skip must be positive.");
             }
 
-            // Find the closest browser context, if any.
+            int skip_toplevel = Rf_asInteger(skip_toplevel_sexp);
+            if (skip_toplevel < 0) {
+                Rf_error("Number of top-level contexts to skip must be non-negative.");
+            }
+
+            // Skip the requisite number of top-level contexts first.
             auto ctx = R_GlobalContext;
+            while (ctx && skip_toplevel) {
+                if (ctx->callflag == CTXT_TOPLEVEL) {
+                    --skip_toplevel;
+                }
+                ctx = ctx->nextcontext;
+            }
+
+            // Find the closest browser context, if any.
             while (ctx && ctx->callflag != CTXT_TOPLEVEL) {
                 if (ctx->callflag == CTXT_BROWSER) {
                     break;
@@ -421,6 +432,15 @@ namespace rhost {
             return R_NilValue;
         }
 
+        extern "C" SEXP toJSON(SEXP obj) {
+            SEXP json = Rf_mkCharCE(exceptions_to_errors([&] { return to_json(obj).serialize(); }).c_str(), CE_UTF8);
+            Rf_protect(json);
+            SEXP result = Rf_allocVector(STRSXP, 1);
+            SET_STRING_ELT(result, 0, json);
+            Rf_unprotect(1);
+            return result;
+        }
+
         R_CallMethodDef call_methods[] = {
             { "Microsoft.R.Host::Call.unevaluated_promise", (DL_FUNC)unevaluated_promise, 2 },
             { "Microsoft.R.Host::Call.memory_connection", (DL_FUNC)memory_connection_new, 4 },
@@ -431,7 +451,8 @@ namespace rhost {
             { "Microsoft.R.Host::Call.set_instrumentation_callback", (DL_FUNC)set_instrumentation_callback, 1 },
             { "Microsoft.R.Host::Call.is_rdebug", (DL_FUNC)is_rdebug, 1 },
             { "Microsoft.R.Host::Call.set_rdebug", (DL_FUNC)set_rdebug, 2 },
-            { "Microsoft.R.Host::Call.browser_set_debug", (DL_FUNC)browser_set_debug, 1 },
+            { "Microsoft.R.Host::Call.browser_set_debug", (DL_FUNC)browser_set_debug, 2 },
+            { "Microsoft.R.Host::Call.toJSON", (DL_FUNC)toJSON, 1 },
             { }
         };
 

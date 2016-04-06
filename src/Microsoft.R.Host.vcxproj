@@ -73,22 +73,22 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
     <OutDir>$(SolutionDir)\..\bin\$(Configuration)\</OutDir>
-    <IntDir>$(SolutionDir)\..\obj\$(Configuration)\</IntDir>
+    <IntDir>$(SolutionDir)\..\obj\$(Configuration)\$(TargetName)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
     <OutDir>$(SolutionDir)\..\bin\$(Configuration)\</OutDir>
-    <IntDir>$(SolutionDir)\..\obj\$(Configuration)\</IntDir>
+    <IntDir>$(SolutionDir)\..\obj\$(Configuration)\$(TargetName)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(SolutionDir)\..\bin\$(Configuration)\</OutDir>
-    <IntDir>$(SolutionDir)\..\obj\$(Configuration)\</IntDir>
+    <IntDir>$(SolutionDir)\..\obj\$(Configuration)\$(TargetName)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(SolutionDir)\..\bin\$(Configuration)\</OutDir>
-    <IntDir>$(SolutionDir)\..\obj\$(Configuration)\</IntDir>
+    <IntDir>$(SolutionDir)\..\obj\$(Configuration)\$(TargetName)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -175,6 +175,7 @@
     <ClCompile Include="eval.cpp" />
     <ClCompile Include="log.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="json.cpp" />
     <ClCompile Include="r_util.cpp" />
     <ClCompile Include="host.cpp" />
     <ClCompile Include="detours.cpp" />
@@ -192,6 +193,7 @@
     <ClInclude Include="Rapi.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="Rgraphicsapi.h" />
+    <ClInclude Include="json.h" />
     <ClInclude Include="r_util.h" />
     <ClInclude Include="host.h" />
     <ClInclude Include="stdafx.h" />
@@ -206,9 +208,15 @@
   <ItemGroup>
     <ResourceCompile Include="Resource.rc" />
   </ItemGroup>
+  <ItemGroup>
+    <FilesToSign Include="$(OutDir)\Microsoft.R.Host.exe">
+      <Authenticode>Microsoft</Authenticode>
+    </FilesToSign>
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
     <Import Project="$(SolutionDir)\..\NugetPackages\minhook.1.3.2.1\build\native\minhook.targets" Condition="Exists('$(SolutionDir)\..\NugetPackages\minhook.1.3.2.1\build\native\minhook.targets')" />
+    <Import Project="$(SolutionDir)\..\NugetPackages\MicroBuild.Core.0.1.1\build\MicroBuild.Core.targets" Condition="Exists('$(SolutionDir)\..\NugetPackages\MicroBuild.Core.0.1.1\build\MicroBuild.Core.targets')" />
     <Import Project="$(SolutionDir)\..\NugetPackages\boost.1.60.0.0\build\native\boost.targets" Condition="Exists('..\NugetPackages\boost.1.60.0.0\build\native\boost.targets')" />
     <Import Project="$(SolutionDir)\..\NugetPackages\boost_date_time-vc140.1.60.0.0\build\native\boost_date_time-vc140.targets" Condition="Exists('..\NugetPackages\boost_date_time-vc140.1.60.0.0\build\native\boost_date_time-vc140.targets')" />
     <Import Project="$(SolutionDir)\..\NugetPackages\boost_locale-vc140.1.60.0.0\build\native\boost_locale-vc140.targets" Condition="Exists('..\NugetPackages\boost_locale-vc140.1.60.0.0\build\native\boost_locale-vc140.targets')" />
@@ -227,6 +235,8 @@
     <Error Condition="!Exists('$(SolutionDir)\..\NugetPackages\boost_program_options-vc140.1.60.0.0\build\native\boost_program_options-vc140.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\NugetPackages\boost_program_options-vc140.1.60.0.0\build\native\boost_program_options-vc140.targets'))" />
     <Error Condition="!Exists('$(SolutionDir)\..\NugetPackages\boost_regex-vc140.1.60.0.0\build\native\boost_regex-vc140.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\NugetPackages\boost_regex-vc140.1.60.0.0\build\native\boost_regex-vc140.targets'))" />
     <Error Condition="!Exists('$(SolutionDir)\..\NugetPackages\boost_system-vc140.1.60.0.0\build\native\boost_system-vc140.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\NugetPackages\boost_system-vc140.1.60.0.0\build\native\boost_system-vc140.targets'))" />
+    <Error Condition="!Exists('$(SolutionDir)\..\NugetPackages\MicroBuild.Core.0.1.1\build\MicroBuild.Core.props')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\..\NugetPackages\MicroBuild.Core.0.1.1\build\MicroBuild.Core.props'))" />
+    <Error Condition="!Exists('$(SolutionDir)\..\NugetPackages\MicroBuild.Core.0.1.1\build\MicroBuild.Core.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\..\NugetPackages\MicroBuild.Core.0.1.1\build\MicroBuild.Core.targets'))" />
   </Target>
   <Import Project="$(SolutionDir)\R.Build.Version.targets" />
 </Project>

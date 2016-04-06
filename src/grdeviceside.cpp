@@ -49,8 +49,7 @@ namespace rhost {
                 void set_snapshot(const rhost::util::protected_sexp& snapshot);
 
             private:
-                std::string get_snapshot_varname();
-                void save_snapshot_variable();
+                void create_snapshot();
                 void remove_snapshot_render_file();
 
             private:
@@ -61,7 +60,7 @@ namespace rhost {
                 double _snapshot_render_width;
                 double _snapshot_render_height;
                 std::tr2::sys::path _snapshot_render_filename;
-                std::string _snapshot_varname;
+                rhost::util::protected_sexp _snapshot;
             };
 
             class plot_history {
@@ -75,6 +74,7 @@ namespace rhost {
                 void new_page();
                 void append(std::unique_ptr<plot> plot);
                 void clear();
+                void remove_active();
 
                 void resize(double width, double height);
                 void render_from_snapshot();
@@ -146,10 +146,13 @@ namespace rhost {
                 double height() const { return _height; }
                 std::tr2::sys::path save();
                 std::tr2::sys::path save_empty();
+                void send_clear();
                 void send(const std::tr2::sys::path& filename);
 
                 void history_next();
                 void history_previous();
+                void history_clear();
+                void history_remove_active();
 
                 int plot_count() const;
                 int active_plot_index() const;
@@ -189,6 +192,7 @@ namespace rhost {
             plot::plot(pDevDesc dd) :
                 _plot_id(uuid_generator()),
                 _device_desc(dd),
+                _snapshot(nullptr),
                 _has_pending_render(false) {
             }
 
@@ -247,10 +251,7 @@ namespace rhost {
                 _snapshot_render_height = xdd->height();
 
                 if (save_snapshot) {
-                    if (_snapshot_varname.empty()) {
-                        _snapshot_varname = get_snapshot_varname();
-                    }
-                    save_snapshot_variable();
+                    create_snapshot();
                 }
 
                 xdd->send(path);
@@ -271,14 +272,12 @@ namespace rhost {
 
                 try {
                     rhost::util::errors_to_exceptions([&] {
-                        auto snapshot = Rf_findVar(Rf_install(_snapshot_varname.c_str()), R_GlobalEnv);
-                        if (snapshot != R_UnboundValue && snapshot != R_NilValue) {
-                            Rf_protect(snapshot);
+                        auto snapshot = _snapshot.get();
+                        if (snapshot != nullptr && snapshot != R_UnboundValue && snapshot != R_NilValue) {
                             pGEDevDesc ge_dev_desc = Rf_desc2GEDesc(_device_desc);
                             GEplaySnapshot(snapshot, ge_dev_desc);
-                            Rf_unprotect(1);
                         } else {
-                            Rf_error("Plot snapshot is missing. Plot history may be corrupted. You should restart your session.");
+                            render_empty();
                         }
                     });
                 } catch (rhost::util::r_error&) {
@@ -287,41 +286,21 @@ namespace rhost {
             }
 
             void plot::set_snapshot(const rhost::util::protected_sexp& snapshot) {
-                // Ignore if we already created a snapshot
-                if (_snapshot_varname.empty()) {
-                    _snapshot_varname = get_snapshot_varname();
-                }
-
                 rhost::util::errors_to_exceptions([&] {
                     SEXP klass = Rf_protect(Rf_mkString("recordedplot"));
                     Rf_classgets(snapshot.get(), klass);
 
-                    SEXP duplicated_snapshot = Rf_protect(Rf_duplicate(snapshot.get()));
-                    Rf_defineVar(Rf_install(_snapshot_varname.c_str()), duplicated_snapshot, R_GlobalEnv);
+                    _snapshot = Rf_duplicate(snapshot.get());
 
-                    Rf_unprotect(2);
+                    Rf_unprotect(1);
                 });
             }
 
-            void plot::save_snapshot_variable() {
+            void plot::create_snapshot() {
                 rhost::util::errors_to_exceptions([&] {
                     pGEDevDesc ge_dev_desc = Rf_desc2GEDesc(_device_desc);
-
-                    SEXP snapshot = Rf_protect(GEcreateSnapshot(ge_dev_desc));
-
-                    SEXP klass = Rf_protect(Rf_mkString("recordedplot"));
-                    Rf_classgets(snapshot, klass);
-
-                    Rf_defineVar(Rf_install(_snapshot_varname.c_str()), snapshot, R_GlobalEnv);
-
-                    Rf_unprotect(2);
+                    _snapshot = GEcreateSnapshot(ge_dev_desc);
                 });
-            }
-
-            std::string plot::get_snapshot_varname() {
-                std::string name = std::string(".SavedPlot") + boost::uuids::to_string(_plot_id);
-                boost::algorithm::replace_all(name, "-", "");
-                return name;
             }
 
             ///////////////////////////////////////////////////////////////////////
@@ -381,7 +360,19 @@ namespace rhost {
             }
 
             void plot_history::clear() {
-                // TODO
+                _plots.clear();
+                _active_plot = _plots.begin();
+            }
+
+            void plot_history::remove_active() {
+                if (_active_plot != _plots.end()) {
+                    _active_plot = _plots.erase(_active_plot);
+                    // erase() returns an iterator that points to end() when removing the last item
+                    // so adjust it to point to the new last item, if one is available
+                    if (_active_plot == _plots.end() && _plots.size() > 0) {
+                        _active_plot--;
+                    }
+                }
             }
 
             void plot_history::resize(double width, double height) {
@@ -504,9 +495,7 @@ namespace rhost {
             }
 
             void ide_device::close() {
-                // send an 'empty' plot to ide to clear the plot window
-                send(std::tr2::sys::path(""));
-
+                send_clear();
                 closed();
                 delete this;
             }
@@ -694,6 +683,11 @@ namespace rhost {
                 return path;
             }
 
+            void ide_device::send_clear() {
+                // send an 'empty' plot to ide to clear the plot window
+                send(std::tr2::sys::path(""));
+            }
+
             void ide_device::send(const std::tr2::sys::path& filename) {
                 auto path_copy(filename);
                 rhost::host::with_cancellation([&] {
@@ -783,6 +777,20 @@ namespace rhost {
                 _history.render_from_snapshot();
             }
 
+            void ide_device::history_clear() {
+                _history.clear();
+                send_clear();
+            }
+
+            void ide_device::history_remove_active() {
+                _history.remove_active();
+                if (_history.plot_count() > 0) {
+                    _history.render_from_snapshot();
+                } else {
+                    send_clear();
+                }
+            }
+
             int ide_device::plot_count() const {
                 return _history.plot_count();
             }
@@ -792,7 +800,7 @@ namespace rhost {
             }
 
             pDevDesc ide_device::create_file_device(const std::string& device_type, const std::tr2::sys::path& filename, double width, double height) {
-                auto expr = boost::format("%1%(filename='%2%', width=%3%, height=%4%)") % device_type % filename.generic_string() % width % height;
+                auto expr = boost::format("%1%(filename='%2%', width=%3%, height=%4%, res=96)") % device_type % filename.generic_string() % width % height;
 
                 // Create the file device via the public R API
                 ParseStatus ps;
@@ -824,9 +832,12 @@ namespace rhost {
             ///////////////////////////////////////////////////////////////////////
 
             extern "C" SEXP ide_graphicsdevice_new(SEXP args) {
-                return rhost::util::exceptions_to_errors([&] {
-                    R_GE_checkVersionOrDie(R_GE_version);
+                int ver = R_GE_getVersion();
+                if (ver < R_32_GE_version || ver > R_33_GE_version) {
+                    Rf_error("Graphics API version %d is not supported.", ver);
+                }
 
+                return rhost::util::exceptions_to_errors([&] {
                     if (device_instance != nullptr) {
                         // TODO: issue some error
                         return R_NilValue;
@@ -911,12 +922,36 @@ namespace rhost {
                 });
             }
 
+            extern "C" SEXP ide_graphicsdevice_clear_plots(SEXP args) {
+                return rhost::util::exceptions_to_errors([&] {
+                    if (device_instance != nullptr) {
+                        device_instance->select();
+                        device_instance->history_clear();
+                    }
+
+                    return R_NilValue;
+                });
+            }
+
+            extern "C" SEXP ide_graphicsdevice_remove_plot(SEXP args) {
+                return rhost::util::exceptions_to_errors([&] {
+                    if (device_instance != nullptr) {
+                        device_instance->select();
+                        device_instance->history_remove_active();
+                    }
+
+                    return R_NilValue;
+                });
+            }
+
             static R_ExternalMethodDef external_methods[] = {
                 { "Microsoft.R.Host::External.ide_graphicsdevice_new", (DL_FUNC)&ide_graphicsdevice_new, 0 },
                 { "Microsoft.R.Host::External.ide_graphicsdevice_resize", (DL_FUNC)&ide_graphicsdevice_resize, 2 },
                 { "Microsoft.R.Host::External.ide_graphicsdevice_next_plot", (DL_FUNC)&ide_graphicsdevice_next_plot, 0 },
                 { "Microsoft.R.Host::External.ide_graphicsdevice_previous_plot", (DL_FUNC)&ide_graphicsdevice_previous_plot, 0 },
                 { "Microsoft.R.Host::External.ide_graphicsdevice_history_info", (DL_FUNC)&ide_graphicsdevice_history_info, 0 },
+                { "Microsoft.R.Host::External.ide_graphicsdevice_clear_plots", (DL_FUNC)&ide_graphicsdevice_clear_plots, 0 },
+                { "Microsoft.R.Host::External.ide_graphicsdevice_remove_plot", (DL_FUNC)&ide_graphicsdevice_remove_plot, 0 },
                 {}
             };
 

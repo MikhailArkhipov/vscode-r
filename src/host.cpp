@@ -25,11 +25,13 @@
 #include "msvcrt.h"
 #include "eval.h"
 #include "util.h"
+#include "json.h"
 
 using namespace std::literals;
 using namespace rhost::log;
 using namespace rhost::util;
 using namespace rhost::eval;
+using namespace rhost::json;
 
 namespace rhost {
     namespace host {
@@ -50,6 +52,7 @@ namespace rhost {
 
         message incoming;
         enum { INCOMING_UNEXPECTED, INCOMING_EXPECTED, INCOMING_RECEIVED } incoming_state;
+        std::queue<message> eval_requests;
         std::mutex incoming_mutex;
 
         struct eval_info {
@@ -137,40 +140,41 @@ namespace rhost {
             return it == eval_stack.end();
         }
 
-        extern "C" void CallBack() {
-            // Called periodically by R_ProcessEvents and Rf_eval. This is where we check for various
-            // cancellation requests and issue an interrupt (Rf_onintr) if one is applicable in the
-            // current context.
-            callback_started();
 
-            // Rf_onintr may end up calling CallBack before it returns. We don't want to recursively
-            // call it again, so do nothing and let the next eligible callback handle things.
-            if (!allow_intr_in_CallBack) {
-                return;
-            }
+        // Unblock any pending with_response call that is waiting in a message loop.
+        void unblock_message_loop() {
+            // Because PeekMessage can dispatch messages that were sent, which may in turn result 
+            // in nested evaluation of R code and nested message loops, sending a single WM_NULL
+            // may not be sufficient, so keep sending them until the waiting flag is cleared - 
+            // because WM_NULL is no-op, posting extra ones is harmless.
+            // However, we need to pause and give the other thread some time to process, otherwise
+            // we can flood its WM queue faster than it can process it, and it might never stop
+            // pumping events and return to PeekMessage.
+            auto delay = 10ms;
+            for (; is_waiting_for_wm; std::this_thread::sleep_for(delay)) {
+                PostThreadMessage(main_thread_id, WM_NULL, 0, 0);
 
-            if (query_interrupt()) {
-                allow_intr_in_CallBack = false;
-                interrupt_eval();
-                // Note that allow_intr_in_CallBack is not reset to false here. This is because Rf_onintr
-                // does not return (it unwinds via longjmp), and therefore any code here wouldn't run.
-                // Instead, we reset the flag where the control will end up after unwinding - either
-                // immediately after r_try_eval returns, or else (if we unwound R's own REPL eval) at
-                // the beginning of the next ReadConsole.
-                assert(!"Rf_onintr should never return.");
+                // Further guard against overflowing the queue by posting to it too aggressively.
+                // If previous wait didn't help, give it a little more time to process next message,
+                // up to a reasonable limit.
+                if (delay < 5000ms) {
+                    delay *= 2;
+                }
             }
         }
 
         void handle_eval(const message& msg) {
             assert(msg.name.size() > 0 && msg.name[0] == '=');
             if (msg.args.size() != 1 || !msg.args[0].is<std::string>()) {
-                fatal_error("Evaluation request must have form [id, '=<flags>', expr].");
+                fatal_error("Invalid evaluation request %s: must have form [id, '=<flags>', expr].", msg.id.c_str());
             }
 
             SCOPE_WARDEN_RESTORE(allow_callbacks);
             allow_callbacks = false;
 
             const auto& expr = from_utf8(msg.args[0].get<std::string>());
+            log::logf("%s = %s\n\n", msg.id.c_str(), expr.c_str());
+
             SEXP env = nullptr;
             bool is_cancelable = false, json_result = false, new_env = false;
 
@@ -204,7 +208,7 @@ namespace rhost {
                 env = R_GlobalEnv;
             }
 
-            r_eval_result<std::string> result;
+            r_eval_result<protected_sexp> result = {};
             ParseStatus ps;
             {
                 // We must not register this eval as a potential cancellation target before it gets a chance to establish
@@ -213,17 +217,21 @@ namespace rhost {
                 // before the restart context is torn down, so that untimely cancellation request for the outer eval doesn't
                 // cancel his one.
 
+                bool was_before_invoked = false;
                 auto before = [&] {
                     std::lock_guard<std::mutex> lock(eval_mutex);
                     eval_stack.push_back(eval_info(msg.id, is_cancelable));
+                    was_before_invoked = true;
                 };
 
                 bool was_after_invoked = false;
                 auto after = [&] {
                     std::lock_guard<std::mutex> lock(eval_mutex);
 
-                    assert(!eval_stack.empty());
-                    assert(eval_stack.end()[-1].id == msg.id);
+                    if (was_before_invoked) {
+                        assert(!eval_stack.empty());
+                        assert(eval_stack.end()[-1].id == msg.id);
+                    }
 
                     if (canceling_eval && msg.id == eval_cancel_target) {
                         // If we were unwinding the stack for cancellation purposes, and this eval was the target
@@ -233,12 +241,19 @@ namespace rhost {
                         canceling_eval = false;
                     }
 
-                    eval_stack.pop_back();
+                    if (was_before_invoked) {
+                        eval_stack.pop_back();
+                    }
+
                     was_after_invoked = true;
                 };
 
                 protected_sexp eval_env(new_env ? Rf_NewEnvironment(R_NilValue, R_NilValue, env) : env);
-                result = r_try_eval_str(expr, eval_env.get(), ps, before, after);
+
+                auto results = r_try_eval(expr, eval_env.get(), ps, before, after);
+                if (!results.empty()) {
+                    result = results.back();
+                }
 
                 // If eval was canceled, the "after" block was never executed (since it is normally run within the eval
                 // context, and so cancelation unwinds it along with everything else in that context), so we need to run
@@ -279,14 +294,13 @@ namespace rhost {
             }
             if (result.has_value) {
                 if (json_result) {
-                    auto err = picojson::parse(value, to_utf8(result.value));
-                    if (!err.empty()) {
-                        fatal_error(
-                            "'%s': evaluation result couldn't be parsed as JSON: %s\n\n%s",
-                            msg.name.c_str(), err.c_str(), result.value.c_str());
+                    try {
+                        errors_to_exceptions([&] { to_json(result.value.get(), value); });
+                    } catch (r_error& err) {
+                        fatal_error("%s", err.what());
                     }
                 } else {
-                    value = picojson::value(to_utf8(result.value));
+                    value = to_utf8_json(R_CHAR(Rf_asChar(result.value.get())));
                 }
             }
 
@@ -317,6 +331,56 @@ namespace rhost {
             }
         }
 
+        void handle_cancel(const message& msg) {
+            if (msg.args.size() != 1) {
+                fatal_error("Evaluation cancellation request must be of the form [id, '/', eval_id].");
+            }
+
+            std::string eval_id;
+            if (!msg.args[0].is<picojson::null>()) {
+                if (!msg.args[0].is<std::string>()) {
+                    fatal_error("Evaluation cancellation request eval_id must be string or null.");
+                }
+                eval_id = msg.args[0].get<std::string>();
+            }
+
+            std::lock_guard<std::mutex> lock(eval_mutex);
+
+            for (auto eval_info : eval_stack) {
+                auto& id = eval_info.id;
+
+                if (canceling_eval && id == eval_cancel_target) {
+                    // If we're already in the process of cancelling some eval, and that one is below the
+                    // one that we're been asked to cancel in the stack, then we don't need to do anything.
+                    break;
+                }
+
+                if (id == eval_id) {
+                    canceling_eval = true;
+                    eval_cancel_target = id;
+                    break;
+                }
+            }
+
+            if (canceling_eval) {
+                // Spin the loop in send_message_and_get_response so that it gets a chance to run cancel checks.
+                unblock_message_loop();
+            } else {
+                // If we didn't find the target eval in the stack, it must have completed already, and we've
+                // got a belated cancelation request for it, which we can simply ignore.
+            }
+        }
+
+        void propagate_cancellation() {
+            // Prevent CallBack from doing anything if it's called from within Rf_onintr again.
+            allow_intr_in_CallBack = false;
+
+            interrupt_eval();
+
+            assert(!"Rf_onintr should never return.");
+            throw;
+        }
+
         inline message send_message_and_get_response(const char* name, const picojson::array& args) {
             {
                 std::lock_guard<std::mutex> lock(incoming_mutex);
@@ -334,6 +398,14 @@ namespace rhost {
                 for (;;) {
                     {
                         std::lock_guard<std::mutex> lock(incoming_mutex);
+
+                        // If there's anything in eval queue, break to process that.
+                        if (!eval_requests.empty()) {
+                            msg = eval_requests.front();
+                            eval_requests.pop();
+                            break;
+                        }
+
                         assert(incoming_state != INCOMING_UNEXPECTED);
                         if (incoming_state == INCOMING_RECEIVED) {
                             msg = incoming;
@@ -388,44 +460,56 @@ namespace rhost {
             }
         }
 
-        void propagate_cancellation() {
-            // Prevent CallBack from doing anything if it's called from within Rf_onintr again.
-            allow_intr_in_CallBack = false;
-
-            interrupt_eval();
-
-            assert(!"Rf_onintr should never return.");
-            throw;
-        }
-
-        // Unblock any pending with_response call that is waiting in a message loop.
-        void unblock_message_loop() {
-            // Because PeekMessage can dispatch messages that were sent, which may in turn result 
-            // in nested evaluation of R code and nested message loops, sending a single WM_NULL
-            // may not be sufficient, so keep sending them until the waiting flag is cleared - 
-            // because WM_NULL is no-op, posting extra ones is harmless.
-            // However, we need to pause and give the other thread some time to process, otherwise
-            // we can flood its WM queue faster than it can process it, and it might never stop
-            // pumping events and return to PeekMessage.
-            auto delay = 10ms;
-            for (; is_waiting_for_wm; std::this_thread::sleep_for(delay)) {
-                PostThreadMessage(main_thread_id, WM_NULL, 0, 0);
-
-                // Further guard against overflowing the queue by posting to it too aggressively.
-                // If previous wait didn't help, give it a little more time to process next message,
-                // up to a reasonable limit.
-                if (delay < 5000ms) {
-                    delay *= 2;
-                }
-            } 
-        }
-
         picojson::array get_context() {
             picojson::array context;
             for (RCNTXT* ctxt = R_GlobalContext; ctxt != nullptr; ctxt = ctxt->nextcontext) {
                 context.push_back(picojson::value(double(ctxt->callflag)));
             }
             return context;
+        }
+
+        extern "C" void CallBack() {
+            // Called periodically by R_ProcessEvents and Rf_eval. This is where we check for various
+            // cancellation requests and issue an interrupt (Rf_onintr) if one is applicable in the
+            // current context.
+            callback_started();
+
+            // Rf_onintr may end up calling CallBack before it returns. We don't want to recursively
+            // call it again, so do nothing and let the next eligible callback handle things.
+            if (!allow_intr_in_CallBack) {
+                return;
+            }
+
+            if (query_interrupt()) {
+                allow_intr_in_CallBack = false;
+                interrupt_eval();
+                // Note that allow_intr_in_CallBack is not reset to false here. This is because Rf_onintr
+                // does not return (it unwinds via longjmp), and therefore any code here wouldn't run.
+                // Instead, we reset the flag where the control will end up after unwinding - either
+                // immediately after r_try_eval returns, or else (if we unwound R's own REPL eval) at
+                // the beginning of the next ReadConsole.
+                assert(!"Rf_onintr should never return.");
+            }
+
+            // Process any pending eval requests if reentrancy is allowed.
+            if (allow_callbacks) {
+                for (;;) {
+                    message msg;
+                    {
+                        std::lock_guard<std::mutex> lock(incoming_mutex);
+                        if (eval_requests.empty()) {
+                            break;
+
+                        } else {
+                            msg = eval_requests.front();
+                            eval_requests.pop();
+
+                        }
+                    }
+
+                    handle_eval(msg);
+                }
+            }
         }
 
         extern "C" int ReadConsole(const char* prompt, char* buf, int len, int addToHistory) {
@@ -585,51 +669,12 @@ namespace rhost {
                 fatal_error("Message must be of the form [id, name, ...].");
             }
 
+            incoming = message();
             incoming.id = array[0].get<std::string>();
             incoming.name = array[1].get<std::string>();
             auto args = array.begin() + 2;
 
-            if (incoming.name == "/") {
-                if (array.size() != 3) {
-                    fatal_error("Evaluation cancellation request must be of the form [id, '/', eval_id].");
-                }
-
-                std::string eval_id;
-                if (!array[2].is<picojson::null>()) {
-                    if (!array[2].is<std::string>()) {
-                        fatal_error("Evaluation cancellation request eval_id must be string or null.");
-                    }
-                    eval_id = array[2].get<std::string>();
-                }
-
-                std::lock_guard<std::mutex> lock(eval_mutex);
-
-                for (auto eval_info : eval_stack) {
-                    auto& id = eval_info.id;
-
-                    if (canceling_eval && id == eval_cancel_target) {
-                        // If we're already in the process of cancelling some eval, and that one is below the
-                        // one that we're been asked to cancel in the stack, then we don't need to do anything.
-                        break;
-                    }
-
-                    if (id == eval_id) {
-                        canceling_eval = true;
-                        eval_cancel_target = id;
-                        break;
-                    }
-                }
-
-                if (canceling_eval) {
-                    // Spin the loop in send_message_and_get_response so that it gets a chance to run cancel checks.
-                    unblock_message_loop();
-                } else {
-                    // If we didn't find the target eval in the stack, it must have completed already, and we've
-                    // got a belated cancelation request for it, which we can simply ignore.
-                }
-
-                return;
-            } else if (incoming.name == ":") {
+            if (incoming.name == ":") {
                 if (array.size() < 4 || !array[2].is<std::string>() || !array[3].is<std::string>()) {
                     fatal_error("Response message must be of the form [id, ':', request_id, name, ...].");
                 }
@@ -637,11 +682,17 @@ namespace rhost {
                 incoming.request_id = array[2].get<std::string>();
                 incoming.name = array[3].get<std::string>();
                 args += 2;
-            } else {
-                incoming.request_id.clear();
             }
 
             incoming.args.assign(args, array.end());
+
+            if (incoming.name == "/") {
+                return handle_cancel(incoming);
+            } else if (incoming.name.size() >= 1 && incoming.name[0] == '=') {
+                eval_requests.push(incoming);
+                unblock_message_loop();
+                return;
+            }
 
             assert(incoming_state != INCOMING_RECEIVED);
             if (incoming_state == INCOMING_UNEXPECTED) {
