@@ -50,10 +50,18 @@ namespace rhost {
         long long next_message_id = 0;
         bool allow_callbacks = true, allow_intr_in_CallBack = true;
 
-        message incoming;
-        enum { INCOMING_UNEXPECTED, INCOMING_EXPECTED, INCOMING_RECEIVED } incoming_state;
+        // Specifies whether the host is currently expecting a response message to some earlier request that it had sent.
+        // The host can always receive eval and cancellation requests, and they aren't considered responses. If any other
+        // message is received, state must be RESPONSE_EXPECTED; it is then changed to RESPONSE_RECEIVED, and message is
+        // saved in response. If state was not RESPONSE_EXPECTED when message was received, it is considered a fatal error.
+        enum { RESPONSE_UNEXPECTED, RESPONSE_EXPECTED, RESPONSE_RECEIVED } response_state;
+        // Most recent message received in response to RESPONSE_EXPECTED.
+        message response;
+        std::mutex response_mutex;
+
+        // Eval requests queued for execution. When eval begins executing, it is removed from this queue, and placed onto eval_stack.
         std::queue<message> eval_requests;
-        std::mutex incoming_mutex;
+        std::mutex eval_requests_mutex;
 
         struct eval_info {
             const std::string id;
@@ -64,10 +72,22 @@ namespace rhost {
             }
         };
 
+        // Keeps track of evals that are currently being executed (as opposed to queued - that is tracked by eval_requests).
+        // The first item is always dummy eval representing evaluation of input on the last ReadConsole prompt. Following it
+        // is the current real top-level eval, and then any nested evals are appended at the end, in order of their nesting. 
+        // For example, if an eval request for "x" came in (and it was re-entrant, thus permitting nested evals); and then,
+        // while it was executing, an eval request for "y" came in; and then while that was executing, "z" came in, then the
+        // stack will look like this:
+        //
+        //   <dummy> x y z
+        // 
+        // When cancellation for any eval on the stack is requested, all evals that follow it on the stack are also canceled,
+        // since execution will not return to the eval unless all nested evals are terminated. When cancellation of all evals
+        // is requested, it is implemented as cancellation of the topmost dummy eval. 
         std::vector<eval_info> eval_stack({ eval_info("", true) });
-        bool canceling_eval;
-        std::string eval_cancel_target;
-        std::mutex eval_mutex;
+        bool canceling_eval; // whether we're currently processing a cancellation request by unwinding the eval stack
+        std::string eval_cancel_target; // ID of the eval on the stack that is the cancellation target
+        std::mutex eval_stack_mutex;
 
         void terminate_if_closed() {
             // terminate invokes R_Suicide, which may invoke WriteConsole and/or ShowMessage, which will
@@ -130,7 +150,7 @@ namespace rhost {
         }
 
         bool query_interrupt() {
-            std::lock_guard<std::mutex> lock(eval_mutex);
+            std::lock_guard<std::mutex> lock(eval_stack_mutex);
             if (!canceling_eval) {
                 return false;
             }
@@ -219,14 +239,14 @@ namespace rhost {
 
                 bool was_before_invoked = false;
                 auto before = [&] {
-                    std::lock_guard<std::mutex> lock(eval_mutex);
+                    std::lock_guard<std::mutex> lock(eval_stack_mutex);
                     eval_stack.push_back(eval_info(msg.id, is_cancelable));
                     was_before_invoked = true;
                 };
 
                 bool was_after_invoked = false;
                 auto after = [&] {
-                    std::lock_guard<std::mutex> lock(eval_mutex);
+                    std::lock_guard<std::mutex> lock(eval_stack_mutex);
 
                     if (was_before_invoked) {
                         assert(!eval_stack.empty());
@@ -305,8 +325,8 @@ namespace rhost {
             }
 
             {
-                std::lock_guard<std::mutex> lock(incoming_mutex);
-                incoming_state = INCOMING_EXPECTED;
+                std::lock_guard<std::mutex> lock(response_mutex);
+                response_state = RESPONSE_EXPECTED;
             }
 
 #ifdef TRACE_JSON
@@ -344,7 +364,7 @@ namespace rhost {
                 eval_id = msg.args[0].get<std::string>();
             }
 
-            std::lock_guard<std::mutex> lock(eval_mutex);
+            std::lock_guard<std::mutex> lock(eval_stack_mutex);
 
             for (auto eval_info : eval_stack) {
                 auto& id = eval_info.id;
@@ -383,8 +403,8 @@ namespace rhost {
 
         inline message send_message_and_get_response(const char* name, const picojson::array& args) {
             {
-                std::lock_guard<std::mutex> lock(incoming_mutex);
-                incoming_state = INCOMING_EXPECTED;
+                std::lock_guard<std::mutex> lock(response_mutex);
+                response_state = RESPONSE_EXPECTED;
             }
 
             auto id = send_message(name, args);
@@ -397,19 +417,21 @@ namespace rhost {
                 message msg;
                 for (;;) {
                     {
-                        std::lock_guard<std::mutex> lock(incoming_mutex);
-
                         // If there's anything in eval queue, break to process that.
-                        if (!eval_requests.empty()) {
-                            msg = eval_requests.front();
-                            eval_requests.pop();
-                            break;
+                        {
+                            std::lock_guard<std::mutex> lock(eval_requests_mutex);
+                            if (!eval_requests.empty()) {
+                                msg = eval_requests.front();
+                                eval_requests.pop();
+                                break;
+                            }
                         }
 
-                        assert(incoming_state != INCOMING_UNEXPECTED);
-                        if (incoming_state == INCOMING_RECEIVED) {
-                            msg = incoming;
-                            incoming_state = INCOMING_UNEXPECTED;
+                        std::lock_guard<std::mutex> lock(response_mutex);
+                        assert(response_state != RESPONSE_UNEXPECTED);
+                        if (response_state == RESPONSE_RECEIVED) {
+                            msg = response;
+                            response_state = RESPONSE_UNEXPECTED;
                             break;
                         }
                     }
@@ -496,7 +518,7 @@ namespace rhost {
                 for (;;) {
                     message msg;
                     {
-                        std::lock_guard<std::mutex> lock(incoming_mutex);
+                        std::lock_guard<std::mutex> lock(eval_requests_mutex);
                         if (eval_requests.empty()) {
                             break;
 
@@ -648,8 +670,6 @@ namespace rhost {
             logf("==> %s\n\n", json.c_str());
 #endif
 
-            std::lock_guard<std::mutex> lock(incoming_mutex);
-
             picojson::value value;
             auto err = picojson::parse(value, json);
             if (!err.empty()) {
@@ -669,7 +689,7 @@ namespace rhost {
                 fatal_error("Message must be of the form [id, name, ...].");
             }
 
-            incoming = message();
+            message incoming = {};
             incoming.id = array[0].get<std::string>();
             incoming.name = array[1].get<std::string>();
             auto args = array.begin() + 2;
@@ -689,17 +709,20 @@ namespace rhost {
             if (incoming.name == "/") {
                 return handle_cancel(incoming);
             } else if (incoming.name.size() >= 1 && incoming.name[0] == '=') {
+                std::lock_guard<std::mutex> lock(eval_requests_mutex);
                 eval_requests.push(incoming);
                 unblock_message_loop();
                 return;
             }
 
-            assert(incoming_state != INCOMING_RECEIVED);
-            if (incoming_state == INCOMING_UNEXPECTED) {
-                fatal_error("Unexpected incoming client message.");
+            std::lock_guard<std::mutex> lock(response_mutex);
+            assert(response_state != RESPONSE_RECEIVED);
+            if (response_state == RESPONSE_UNEXPECTED) {
+                fatal_error("Unexpected incoming client message - not an eval or cancellation request, and not expecting a response.");
             }
 
-            incoming_state = INCOMING_RECEIVED;
+            response = incoming;
+            response_state = RESPONSE_RECEIVED;
             unblock_message_loop();
         }
 

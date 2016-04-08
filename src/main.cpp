@@ -59,7 +59,7 @@ namespace rhost {
             connect("rhost-connect", po::value<websocketpp::uri>(), "Connect to a websocket server at the specified URI.");
 
         po::options_description desc;
-        for (auto&& opt : { help, name, listen, connect }) {
+        for (auto&& opt : { help, name, /*listen,*/ connect }) {
             boost::shared_ptr<po::option_description> popt(new po::option_description(opt));
             desc.add(popt);
         }
