@@ -30,6 +30,18 @@ namespace js = picojson;
 namespace rhost {
     namespace json {
         namespace {
+			bool strsxp_to_utf8(SEXP sexp, std::string& result) {
+				const void* vmax = vmaxget();
+				const char* s = Rf_translateCharUTF8(sexp);
+				if (s) {
+					result = s;
+				} else {
+					result.clear();
+				}
+				vmaxset(vmax);
+				return s != nullptr;
+			}
+
             void json_error(SEXP sexp, const char* format, ...) {
                 SEXP repr_sexp = STRING_ELT(Rf_deparse1line(sexp, R_FALSE), 0);
                 Rf_protect(repr_sexp);
@@ -80,7 +92,10 @@ namespace rhost {
                         json_error(sexp, "All elements in list must be named, but [[%d]] is not.", i + 1);
                     }
 
-                    const char* name = R_CHAR(name_sexp);
+					std::string name;
+					if (!strsxp_to_utf8(name_sexp, name)) {
+						json_error(sexp, "Name of [[%d]] could not be converted to UTF-8.", i + 1);
+					}
 
                     auto insert_result = result.insert(std::make_pair(name, js::value()));
                     if (!insert_result.second) {
@@ -103,7 +118,10 @@ namespace rhost {
 
                 for (R_len_t i = 0; i < count; ++i) {
                     SEXP name_sexp = STRING_ELT(names, i);
-                    const char* name = R_CHAR(name_sexp);
+					std::string name;
+					if (!strsxp_to_utf8(name_sexp, name)) {
+						json_error(sexp, "Name of [[%d]] could not be converted to UTF-8.", i + 1);
+					}
 
                     auto insert_result = result.insert(std::make_pair(name, js::value()));
                     if (!insert_result.second) {
@@ -188,10 +206,8 @@ namespace rhost {
                 if (x == R_NaString) {
                     result = js::value();
                 } else {
-                    const void* vmax = vmaxget();
-                    const char* s = Rf_translateCharUTF8(x);
-                    result = s ? js::value(s) : js::value();
-                    vmaxset(vmax);
+					std::string s;
+					result = strsxp_to_utf8(x, s) ? js::value(s) : js::value();
                 }
                 break;
             }
