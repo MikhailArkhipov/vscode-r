@@ -30,5 +30,7 @@ namespace rhost {
         extern void (*free)(void *memblock);
         extern int (*atexit)(void(*func)(void));
         extern int (*vsnprintf)(char*, size_t, const char*, va_list);
+        extern int (*mbstowcs)(wchar_t*, const char*, size_t);
+        extern int (*wctomb)(char*, wchar_t);
     }
 }

@@ -22,6 +22,7 @@
 
 #include "stdafx.h"
 #include "util.h"
+#include "msvcrt.h"
 
 namespace po = boost::program_options;
 
@@ -68,7 +69,7 @@ namespace rhost {
 
             if ((pb = strchr(s, UTF8in[0])) && *(pb + 1) == UTF8in[1] && *(pb + 2) == UTF8in[2]) {
                 *pb = '\0';
-                nc += mbstowcs(wc, s, n);
+                nc += msvcrt::mbstowcs(wc, s, n);
                 pb += 3; pe = pb;
 
                 while (*pe &&
@@ -86,7 +87,7 @@ namespace rhost {
                 pe += 3;
                 nc += RString2Unicode(wc + nc, pe, n - nc);
             } else {
-                nc = mbstowcs(wc, s, n);
+                nc = msvcrt::mbstowcs(wc, s, n);
             }
             return nc;
         }
@@ -124,7 +125,7 @@ namespace rhost {
             for (size_t i = 0; i < ws.length(); i++)
             {
                 char mbcharbuf[8];
-                int mbcch = wctomb(mbcharbuf, ws[i]);
+                int mbcch = msvcrt::wctomb(mbcharbuf, ws[i]);
                 if (mbcch == -1) {
                     // Character could not be converted, encode it
                     sprintf(&converted[j], "\\u%04x", ws[i]);

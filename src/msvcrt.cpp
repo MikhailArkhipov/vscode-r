@@ -40,5 +40,7 @@ namespace rhost {
         MSVCRT_EXPORT(free);
         MSVCRT_EXPORT(atexit);
         MSVCRT_EXPORT(vsnprintf);
+        MSVCRT_EXPORT(mbstowcs);
+        MSVCRT_EXPORT(wctomb);
     }
 }
