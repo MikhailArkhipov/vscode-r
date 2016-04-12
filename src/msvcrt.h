@@ -32,5 +32,6 @@ namespace rhost {
         extern int (*vsnprintf)(char*, size_t, const char*, va_list);
         extern int (*mbstowcs)(wchar_t*, const char*, size_t);
         extern int (*wctomb)(char*, wchar_t);
+        extern int (*mbtowc)(wchar_t*, const char*, size_t);
     }
 }

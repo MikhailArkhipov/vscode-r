@@ -1,4 +1,4 @@
-/* ****************************************************************************
+﻿/* ****************************************************************************
  *
  * Copyright (c) Microsoft Corporation. All rights reserved.
  *
@@ -121,12 +121,26 @@ namespace rhost {
             // us to preserve characters written in non-default OS CP.
             // Max 8 bytes per character which should fit both UTF-8 and \uABCD
             std::string converted(8 * ws.length(), '\0');
-             size_t j = 0;
+            size_t j = 0;
             for (size_t i = 0; i < ws.length(); i++)
             {
                 char mbcharbuf[8];
                 int mbcch = msvcrt::wctomb(mbcharbuf, ws[i]);
+
+                bool escape;
                 if (mbcch == -1) {
+                    escape = true;
+                } else {
+                    // wctomb will try to do an inexact mapping if exact is unavailable - for example,
+                    // if the native encoding is Latin-1, and input is "Δ" (Greek delta), it will be
+                    // converted to Latin "D", and success will be reported. For such cases, we want to
+                    // do "\u..." escaping instead, to preserve the original letter exactly. To detect
+                    // that, convert the result back, and see if it matches the original. 
+                    wchar_t wc;
+                    escape = msvcrt::mbtowc(&wc, mbcharbuf, mbcch) == -1 || wc != ws[i];
+                }
+
+                if (escape) {
                     // Character could not be converted, encode it
                     sprintf(&converted[j], "\\u%04x", ws[i]);
                     j += 6;

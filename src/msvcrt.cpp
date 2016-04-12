@@ -42,5 +42,6 @@ namespace rhost {
         MSVCRT_EXPORT(vsnprintf);
         MSVCRT_EXPORT(mbstowcs);
         MSVCRT_EXPORT(wctomb);
+        MSVCRT_EXPORT(mbtowc);
     }
 }
