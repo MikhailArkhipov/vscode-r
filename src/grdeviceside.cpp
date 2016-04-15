@@ -664,8 +664,6 @@ namespace rhost {
                 _width = width;
                 _height = height;
 
-                _file_device = create_file_device();
-
                 _history.resize(width, height);
             }
 
