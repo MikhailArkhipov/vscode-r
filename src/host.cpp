@@ -227,7 +227,7 @@ namespace rhost {
             log::logf("%s = %s\n\n", msg.id.c_str(), expr.c_str());
 
             SEXP env = nullptr;
-            bool is_cancelable = false, json_result = false, new_env = false;
+            bool is_cancelable = false, json_result = false, new_env = false, no_result = false;
 
             for (auto it = msg.name.begin() + 1; it != msg.name.end(); ++it) {
                 switch (char c = *it) {
@@ -249,6 +249,9 @@ namespace rhost {
                     break;
                 case '/':
                     is_cancelable = true;
+                    break;
+                case '0':
+                    no_result = true;
                     break;
                 default:
                     fatal_error("'%s': unrecognized flag '%c'.", msg.name.c_str(), c);
@@ -343,7 +346,7 @@ namespace rhost {
             if (result.has_error) {
                 error = picojson::value(to_utf8(result.error));
             }
-            if (result.has_value) {
+            if (result.has_value && !no_result) {
                 if (json_result) {
                     try {
                         errors_to_exceptions([&] { to_json(result.value.get(), value); });
