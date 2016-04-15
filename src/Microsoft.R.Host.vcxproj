@@ -24,6 +24,8 @@
     <RootNamespace>Host</RootNamespace>
     <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
     <ProjectName>Microsoft.R.Host</ProjectName>
+    <BinDirectory Condition="'$(BinDirectory)' == ''">$(SolutionDir)..\bin\</BinDirectory>
+    <ObjDirectory Condition="'$(ObjDirectory)' == ''">$(SolutionDir)..\obj\</ObjDirectory>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -72,23 +74,23 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <OutDir>$(SolutionDir)\..\bin\$(Configuration)\</OutDir>
-    <IntDir>$(SolutionDir)\..\obj\$(Configuration)\$(TargetName)\</IntDir>
+    <OutDir>$(BinDirectory)$(Configuration)\</OutDir>
+    <IntDir>$(ObjDirectory)$(Configuration)\$(TargetName)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <OutDir>$(SolutionDir)\..\bin\$(Configuration)\</OutDir>
-    <IntDir>$(SolutionDir)\..\obj\$(Configuration)\$(TargetName)\</IntDir>
+    <OutDir>$(BinDirectory)$(Configuration)\</OutDir>
+    <IntDir>$(ObjDirectory)$(Configuration)\$(TargetName)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>$(SolutionDir)\..\bin\$(Configuration)\</OutDir>
-    <IntDir>$(SolutionDir)\..\obj\$(Configuration)\$(TargetName)\</IntDir>
+    <OutDir>$(BinDirectory)$(Configuration)\</OutDir>
+    <IntDir>$(ObjDirectory)$(Configuration)\$(TargetName)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>$(SolutionDir)\..\bin\$(Configuration)\</OutDir>
-    <IntDir>$(SolutionDir)\..\obj\$(Configuration)\$(TargetName)\</IntDir>
+    <OutDir>$(BinDirectory)$(Configuration)\</OutDir>
+    <IntDir>$(ObjDirectory)$(Configuration)\$(TargetName)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
