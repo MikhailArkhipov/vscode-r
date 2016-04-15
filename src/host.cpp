@@ -36,15 +36,46 @@ using namespace rhost::json;
 namespace rhost {
     namespace host {
         const char subprotocol[] = "Microsoft.R.Host";
+        const long heartbeat_timeout =
+#ifdef NDEBUG
+            5'000;
+#else 
+            // In debug mode, make the timeout much longer, so that debugging the host client won't cause
+            // the host to disconnect quickly because the client is not responding when paused in debugger.
+            600'000;
+#endif
 
         boost::signals2::signal<void()> callback_started;
         boost::signals2::signal<void()> readconsole_done;
 
         typedef websocketpp::connection<websocketpp::config::asio> ws_connection_type;
 
+        // There's no std::atomic<std::shared_ptr<...>>, but there are free-standing atomic_* functions that can do 
+        // the same manually - wrap ws_conn into a class that ensures that all access goes through those functions.
+        // TODO: replace with C++17 atomic_shared_ptr once it is available.
+        struct {
+            std::shared_ptr<ws_connection_type> operator-> () const {
+                return std::atomic_load(&ptr);
+            }
+
+            operator std::shared_ptr<ws_connection_type>() const {
+                return operator->();
+            }
+
+            explicit operator bool() const {
+                return static_cast<bool>(operator->());
+            }
+
+            void operator= (std::shared_ptr<ws_connection_type> value) {
+                std::atomic_store(&ptr, value);
+            }
+
+        private:
+            std::shared_ptr<ws_connection_type> ptr;
+        } ws_conn;
+
         DWORD main_thread_id;
         std::promise<void> connected_promise;
-        std::shared_ptr<ws_connection_type> ws_conn;
         std::atomic<bool> is_connection_closed = false;
         std::atomic<bool> is_waiting_for_wm = false;
         long long next_message_id = 0;
@@ -662,6 +693,9 @@ namespace rhost {
         void ws_open_handler(websocketpp::connection_hdl hdl) {
             send_message("Microsoft.R.Host", 1.0, getDLLVersion());
             connected_promise.set_value();
+
+            std::error_code ec;
+            ws_conn->ping("", ec);
         }
 
         void ws_message_handler(websocketpp::connection_hdl hdl, ws_connection_type::message_ptr msg) {
@@ -731,19 +765,39 @@ namespace rhost {
             unblock_message_loop();
         }
 
-        void server_worker(boost::asio::ip::tcp::endpoint endpoint) {
-            websocketpp::server<websocketpp::config::asio> server;
+        void ws_pong_handler(websocketpp::connection_hdl hdl, std::string) {
+            if (auto conn = ws_conn) {
+                conn->set_timer(1'000, [](auto error_code) {
+                    if (auto conn = ws_conn) {
+                        conn->ping("", error_code);
+                    }
+                });
+            }
+        }
 
+        void ws_pong_timeout_handler(websocketpp::connection_hdl, std::string) {
+            terminate("Client did not respond to heartbeat ping.");
+        }
+
+        void initialize_ws_endpoint(websocketpp::endpoint<websocketpp::connection<websocketpp::config::asio>, websocketpp::config::asio>& endpoint) {
 #ifndef TRACE_WEBSOCKET
-            server.set_access_channels(websocketpp::log::alevel::none);
-            server.set_error_channels(websocketpp::log::elevel::none);
+            endpoint.set_access_channels(websocketpp::log::alevel::none);
+            endpoint.set_error_channels(websocketpp::log::elevel::none);
 #endif
 
-            server.init_asio();
-            server.set_validate_handler(ws_validate_handler);
-            server.set_open_handler(ws_open_handler);
-            server.set_message_handler(ws_message_handler);
-            server.set_close_handler(ws_close_handler);
+            endpoint.init_asio();
+            endpoint.set_validate_handler(ws_validate_handler);
+            endpoint.set_open_handler(ws_open_handler);
+            endpoint.set_message_handler(ws_message_handler);
+            endpoint.set_close_handler(ws_close_handler);
+            endpoint.set_pong_handler(ws_pong_handler);
+            endpoint.set_pong_timeout_handler(ws_pong_timeout_handler);
+            endpoint.set_pong_timeout(heartbeat_timeout);
+        }
+
+        void server_worker(boost::asio::ip::tcp::endpoint endpoint) {
+            websocketpp::server<websocketpp::config::asio> server;
+            initialize_ws_endpoint(server);
 
             std::ostringstream endpoint_str;
             endpoint_str << endpoint;
@@ -755,13 +809,15 @@ namespace rhost {
                 fatal_error("Could not open server socket for listening: %s", error_code.message().c_str());
             }
 
-            ws_conn = server.get_connection();
-            server.async_accept(ws_conn, [&](auto error_code) {
+            auto conn = server.get_connection();
+            ws_conn = conn;
+            server.async_accept(conn, [&](auto error_code) {
                 if (error_code) {
-                    ws_conn->terminate(error_code);
+                    conn->terminate(error_code);
                     fatal_error("Could not establish connection to client: %s", error_code.message().c_str());
                 } else {
-                    ws_conn->start();
+                    conn->start();
+                    conn->ping("", error_code);
                 }
             });
 
@@ -770,17 +826,7 @@ namespace rhost {
 
         void client_worker(websocketpp::uri uri) {
             websocketpp::client<websocketpp::config::asio> client;
-
-#ifndef TRACE_WEBSOCKET
-            client.set_access_channels(websocketpp::log::alevel::none);
-            client.set_error_channels(websocketpp::log::elevel::none);
-#endif
-
-            client.init_asio();
-            client.set_fail_handler(ws_fail_handler);
-            client.set_open_handler(ws_open_handler);
-            client.set_message_handler(ws_message_handler);
-            client.set_close_handler(ws_close_handler);
+            initialize_ws_endpoint(client);
 
             logf("Establishing connection to %s ...\n", uri.str().c_str());
 
