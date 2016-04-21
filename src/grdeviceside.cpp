@@ -76,7 +76,7 @@ namespace rhost {
                 void clear();
                 void remove_active();
 
-                void resize(double width, double height);
+                void resize(double width, double height, double resolution);
                 void render_from_snapshot();
 
                 int plot_count() const;
@@ -105,9 +105,9 @@ namespace rhost {
 
             class ide_device : public graphics_device {
             public:
-                static std::unique_ptr<ide_device> create(std::string device_type, double width, double height);
+                static std::unique_ptr<ide_device> create(std::string device_type, double width, double height, double resolution);
 
-                ide_device(pDevDesc dd, std::string device_type, double width, double height);
+                ide_device(pDevDesc dd, std::string device_type, double width, double height, double resolution);
                 virtual ~ide_device();
 
                 boost::signals2::signal<void()> closed;
@@ -141,7 +141,7 @@ namespace rhost {
 
             public:
                 void render_request(bool immediately);
-                void resize(double width, double height);
+                void resize(double width, double height, double resolution);
                 double width() const { return _width; }
                 double height() const { return _height; }
                 std::tr2::sys::path save();
@@ -167,11 +167,12 @@ namespace rhost {
                 void sync_file_device();
                 void set_pending_render();
 
-                static pDevDesc create_file_device(const std::string& device_type, const std::tr2::sys::path& filename, double width, double height);
+                static pDevDesc create_file_device(const std::string& device_type, const std::tr2::sys::path& filename, double width, double height, double resolution);
 
             private:
                 double _width;
                 double _height;
+                double _resolution;
                 bool _debug;
                 pDevDesc _file_device;
                 std::string _file_device_type;
@@ -184,6 +185,7 @@ namespace rhost {
             static boost::uuids::random_generator uuid_generator;
             static double default_width = 360;
             static double default_height = 360;
+            static double default_resolution = 96;
 
             ///////////////////////////////////////////////////////////////////////
             // Ide device plot
@@ -375,7 +377,7 @@ namespace rhost {
                 }
             }
 
-            void plot_history::resize(double width, double height) {
+            void plot_history::resize(double width, double height, double resolution) {
                 auto plot = get_active();
                 if (plot != nullptr) {
                     if (plot->has_pending_render()) {
@@ -413,10 +415,10 @@ namespace rhost {
             // Ide device
             ///////////////////////////////////////////////////////////////////////
 
-            std::unique_ptr<ide_device> ide_device::create(std::string device_type, double width, double height) {
+            std::unique_ptr<ide_device> ide_device::create(std::string device_type, double width, double height, double resolution) {
                 pDevDesc dd = static_cast<pDevDesc>(rhost::msvcrt::calloc(1, sizeof(DevDesc)));
 
-                auto xdd = std::make_unique<ide_device>(dd, device_type, width, height);
+                auto xdd = std::make_unique<ide_device>(dd, device_type, width, height, resolution);
 
                 pDevDesc file_dd = xdd->create_file_device();
 
@@ -658,13 +660,14 @@ namespace rhost {
                 });
             }
 
-            void ide_device::resize(double width, double height) {
+            void ide_device::resize(double width, double height, double resolution) {
                 output_and_kill_file_device();
 
                 _width = width;
                 _height = height;
+                _resolution = resolution;
 
-                _history.resize(width, height);
+                _history.resize(width, height, resolution);
             }
 
             std::tr2::sys::path ide_device::save() {
@@ -693,10 +696,11 @@ namespace rhost {
                 });
             }
 
-            ide_device::ide_device(pDevDesc dd, std::string device_type, double width, double height) :
+            ide_device::ide_device(pDevDesc dd, std::string device_type, double width, double height, double resolution) :
                 graphics_device(dd),
                 _width(width),
                 _height(height),
+                _resolution(resolution),
                 _debug(false),
                 _history(dd),
                 _file_device(nullptr),
@@ -723,7 +727,7 @@ namespace rhost {
 
             pDevDesc ide_device::create_file_device() {
                 _file_device_filename = get_render_file_path();
-                return create_file_device(_file_device_type, _file_device_filename, _width, _height);
+                return create_file_device(_file_device_type, _file_device_filename, _width, _height, _resolution);
             }
 
             void ide_device::sync_file_device() {
@@ -797,8 +801,8 @@ namespace rhost {
                 return _history.active_plot_index();
             }
 
-            pDevDesc ide_device::create_file_device(const std::string& device_type, const std::tr2::sys::path& filename, double width, double height) {
-                auto expr = boost::format("%1%(filename='%2%', width=%3%, height=%4%, res=96)") % device_type % filename.generic_string() % width % height;
+            pDevDesc ide_device::create_file_device(const std::string& device_type, const std::tr2::sys::path& filename, double width, double height, double resolution) {
+                auto expr = boost::format("%1%(filename='%2%', width=%3%, height=%4%, res=%5%)") % device_type % filename.generic_string() % width % height % resolution;
 
                 // Create the file device via the public R API
                 ParseStatus ps;
@@ -843,7 +847,7 @@ namespace rhost {
 
                     R_CheckDeviceAvailable();
                     BEGIN_SUSPEND_INTERRUPTS{
-                        auto dev = ide_device::create("png", default_width, default_height);
+                        auto dev = ide_device::create("png", default_width, default_height, default_resolution);
                     pGEDevDesc gdd = GEcreateDevDesc(dev->device_desc);
                     GEaddDevice2(gdd, "ide");
                     // Owner is DevDesc::deviceSpecific, and is released in close()
@@ -861,16 +865,20 @@ namespace rhost {
                     SEXP width = CAR(args);
                     args = CDR(args);
                     SEXP height = CAR(args);
+                    args = CDR(args);
+                    SEXP resolution = CAR(args);
 
                     double *w = REAL(width);
                     double *h = REAL(height);
+                    double *res = REAL(resolution);
 
                     default_width = *w;
                     default_height = *h;
+                    default_resolution = *res;
 
                     if (device_instance != nullptr) {
                         device_instance->select();
-                        device_instance->resize(*w, *h);
+                        device_instance->resize(*w, *h, *res);
                     }
 
                     return R_NilValue;
@@ -944,7 +952,7 @@ namespace rhost {
 
             static R_ExternalMethodDef external_methods[] = {
                 { "Microsoft.R.Host::External.ide_graphicsdevice_new", (DL_FUNC)&ide_graphicsdevice_new, 0 },
-                { "Microsoft.R.Host::External.ide_graphicsdevice_resize", (DL_FUNC)&ide_graphicsdevice_resize, 2 },
+                { "Microsoft.R.Host::External.ide_graphicsdevice_resize", (DL_FUNC)&ide_graphicsdevice_resize, 3 },
                 { "Microsoft.R.Host::External.ide_graphicsdevice_next_plot", (DL_FUNC)&ide_graphicsdevice_next_plot, 0 },
                 { "Microsoft.R.Host::External.ide_graphicsdevice_previous_plot", (DL_FUNC)&ide_graphicsdevice_previous_plot, 0 },
                 { "Microsoft.R.Host::External.ide_graphicsdevice_history_info", (DL_FUNC)&ide_graphicsdevice_history_info, 0 },
