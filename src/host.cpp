@@ -358,11 +358,6 @@ namespace rhost {
                 }
             }
 
-            {
-                std::lock_guard<std::mutex> lock(response_mutex);
-                response_state = RESPONSE_EXPECTED;
-            }
-
 #ifdef TRACE_JSON
             indent_log(+1);
 #endif
