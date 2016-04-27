@@ -459,7 +459,10 @@ namespace rhost {
                         }
 
                         std::lock_guard<std::mutex> lock(response_mutex);
-                        assert(response_state != RESPONSE_UNEXPECTED);
+                        if (response_state == RESPONSE_UNEXPECTED) {
+                            assert(false);
+                            fatal_error("Invalid response state transition: went from RESPONSE_EXPECTED to RESPONSE_UNEXPECTED.");
+                        }
                         if (response_state == RESPONSE_RECEIVED) {
                             msg = response;
                             response_state = old_response_state;
