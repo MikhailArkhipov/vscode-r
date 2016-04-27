@@ -76,7 +76,7 @@ namespace rhost {
         template<class... Args>
         inline message send_message_and_get_response(const char* name, const Args&... args) {
             picojson::array args_array;
-            append(args_array, args...);
+            rhost::util::append(args_array, args...);
             return send_message_and_get_response(name, args_array);
         }
     }
