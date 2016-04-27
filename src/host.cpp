@@ -85,7 +85,7 @@ namespace rhost {
         // The host can always receive eval and cancellation requests, and they aren't considered responses. If any other
         // message is received, state must be RESPONSE_EXPECTED; it is then changed to RESPONSE_RECEIVED, and message is
         // saved in response. If state was not RESPONSE_EXPECTED when message was received, it is considered a fatal error.
-        enum { RESPONSE_UNEXPECTED, RESPONSE_EXPECTED, RESPONSE_RECEIVED } response_state;
+        enum response_state_t { RESPONSE_UNEXPECTED, RESPONSE_EXPECTED, RESPONSE_RECEIVED } response_state;
         // Most recent message received in response to RESPONSE_EXPECTED.
         message response;
         std::mutex response_mutex;
@@ -431,8 +431,10 @@ namespace rhost {
         }
 
         inline message send_message_and_get_response(const char* name, const picojson::array& args) {
+            response_state_t old_response_state;
             {
                 std::lock_guard<std::mutex> lock(response_mutex);
+                old_response_state = response_state;
                 response_state = RESPONSE_EXPECTED;
             }
 
@@ -457,10 +459,13 @@ namespace rhost {
                         }
 
                         std::lock_guard<std::mutex> lock(response_mutex);
-                        assert(response_state != RESPONSE_UNEXPECTED);
+                        if (response_state == RESPONSE_UNEXPECTED) {
+                            assert(false);
+                            fatal_error("Invalid response state transition: went from RESPONSE_EXPECTED to RESPONSE_UNEXPECTED.");
+                        }
                         if (response_state == RESPONSE_RECEIVED) {
                             msg = response;
-                            response_state = RESPONSE_UNEXPECTED;
+                            response_state = old_response_state;
                             break;
                         }
                     }
