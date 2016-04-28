@@ -508,7 +508,23 @@ namespace rhost {
             Rboolean ide_device::locator(double *x, double *y) {
                 *x = 0;
                 *y = 0;
-                return R_FALSE;
+                Rboolean clicked = R_FALSE;
+
+                rhost::host::with_cancellation([&] {
+                    auto msg = rhost::host::send_message_and_get_response("Locator");
+                    if (msg.args.size() != 3 || !msg.args[0].is<bool>() || !msg.args[1].is<double>() || !msg.args[2].is<double>()) {
+                        rhost::log::fatal_error("Locator response is malformed. It must have 3 elements: bool, double, double.");
+                    }
+
+                    auto& result_clicked = msg.args[0].get<bool>();
+                    auto& result_x = msg.args[1].get<double>();
+                    auto& result_y = msg.args[2].get<double>();
+                    *x = result_x;
+                    *y = result_y;
+                    clicked = result_clicked ? R_TRUE : R_FALSE;
+                });
+
+                return clicked;
             }
 
             void ide_device::line(double x1, double y1, double x2, double y2, const pGEcontext gc) {
