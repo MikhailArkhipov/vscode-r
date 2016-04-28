@@ -512,6 +512,10 @@ namespace rhost {
 
                 rhost::host::with_cancellation([&] {
                     auto msg = rhost::host::send_message_and_get_response("Locator");
+                    if (msg.args.size() != 3 || !msg.args[0].is<bool>() || !msg.args[1].is<double>() || !msg.args[2].is<double>()) {
+                        rhost::log::fatal_error("Locator response is malformed. It must have 3 elements: bool, double, double.");
+                    }
+
                     auto& result_clicked = msg.args[0].get<bool>();
                     auto& result_x = msg.args[1].get<double>();
                     auto& result_y = msg.args[2].get<double>();
