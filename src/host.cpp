@@ -227,7 +227,7 @@ namespace rhost {
             log::logf("%s = %s\n\n", msg.id.c_str(), expr.c_str());
 
             SEXP env = nullptr;
-            bool is_cancelable = false, json_result = false, new_env = false, no_result = false;
+            bool is_cancelable = false, new_env = false, no_result = false;
 
             for (auto it = msg.name.begin() + 1; it != msg.name.end(); ++it) {
                 switch (char c = *it) {
@@ -240,9 +240,6 @@ namespace rhost {
                     break;
                 case 'N':
                     new_env = true;
-                    break;
-                case 'j':
-                    json_result = true;
                     break;
                 case '@':
                     allow_callbacks = true;
@@ -347,14 +344,10 @@ namespace rhost {
                 error = picojson::value(to_utf8(result.error));
             }
             if (result.has_value && !no_result) {
-                if (json_result) {
-                    try {
-                        errors_to_exceptions([&] { to_json(result.value.get(), value); });
-                    } catch (r_error& err) {
-                        fatal_error("%s", err.what());
-                    }
-                } else {
-                    value = to_utf8_json(R_CHAR(Rf_asChar(result.value.get())));
+                try {
+                    errors_to_exceptions([&] { to_json(result.value.get(), value); });
+                } catch (r_error& err) {
+                    fatal_error("%s", err.what());
                 }
             }
 
