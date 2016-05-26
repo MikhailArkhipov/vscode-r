@@ -708,7 +708,12 @@ namespace rhost {
             void ide_device::send(const std::tr2::sys::path& filename) {
                 auto path_copy(filename);
                 rhost::host::with_cancellation([&] {
-                    rhost::host::send_message("Plot", rhost::util::to_utf8(path_copy.make_preferred().string()));
+                    rhost::host::send_message(
+                        "Plot",
+                        rhost::util::to_utf8(path_copy.make_preferred().string()),
+                        (double)active_plot_index(),
+                        (double)plot_count()
+                    );
                 });
             }
 
@@ -895,6 +900,7 @@ namespace rhost {
                     if (device_instance != nullptr) {
                         device_instance->select();
                         device_instance->resize(*w, *h, *res);
+                        device_instance->render_request(true);
                     }
 
                     return R_NilValue;
@@ -906,6 +912,7 @@ namespace rhost {
                     if (device_instance != nullptr) {
                         device_instance->select();
                         device_instance->history_next();
+                        device_instance->render_request(true);
                     }
 
                     return R_NilValue;
@@ -917,6 +924,7 @@ namespace rhost {
                     if (device_instance != nullptr) {
                         device_instance->select();
                         device_instance->history_previous();
+                        device_instance->render_request(true);
                     }
 
                     return R_NilValue;
@@ -949,6 +957,7 @@ namespace rhost {
                     if (device_instance != nullptr) {
                         device_instance->select();
                         device_instance->history_clear();
+                        device_instance->render_request(true);
                     }
 
                     return R_NilValue;
@@ -960,6 +969,7 @@ namespace rhost {
                     if (device_instance != nullptr) {
                         device_instance->select();
                         device_instance->history_remove_active();
+                        device_instance->render_request(true);
                     }
 
                     return R_NilValue;
