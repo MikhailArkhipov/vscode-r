@@ -931,27 +931,6 @@ namespace rhost {
                 });
             }
 
-            extern "C" SEXP ide_graphicsdevice_history_info(SEXP args) {
-                return rhost::util::exceptions_to_errors([&] {
-                    // zero-based index of active plot, number of plots
-                    auto plotIndex = Rf_allocVector(INTSXP, 1);
-                    auto plotCount = Rf_allocVector(INTSXP, 1);
-
-                    if (device_instance != nullptr) {
-                        *INTEGER(plotIndex) = device_instance->active_plot_index();
-                        *INTEGER(plotCount) = device_instance->plot_count();
-                    } else {
-                        *INTEGER(plotIndex) = -1;
-                        *INTEGER(plotCount) = 0;
-                    }
-
-                    auto value = Rf_allocVector(VECSXP, 2);
-                    SET_VECTOR_ELT(value, 0, plotIndex);
-                    SET_VECTOR_ELT(value, 1, plotCount);
-                    return value;
-                });
-            }
-
             extern "C" SEXP ide_graphicsdevice_clear_plots(SEXP args) {
                 return rhost::util::exceptions_to_errors([&] {
                     if (device_instance != nullptr) {
@@ -981,7 +960,6 @@ namespace rhost {
                 { "Microsoft.R.Host::External.ide_graphicsdevice_resize", (DL_FUNC)&ide_graphicsdevice_resize, 3 },
                 { "Microsoft.R.Host::External.ide_graphicsdevice_next_plot", (DL_FUNC)&ide_graphicsdevice_next_plot, 0 },
                 { "Microsoft.R.Host::External.ide_graphicsdevice_previous_plot", (DL_FUNC)&ide_graphicsdevice_previous_plot, 0 },
-                { "Microsoft.R.Host::External.ide_graphicsdevice_history_info", (DL_FUNC)&ide_graphicsdevice_history_info, 0 },
                 { "Microsoft.R.Host::External.ide_graphicsdevice_clear_plots", (DL_FUNC)&ide_graphicsdevice_clear_plots, 0 },
                 { "Microsoft.R.Host::External.ide_graphicsdevice_remove_plot", (DL_FUNC)&ide_graphicsdevice_remove_plot, 0 },
                 {}
