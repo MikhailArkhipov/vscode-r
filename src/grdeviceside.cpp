@@ -711,8 +711,8 @@ namespace rhost {
                     rhost::host::send_message(
                         "Plot",
                         rhost::util::to_utf8(path_copy.make_preferred().string()),
-                        (double)active_plot_index(),
-                        (double)plot_count()
+                        static_cast<double>(active_plot_index()),
+                        static_cast<double>(plot_count())
                     );
                 });
             }
