@@ -708,7 +708,12 @@ namespace rhost {
             void ide_device::send(const std::tr2::sys::path& filename) {
                 auto path_copy(filename);
                 rhost::host::with_cancellation([&] {
-                    rhost::host::send_message("Plot", rhost::util::to_utf8(path_copy.make_preferred().string()));
+                    rhost::host::send_message(
+                        "Plot",
+                        rhost::util::to_utf8(path_copy.make_preferred().string()),
+                        static_cast<double>(active_plot_index()),
+                        static_cast<double>(plot_count())
+                    );
                 });
             }
 
@@ -895,6 +900,7 @@ namespace rhost {
                     if (device_instance != nullptr) {
                         device_instance->select();
                         device_instance->resize(*w, *h, *res);
+                        device_instance->render_request(true);
                     }
 
                     return R_NilValue;
@@ -906,6 +912,7 @@ namespace rhost {
                     if (device_instance != nullptr) {
                         device_instance->select();
                         device_instance->history_next();
+                        device_instance->render_request(true);
                     }
 
                     return R_NilValue;
@@ -917,30 +924,10 @@ namespace rhost {
                     if (device_instance != nullptr) {
                         device_instance->select();
                         device_instance->history_previous();
+                        device_instance->render_request(true);
                     }
 
                     return R_NilValue;
-                });
-            }
-
-            extern "C" SEXP ide_graphicsdevice_history_info(SEXP args) {
-                return rhost::util::exceptions_to_errors([&] {
-                    // zero-based index of active plot, number of plots
-                    auto plotIndex = Rf_allocVector(INTSXP, 1);
-                    auto plotCount = Rf_allocVector(INTSXP, 1);
-
-                    if (device_instance != nullptr) {
-                        *INTEGER(plotIndex) = device_instance->active_plot_index();
-                        *INTEGER(plotCount) = device_instance->plot_count();
-                    } else {
-                        *INTEGER(plotIndex) = -1;
-                        *INTEGER(plotCount) = 0;
-                    }
-
-                    auto value = Rf_allocVector(VECSXP, 2);
-                    SET_VECTOR_ELT(value, 0, plotIndex);
-                    SET_VECTOR_ELT(value, 1, plotCount);
-                    return value;
                 });
             }
 
@@ -949,6 +936,7 @@ namespace rhost {
                     if (device_instance != nullptr) {
                         device_instance->select();
                         device_instance->history_clear();
+                        device_instance->render_request(true);
                     }
 
                     return R_NilValue;
@@ -960,6 +948,7 @@ namespace rhost {
                     if (device_instance != nullptr) {
                         device_instance->select();
                         device_instance->history_remove_active();
+                        device_instance->render_request(true);
                     }
 
                     return R_NilValue;
@@ -971,7 +960,6 @@ namespace rhost {
                 { "Microsoft.R.Host::External.ide_graphicsdevice_resize", (DL_FUNC)&ide_graphicsdevice_resize, 3 },
                 { "Microsoft.R.Host::External.ide_graphicsdevice_next_plot", (DL_FUNC)&ide_graphicsdevice_next_plot, 0 },
                 { "Microsoft.R.Host::External.ide_graphicsdevice_previous_plot", (DL_FUNC)&ide_graphicsdevice_previous_plot, 0 },
-                { "Microsoft.R.Host::External.ide_graphicsdevice_history_info", (DL_FUNC)&ide_graphicsdevice_history_info, 0 },
                 { "Microsoft.R.Host::External.ide_graphicsdevice_clear_plots", (DL_FUNC)&ide_graphicsdevice_clear_plots, 0 },
                 { "Microsoft.R.Host::External.ide_graphicsdevice_remove_plot", (DL_FUNC)&ide_graphicsdevice_remove_plot, 0 },
                 {}
