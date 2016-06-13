@@ -180,8 +180,9 @@ namespace rhost {
         rhost::host::register_callbacks(rp);
         rhost::detours::init_ui_detours();
 
-        R_SetParams(&rp);
         R_set_command_line_arguments(args.argc, args.argv.data());
+        R_common_command_line(&args.argc, args.argv.data(), &rp);
+        R_SetParams(&rp);
 
         GA_initapp(0, 0);
         readconsolecfg();
