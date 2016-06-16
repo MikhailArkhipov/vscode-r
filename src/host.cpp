@@ -561,7 +561,7 @@ namespace rhost {
             }
         }
 
-        extern "C" int ReadConsole(const char* prompt, char* buf, int len, int addToHistory) {
+        extern "C" int R_ReadConsole(const char* prompt, char* buf, int len, int addToHistory) {
             return with_cancellation([&] {
                 if (!allow_intr_in_CallBack) {
                     // If we got here, this means that we've just processed a cancellation request that had
@@ -880,7 +880,7 @@ namespace rhost {
         }
 
         void register_callbacks(structRstart& rp) {
-            rp.ReadConsole = ReadConsole;
+            rp.ReadConsole = R_ReadConsole;
             rp.WriteConsoleEx = WriteConsoleEx;
             rp.CallBack = CallBack;
             rp.ShowMessage = ShowMessage;
