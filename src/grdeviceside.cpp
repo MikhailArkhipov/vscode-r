@@ -511,7 +511,7 @@ namespace rhost {
                 Rboolean clicked = R_FALSE;
 
                 rhost::host::with_cancellation([&] {
-                    auto msg = rhost::host::send_message_and_get_response("Locator");
+                    auto msg = rhost::host::send_request_and_get_response("?Locator");
                     if (msg.args.size() != 3 || !msg.args[0].is<bool>() || !msg.args[1].is<double>() || !msg.args[2].is<double>()) {
                         rhost::log::fatal_error("Locator response is malformed. It must have 3 elements: bool, double, double.");
                     }
@@ -708,8 +708,8 @@ namespace rhost {
             void ide_device::send(const std::tr2::sys::path& filename) {
                 auto path_copy(filename);
                 rhost::host::with_cancellation([&] {
-                    rhost::host::send_message(
-                        "Plot",
+                    rhost::host::send_notification(
+                        "!Plot",
                         rhost::util::to_utf8(path_copy.make_preferred().string()),
                         static_cast<double>(active_plot_index()),
                         static_cast<double>(plot_count())

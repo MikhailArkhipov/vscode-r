@@ -267,31 +267,31 @@ namespace rhost {
 
             picojson::value json = to_json(args_sexp);
             if (!json.is<picojson::array>()) {
-                fatal_error("send_message requires argument that serializes to JSON array; got %s", json.serialize().c_str());
+                fatal_error("send_* requires argument that serializes to JSON array; got %s", json.serialize().c_str());
             }
 
             return json.get<picojson::array>();
         }
 
-        extern "C" SEXP send_message(SEXP name_sexp, SEXP args_sexp) {
+        extern "C" SEXP send_notification(SEXP name_sexp, SEXP args_sexp) {
             return with_cancellation([&] {
                 protected_sexp name_char(Rf_asChar(name_sexp));
                 const char* name = R_CHAR(name_char.get());
 
                 auto args = parse_args_sexp(args_sexp);
-                host::send_message(name, args);
+                host::send_notification(name, args);
 
                 return R_NilValue;
             });
         }
 
-        extern "C" SEXP send_message_and_get_response(SEXP name_sexp, SEXP args_sexp) {
+        extern "C" SEXP send_request_and_get_response(SEXP name_sexp, SEXP args_sexp) {
             return with_cancellation([&] {
                 protected_sexp name_char(Rf_asChar(name_sexp));
                 const char* name = R_CHAR(name_char.get());
 
                 auto args = parse_args_sexp(args_sexp);
-                auto response = host::send_message_and_get_response(name, args);
+                auto response = host::send_request_and_get_response(name, args);
 
                 protected_sexp response_args(Rf_allocVector3(STRSXP, response.args.size(), nullptr));
                 for (size_t i = 0; i < response.args.size(); ++i) {
@@ -446,8 +446,8 @@ namespace rhost {
             { "Microsoft.R.Host::Call.memory_connection", (DL_FUNC)memory_connection_new, 4 },
             { "Microsoft.R.Host::Call.memory_connection_tochar", (DL_FUNC)memory_connection_tochar, 1 },
             { "Microsoft.R.Host::Call.memory_connection_overflown", (DL_FUNC)memory_connection_overflown, 1 },
-            { "Microsoft.R.Host::Call.send_message", (DL_FUNC)send_message, 2 },
-            { "Microsoft.R.Host::Call.send_message_and_get_response", (DL_FUNC)send_message_and_get_response, 2 },
+            { "Microsoft.R.Host::Call.send_notification", (DL_FUNC)send_notification, 2 },
+            { "Microsoft.R.Host::Call.send_request_and_get_response", (DL_FUNC)send_request_and_get_response, 2 },
             { "Microsoft.R.Host::Call.set_instrumentation_callback", (DL_FUNC)set_instrumentation_callback, 1 },
             { "Microsoft.R.Host::Call.is_rdebug", (DL_FUNC)is_rdebug, 1 },
             { "Microsoft.R.Host::Call.set_rdebug", (DL_FUNC)set_rdebug, 2 },
