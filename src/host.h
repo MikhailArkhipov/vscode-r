@@ -62,22 +62,22 @@ namespace rhost {
             }
         }
 
-        std::string send_message(const char* name, const picojson::array& args);
+        std::string send_notification(const char* name, const picojson::array& args);
 
         template<class... Args>
-        inline std::string send_message(const char* name, const Args&... args) {
+        inline std::string send_notification(const char* name, const Args&... args) {
             picojson::array args_array;
             rhost::util::append(args_array, args...);
-            return send_message(name, args_array);
+            return send_notification(name, args_array);
         }
 
-        message send_message_and_get_response(const char* name, const picojson::array& args);
+        message send_request_and_get_response(const char* name, const picojson::array& args);
 
         template<class... Args>
-        inline message send_message_and_get_response(const char* name, const Args&... args) {
+        inline message send_request_and_get_response(const char* name, const Args&... args) {
             picojson::array args_array;
             rhost::util::append(args_array, args...);
-            return send_message_and_get_response(name, args_array);
+            return send_request_and_get_response(name, args_array);
         }
     }
 }

@@ -99,7 +99,7 @@ namespace rhost {
 
                     auto insert_result = result.insert(std::make_pair(name, js::value()));
                     if (!insert_result.second) {
-                        json_error(sexp, "Duplicate name '%s' in list.", name);
+                        json_error(sexp, "Duplicate name '%s' in list.", name.c_str());
                     }
 
                     auto iter = insert_result.first;
@@ -125,7 +125,7 @@ namespace rhost {
 
                     auto insert_result = result.insert(std::make_pair(name, js::value()));
                     if (!insert_result.second) {
-                        json_error(sexp, "Duplicate name '%s' in environment.", name);
+                        json_error(sexp, "Duplicate name '%s' in environment.", name.c_str());
                     }
 
                     auto iter = insert_result.first;

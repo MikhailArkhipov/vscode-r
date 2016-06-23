@@ -162,6 +162,7 @@ namespace rhost {
         }
 
         std::string send_message(const char* name, const picojson::array& args) {
+            assert(name[0] == '!' || name[0] == '?' || name[0] == ':');
             picojson::value value(picojson::array_type, false);
             auto& array = value.get<picojson::array>();
             auto id = make_message_json(array, name, args);
@@ -169,12 +170,18 @@ namespace rhost {
             return id;
         }
 
+        std::string send_notification(const char* name, const picojson::array& args) {
+            assert(name[0] == '!');
+            return send_message(name, args);
+        }
+
         template<class... Args>
         std::string respond_to_message(const message& request, Args... args) {
+            assert(request.name[0] == '?');
             picojson::value value(picojson::array_type, false);
             auto& array = value.get<picojson::array>();
-            auto id = make_message_json(array, ":");
-            append(array, request.id, request.name.c_str());
+            auto id = make_message_json(array, (':' + request.name.substr(1)).c_str());
+            append(array, request.id);
             append(array, args...);
             send_json(value);
             return id;
@@ -215,7 +222,8 @@ namespace rhost {
         }
 
         void handle_eval(const message& msg) {
-            assert(msg.name.size() > 0 && msg.name[0] == '=');
+            assert(msg.name.size() >= 2 && msg.name[0] == '?' && msg.name[1] == '=');
+
             if (msg.args.size() != 1 || !msg.args[0].is<std::string>()) {
                 fatal_error("Invalid evaluation request %s: must have form [id, '=<flags>', expr].", msg.id.c_str());
             }
@@ -229,7 +237,7 @@ namespace rhost {
             SEXP env = nullptr;
             bool is_cancelable = false, new_env = false, no_result = false;
 
-            for (auto it = msg.name.begin() + 1; it != msg.name.end(); ++it) {
+            for (auto it = msg.name.begin() + 2; it != msg.name.end(); ++it) {
                 switch (char c = *it) {
                 case 'B':
                 case 'E':
@@ -405,7 +413,7 @@ namespace rhost {
             }
 
             if (canceling_eval) {
-                // Spin the loop in send_message_and_get_response so that it gets a chance to run cancel checks.
+                // Spin the loop in send_request_and_get_response so that it gets a chance to run cancel checks.
                 unblock_message_loop();
             } else {
                 // If we didn't find the target eval in the stack, it must have completed already, and we've
@@ -423,7 +431,9 @@ namespace rhost {
             throw;
         }
 
-        inline message send_message_and_get_response(const char* name, const picojson::array& args) {
+        inline message send_request_and_get_response(const char* name, const picojson::array& args) {
+            assert(name[0] == '?');
+
             response_state_t old_response_state;
             {
                 std::lock_guard<std::mutex> lock(response_mutex);
@@ -494,14 +504,14 @@ namespace rhost {
                     if (msg.request_id != id) {
                         fatal_error("Received response ['%s','%s'], while awaiting response for ['%s','%s'].",
                             msg.request_id.c_str(), msg.name.c_str(), id.c_str(), name);
-                    } else if (msg.name != name) {
-                        fatal_error("Response to ['%s','%s'] has mismatching name '%s'.",
+                    } else if (strcmp(msg.name.c_str() + 1, name + 1) != 0) {
+                        fatal_error("Response to ['%s','%s'] has mismatched name '%s'.",
                             id.c_str(), name, msg.name.c_str());
                     }
                     return msg;
                 }
 
-                if (msg.name.size() > 0 && msg.name[0] == '=') {
+                if (msg.name.size() >= 2 && msg.name[0] == '?' && msg.name[1] == '=') {
                     handle_eval(msg);
                 } else {
                     fatal_error("Unrecognized incoming message name '%s'.", msg.name.c_str());
@@ -573,9 +583,9 @@ namespace rhost {
                     allow_intr_in_CallBack = true;
 
                     // Notify client that cancellation has completed. When a specific eval is being canceled,
-                    // there will be a corresponding (error) response to the original '=' message indicating
+                    // there will be a corresponding (error) response to the original '?=' message indicating
                     // completion, but for top-level canellation we need a special message.
-                    send_message("\\");
+                    send_notification("!CanceledAll");
                 }
 
                 bool is_browser = false;
@@ -615,8 +625,8 @@ namespace rhost {
                 readconsole_done();
 
                 for (std::string retry_reason;;) {
-                    auto msg = send_message_and_get_response(
-                        ">", get_context(), double(len), addToHistory != 0,
+                    auto msg = send_request_and_get_response(
+                        "?>", get_context(), double(len), addToHistory != 0,
                         retry_reason.empty() ? picojson::value() : picojson::value(retry_reason),
                         to_utf8_json(prompt));
 
@@ -647,13 +657,13 @@ namespace rhost {
 
         extern "C" void WriteConsoleEx(const char* buf, int len, int otype) {
             with_cancellation([&] {
-                send_message((otype ? "!!" : "!"), to_utf8_json(buf));
+                send_notification((otype ? "!!" : "!"), to_utf8_json(buf));
             });
         }
 
         extern "C" void Busy(int which) {
             with_cancellation([&] {
-                send_message(which ? "~+" : "~-");
+                send_notification(which ? "!+" : "!-");
             });
         }
 
@@ -687,7 +697,7 @@ namespace rhost {
         }
 
         void ws_open_handler(websocketpp::connection_hdl hdl) {
-            send_message("Microsoft.R.Host", 1.0, getDLLVersion());
+            send_notification("!Microsoft.R.Host", 1.0, getDLLVersion());
             connected_promise.set_value();
 
             std::error_code ec;
@@ -722,23 +732,26 @@ namespace rhost {
             message incoming = {};
             incoming.id = array[0].get<std::string>();
             incoming.name = array[1].get<std::string>();
+            if (incoming.name.empty()) {
+                fatal_error("Message must have a non-empty name.");
+            }
+
             auto args = array.begin() + 2;
 
-            if (incoming.name == ":") {
-                if (array.size() < 4 || !array[2].is<std::string>() || !array[3].is<std::string>()) {
-                    fatal_error("Response message must be of the form [id, ':', request_id, name, ...].");
+            if (incoming.name[0] == ':') {
+                if (array.size() < 3 || !array[2].is<std::string>()) {
+                    fatal_error("Response message must be of the form [id, name, request_id, ...].");
                 }
 
                 incoming.request_id = array[2].get<std::string>();
-                incoming.name = array[3].get<std::string>();
-                args += 2;
+                ++args;
             }
 
             incoming.args.assign(args, array.end());
 
-            if (incoming.name == "/") {
+            if (incoming.name == "!/") {
                 return handle_cancel(incoming);
-            } else if (incoming.name.size() >= 1 && incoming.name[0] == '=') {
+            } else if (incoming.name.size() >= 2 && incoming.name[0] == '?' && incoming.name[1] == '=') {
                 std::lock_guard<std::mutex> lock(eval_requests_mutex);
                 eval_requests.push(incoming);
                 unblock_message_loop();
@@ -890,7 +903,7 @@ namespace rhost {
 
         extern "C" void ShowMessage(const char* s) {
             with_cancellation([&] {
-                send_message("![]", to_utf8_json(s));
+                send_notification("!ShowMessage", to_utf8_json(s));
             });
         }
 
@@ -900,7 +913,7 @@ namespace rhost {
                     Rf_error("ShowMessageBox: blocking callback not allowed during evaluation.");
                 }
 
-                auto msg = send_message_and_get_response(cmd, get_context(), to_utf8_json(s));
+                auto msg = send_request_and_get_response(cmd, get_context(), to_utf8_json(s));
                 if (msg.args.size() != 1 || !msg.args[0].is<std::string>()) {
                     fatal_error("ShowMessageBox: response argument must be a string.");
                 }
@@ -921,15 +934,15 @@ namespace rhost {
         }
 
         extern "C" int YesNoCancel(const char* s) {
-            return ShowMessageBox(s, "?");
+            return ShowMessageBox(s, "?YesNoCancel");
         }
 
         extern "C" int YesNo(const char* s) {
-            return ShowMessageBox(s, "??");
+            return ShowMessageBox(s, "?YesNo");
         }
 
         extern "C" int OkCancel(const char* s) {
-            return ShowMessageBox(s, "???");
+            return ShowMessageBox(s, "?OkCancel");
         }
     }
 }
