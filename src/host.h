@@ -31,6 +31,7 @@ namespace rhost {
             std::string id;
             std::string request_id; // not a response if empty
             std::string name;
+            size_t blob_count;
             picojson::array args;
         };
 
@@ -62,6 +63,7 @@ namespace rhost {
             }
         }
 
+        std::string send_notification(const char* name, const rhost::util::blobs& blobs, const picojson::array& args);
         std::string send_notification(const char* name, const picojson::array& args);
 
         template<class... Args>
@@ -69,6 +71,13 @@ namespace rhost {
             picojson::array args_array;
             rhost::util::append(args_array, args...);
             return send_notification(name, args_array);
+        }
+
+        template<class... Args>
+        inline std::string send_notification(const char* name, const rhost::util::blobs& blobs, const Args&... args) {
+            picojson::array args_array;
+            rhost::util::append(args_array, args...);
+            return send_notification(name, blobs, args_array);
         }
 
         message send_request_and_get_response(const char* name, const picojson::array& args);

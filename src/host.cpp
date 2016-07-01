@@ -1,24 +1,24 @@
 /* ****************************************************************************
- *
- * Copyright (c) Microsoft Corporation. All rights reserved.
- *
- *
- * This file is part of Microsoft R Host.
- *
- * Microsoft R Host is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 2 of the License, or
- * (at your option) any later version.
- *
- * Microsoft R Host is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Microsoft R Host.  If not, see <http://www.gnu.org/licenses/>.
- *
- * ***************************************************************************/
+*
+* Copyright (c) Microsoft Corporation. All rights reserved.
+*
+*
+* This file is part of Microsoft R Host.
+*
+* Microsoft R Host is free software: you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation, either version 2 of the License, or
+* (at your option) any later version.
+*
+* Microsoft R Host is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with Microsoft R Host.  If not, see <http://www.gnu.org/licenses/>.
+*
+* ***************************************************************************/
 
 #include "host.h"
 #include "log.h"
@@ -26,12 +26,14 @@
 #include "eval.h"
 #include "util.h"
 #include "json.h"
+#include "blobs.h"
 
 using namespace std::literals;
 using namespace rhost::log;
 using namespace rhost::util;
 using namespace rhost::eval;
 using namespace rhost::json;
+using namespace rhost::raw;
 
 namespace rhost {
     namespace host {
@@ -152,22 +154,60 @@ namespace rhost {
             }
         }
 
-        std::string make_message_json(picojson::array& array, const char* name, const picojson::array& args = picojson::array()) {
+        std::error_code send_blob(const blob& blob) {
+#ifdef TRACE_JSON
+            logf("<== blob[%lld]\n\n", blob.length);
+#endif
+            if (!is_connection_closed) {
+                auto err = ws_conn->send(blob.raw_data, blob.length, websocketpp::frame::opcode::binary);
+                if (err) {
+                    fatal_error("Send failed: [%d] %s", err.value(), err.message().c_str());
+                }
+                return err;
+            } else {
+                return std::error_code();
+            }
+        }
+
+        std::string make_message_header(picojson::array& array, const char* name, const size_t blobs, const char* request_id) {
             char id[0x20];
             sprintf_s(id, "#%lld#", next_message_id);
             next_message_id += 2;
-            append(array, id, name);
-            array.insert(array.end(), args.begin(), args.end());
+
+            if (request_id) {
+                append(array, id, name, static_cast<double>(blobs), request_id);
+            } else {
+                append(array, id, name, static_cast<double>(blobs));
+            }
             return id;
         }
 
-        std::string send_message(const char* name, const picojson::array& args) {
+        void make_message_json(picojson::array& array, picojson::array& header, const picojson::array& args = picojson::array()) {
+            append(array, header);
+            array.insert(array.end(), args.begin(), args.end());
+        }
+
+        std::string send_message(const char* name, const picojson::array& args, const rhost::util::blobs& blobs = rhost::util::blobs()) {
             assert(name[0] == '!' || name[0] == '?' || name[0] == ':');
+            picojson::array header;
+            auto id = make_message_header(header, name, blobs.size(), nullptr);
+
             picojson::value value(picojson::array_type, false);
             auto& array = value.get<picojson::array>();
-            auto id = make_message_json(array, name, args);
+
+            make_message_json(array, header, args);
             send_json(value);
+
+            for (rhost::util::blobs::const_iterator iter = blobs.begin(); iter != blobs.end(); ++iter) {
+                send_blob(*iter);
+            }
+
             return id;
+        }
+
+        std::string send_notification(const char* name, const rhost::util::blobs& blobs, const picojson::array& args) {
+            assert(name[0] == '!');
+            return send_message(name, args, blobs);
         }
 
         std::string send_notification(const char* name, const picojson::array& args) {
@@ -176,15 +216,28 @@ namespace rhost {
         }
 
         template<class... Args>
-        std::string respond_to_message(const message& request, Args... args) {
+        std::string respond_to_message(const message& request, const rhost::util::blobs& blobs, Args... args) {
             assert(request.name[0] == '?');
+
+            picojson::array header;
+            auto id = make_message_header(header, (':' + request.name.substr(1)).c_str(), blobs.size(), request.id.c_str());
+
             picojson::value value(picojson::array_type, false);
             auto& array = value.get<picojson::array>();
-            auto id = make_message_json(array, (':' + request.name.substr(1)).c_str());
-            append(array, request.id);
+            append(array, header);
             append(array, args...);
             send_json(value);
+
+            for (rhost::util::blobs::const_iterator iter = blobs.begin(); iter != blobs.end(); ++iter) {
+                send_blob(*iter);
+            }
+
             return id;
+        }
+
+        template<class... Args>
+        std::string respond_to_message(const message& request, Args... args) {
+            return respond_to_message(request, rhost::util::blobs(), args...);
         }
 
         bool query_interrupt() {
@@ -235,7 +288,7 @@ namespace rhost {
             log::logf("%s = %s\n\n", msg.id.c_str(), expr.c_str());
 
             SEXP env = nullptr;
-            bool is_cancelable = false, new_env = false, no_result = false;
+            bool is_cancelable = false, new_env = false, no_result = false, raw_response = false;
 
             for (auto it = msg.name.begin() + 2; it != msg.name.end(); ++it) {
                 switch (char c = *it) {
@@ -257,6 +310,9 @@ namespace rhost {
                     break;
                 case '0':
                     no_result = true;
+                    break;
+                case 'r':
+                    raw_response = true;
                     break;
                 default:
                     fatal_error("'%s': unrecognized flag '%c'.", msg.name.c_str(), c);
@@ -348,12 +404,17 @@ namespace rhost {
             }
 
             picojson::value error, value;
+            rhost::util::blobs blobs;
             if (result.has_error) {
                 error = picojson::value(to_utf8(result.error));
             }
             if (result.has_value && !no_result) {
                 try {
-                    errors_to_exceptions([&] { to_json(result.value.get(), value); });
+                    if (raw_response) {
+                        errors_to_exceptions([&] { to_blobs(result.value.get(), blobs, value); });
+                    } else {
+                        errors_to_exceptions([&] { to_json(result.value.get(), value); });
+                    }
                 } catch (r_error& err) {
                     fatal_error("%s", err.what());
                 }
@@ -365,7 +426,7 @@ namespace rhost {
             if (result.is_canceled) {
                 respond_to_message(msg, picojson::value());
             } else {
-                respond_to_message(msg, parse_status, error, value);
+                respond_to_message(msg, blobs, parse_status, error, value);
             }
 #ifdef TRACE_JSON
             indent_log(-1);
@@ -725,28 +786,36 @@ namespace rhost {
             }
 
             auto& array = value.get<picojson::array>();
-            if (array.size() < 2 || !array[0].is<std::string>() || !array[1].is<std::string>()) {
-                fatal_error("Message must be of the form [id, name, ...].");
+            if (array.size() < 1) {
+                fatal_error("Message must be of the form [[id, name, blob_count], ...].");
+            }
+
+            auto& header = array[0].get<picojson::array>();
+            if (header.size() < 3 || !header[0].is<std::string>() || !header[1].is<std::string>() || !header[2].is<double>()) {
+                fatal_error("Message must be of the form [[id, name, blob_count], ...].");
             }
 
             message incoming = {};
-            incoming.id = array[0].get<std::string>();
-            incoming.name = array[1].get<std::string>();
+            incoming.id = header[0].get<std::string>();
+            incoming.name = header[1].get<std::string>();
             if (incoming.name.empty()) {
                 fatal_error("Message must have a non-empty name.");
             }
 
-            auto args = array.begin() + 2;
-
-            if (incoming.name[0] == ':') {
-                if (array.size() < 3 || !array[2].is<std::string>()) {
-                    fatal_error("Response message must be of the form [id, name, request_id, ...].");
-                }
-
-                incoming.request_id = array[2].get<std::string>();
-                ++args;
+            incoming.blob_count = static_cast<size_t>(header[2].get<double>());
+            if (incoming.blob_count > 0) {
+                fatal_error("Incoming message does not support blobs, blob_count must be 0.");
             }
 
+            if (incoming.name[0] == ':') {
+                if (header.size() < 4 || !header[3].is<std::string>()) {
+                    fatal_error("Response message must be of the form [[id, name, blob_count, request_id], ...].");
+                }
+
+                incoming.request_id = header[3].get<std::string>();
+            }
+
+            auto args = array.begin() + 1;
             incoming.args.assign(args, array.end());
 
             if (incoming.name == "!/") {

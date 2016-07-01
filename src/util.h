@@ -117,6 +117,20 @@ namespace rhost {
             }
         };
 
+        struct blob {
+            void* raw_data;
+            size_t length;
+
+            blob() :
+                raw_data(nullptr), length(0) {}
+            blob(void* const data, const size_t size) :
+                raw_data(data), length(size) {}
+
+            inline bool is_empty() { return (!raw_data) || (!length); }
+        };
+
+        typedef std::vector<blob> blobs;
+
         std::string to_utf8(const char* buf, size_t len);
 
         inline std::string to_utf8(const std::string& s) {
@@ -144,6 +158,16 @@ namespace rhost {
             append(msg, std::forward<Args>(args)...);
         }
 
+        template<class Arg>
+        inline void append(rhost::util::blobs& msg, Arg&& arg) {
+            msg.push_back(rhost::util::blob(std::forward<Arg>(arg)));
+        }
+
+        template<class Arg, class... Args>
+        inline void append(rhost::util::blobs& msg, Arg&& arg, Args&&... args) {
+            msg.push_back(rhost::util::blob(std::forward<Arg>(arg)));
+            append(msg, std::forward<Args>(args)...);
+        }
 
         // A C++-friendly helper for Rf_error. Invoking Rf_error directly is not a good idea, because
         // it performs a longjmp, which will skip all C++ destructors when unwinding stack frames - so

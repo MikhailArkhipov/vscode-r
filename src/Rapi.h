@@ -151,6 +151,8 @@ extern "C" {
         double i;
     } Rcomplex;
 
+    typedef unsigned char Rbyte;
+
     typedef void(*R_CFinalizer_t)(SEXP);
     typedef int(*blah1) (const char *, char *, int, int);
     typedef void(*blah2) (const char *, int);
@@ -372,6 +374,7 @@ extern "C" {
     extern int* LOGICAL(SEXP x);
     extern int* INTEGER(SEXP x);
     extern double* REAL(SEXP x);
+    extern Rbyte* RAW(SEXP x);
 
     extern int IS_UTF8(SEXP x);
 
