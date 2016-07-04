@@ -63,7 +63,7 @@ namespace rhost {
             }
         }
 
-        std::string send_notification(const char* name, const rhost::util::blobs& blobs, const picojson::array& args);
+        std::string send_notification(const char* name, const rhost::util::blob& blob, const picojson::array& args);
         std::string send_notification(const char* name, const picojson::array& args);
 
         template<class... Args>
@@ -74,10 +74,10 @@ namespace rhost {
         }
 
         template<class... Args>
-        inline std::string send_notification(const char* name, const rhost::util::blobs& blobs, const Args&... args) {
+        inline std::string send_notification(const char* name, const rhost::util::blob& blob, const Args&... args) {
             picojson::array args_array;
             rhost::util::append(args_array, args...);
-            return send_notification(name, blobs, args_array);
+            return send_notification(name, blob, args_array);
         }
 
         message send_request_and_get_response(const char* name, const picojson::array& args);

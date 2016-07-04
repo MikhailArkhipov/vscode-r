@@ -117,19 +117,14 @@ namespace rhost {
             }
         };
 
-        struct blob {
-            void* raw_data;
-            size_t length;
+        typedef std::vector<byte> blob_slice;
+        typedef std::vector<blob_slice> blob;
 
-            blob() :
-                raw_data(nullptr), length(0) {}
-            blob(void* const data, const size_t size) :
-                raw_data(data), length(size) {}
-
-            inline bool is_empty() { return (!raw_data) || (!length); }
-        };
-
-        typedef std::vector<blob> blobs;
+        inline void append_from_file(blob& blob, const std::string& path) {
+            std::ifstream ifs(path, std::ios::binary | std::ios::in);
+            std::noskipws(ifs);
+            blob.push_back(blob_slice(std::istream_iterator<byte>(ifs), std::istream_iterator<byte>()));
+        }
 
         std::string to_utf8(const char* buf, size_t len);
 
@@ -155,17 +150,6 @@ namespace rhost {
         template<class Arg, class... Args>
         inline void append(picojson::array& msg, Arg&& arg, Args&&... args) {
             msg.push_back(picojson::value(std::forward<Arg>(arg)));
-            append(msg, std::forward<Args>(args)...);
-        }
-
-        template<class Arg>
-        inline void append(rhost::util::blobs& msg, Arg&& arg) {
-            msg.push_back(rhost::util::blob(std::forward<Arg>(arg)));
-        }
-
-        template<class Arg, class... Args>
-        inline void append(rhost::util::blobs& msg, Arg&& arg, Args&&... args) {
-            msg.push_back(rhost::util::blob(std::forward<Arg>(arg)));
             append(msg, std::forward<Args>(args)...);
         }
 

@@ -154,12 +154,12 @@ namespace rhost {
             }
         }
 
-        std::error_code send_blob(const blob& blob) {
+        std::error_code send_blob(const rhost::util::blob_slice& blob_slice) {
 #ifdef TRACE_JSON
-            logf("<== blob[%lld]\n\n", blob.length);
+            logf("<== blob[%lld]\n\n", blob_slice.size());
 #endif
             if (!is_connection_closed) {
-                auto err = ws_conn->send(blob.raw_data, blob.length, websocketpp::frame::opcode::binary);
+                auto err = ws_conn->send(static_cast<const void*>(blob_slice.data()), blob_slice.size(), websocketpp::frame::opcode::binary);
                 if (err) {
                     fatal_error("Send failed: [%d] %s", err.value(), err.message().c_str());
                 }
@@ -169,15 +169,15 @@ namespace rhost {
             }
         }
 
-        std::string make_message_header(picojson::array& array, const char* name, const size_t blobs, const char* request_id) {
+        std::string make_message_header(picojson::array& array, const char* name, const size_t blob_slices, const char* request_id) {
             char id[0x20];
             sprintf_s(id, "#%lld#", next_message_id);
             next_message_id += 2;
 
             if (request_id) {
-                append(array, id, name, static_cast<double>(blobs), request_id);
+                append(array, id, name, static_cast<double>(blob_slices), request_id);
             } else {
-                append(array, id, name, static_cast<double>(blobs));
+                append(array, id, name, static_cast<double>(blob_slices));
             }
             return id;
         }
@@ -187,10 +187,10 @@ namespace rhost {
             array.insert(array.end(), args.begin(), args.end());
         }
 
-        std::string send_message(const char* name, const picojson::array& args, const rhost::util::blobs& blobs = rhost::util::blobs()) {
+        std::string send_message(const char* name, const picojson::array& args, const rhost::util::blob blob = rhost::util::blob()) {
             assert(name[0] == '!' || name[0] == '?' || name[0] == ':');
             picojson::array header;
-            auto id = make_message_header(header, name, blobs.size(), nullptr);
+            auto id = make_message_header(header, name, blob.size(), nullptr);
 
             picojson::value value(picojson::array_type, false);
             auto& array = value.get<picojson::array>();
@@ -198,16 +198,16 @@ namespace rhost {
             make_message_json(array, header, args);
             send_json(value);
 
-            for (rhost::util::blobs::const_iterator iter = blobs.begin(); iter != blobs.end(); ++iter) {
+            for (rhost::util::blob::const_iterator iter = blob.begin(); iter != blob.end(); ++iter) {
                 send_blob(*iter);
             }
 
             return id;
         }
 
-        std::string send_notification(const char* name, const rhost::util::blobs& blobs, const picojson::array& args) {
+        std::string send_notification(const char* name, const rhost::util::blob& blob, const picojson::array& args) {
             assert(name[0] == '!');
-            return send_message(name, args, blobs);
+            return send_message(name, args, blob);
         }
 
         std::string send_notification(const char* name, const picojson::array& args) {
@@ -216,11 +216,11 @@ namespace rhost {
         }
 
         template<class... Args>
-        std::string respond_to_message(const message& request, const rhost::util::blobs& blobs, Args... args) {
+        std::string respond_to_message(const message& request, const rhost::util::blob& blob, Args... args) {
             assert(request.name[0] == '?');
 
             picojson::array header;
-            auto id = make_message_header(header, (':' + request.name.substr(1)).c_str(), blobs.size(), request.id.c_str());
+            auto id = make_message_header(header, (':' + request.name.substr(1)).c_str(), blob.size(), request.id.c_str());
 
             picojson::value value(picojson::array_type, false);
             auto& array = value.get<picojson::array>();
@@ -228,7 +228,7 @@ namespace rhost {
             append(array, args...);
             send_json(value);
 
-            for (rhost::util::blobs::const_iterator iter = blobs.begin(); iter != blobs.end(); ++iter) {
+            for (rhost::util::blob::const_iterator iter = blob.begin(); iter != blob.end(); ++iter) {
                 send_blob(*iter);
             }
 
@@ -237,7 +237,7 @@ namespace rhost {
 
         template<class... Args>
         std::string respond_to_message(const message& request, Args... args) {
-            return respond_to_message(request, rhost::util::blobs(), args...);
+            return respond_to_message(request, rhost::util::blob(), args...);
         }
 
         bool query_interrupt() {
@@ -404,14 +404,14 @@ namespace rhost {
             }
 
             picojson::value error, value;
-            rhost::util::blobs blobs;
+            rhost::util::blob blob;
             if (result.has_error) {
                 error = picojson::value(to_utf8(result.error));
             }
             if (result.has_value && !no_result) {
                 try {
                     if (raw_response) {
-                        errors_to_exceptions([&] { to_blobs(result.value.get(), blobs, value); });
+                        errors_to_exceptions([&] { to_blob(result.value.get(), blob); });
                     } else {
                         errors_to_exceptions([&] { to_json(result.value.get(), value); });
                     }
@@ -426,7 +426,7 @@ namespace rhost {
             if (result.is_canceled) {
                 respond_to_message(msg, picojson::value());
             } else {
-                respond_to_message(msg, blobs, parse_status, error, value);
+                respond_to_message(msg, blob, parse_status, error, value);
             }
 #ifdef TRACE_JSON
             indent_log(-1);

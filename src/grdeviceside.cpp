@@ -709,34 +709,19 @@ namespace rhost {
                 auto path_copy(filename);
                 rhost::host::with_cancellation([&] {
                     std::string file_path = path_copy.make_preferred().string();
-                    rhost::util::blobs data;
-                    char* plot_image_data = nullptr;
-                    size_t size = 0;
+                    rhost::util::blob plot_image_data;
 
                     if (file_path.length() > 0) {
-                        // Send actual plot image as Binary
-                        std::ifstream plot_file_stream(file_path, std::ios::binary | std::ios::ate);
-                        std::ifstream::pos_type file_end = plot_file_stream.tellg();
-                        plot_image_data = new char[file_end];
-                        plot_file_stream.seekg(0, std::ios::beg);
-                        plot_file_stream.read(plot_image_data, file_end);
-                        size = static_cast<size_t>(file_end);
-                        plot_file_stream.close();
+                        rhost::util::append_from_file(plot_image_data, file_path);
                     }
-
-                    rhost::util::append(data, rhost::util::blob(static_cast<void*>(plot_image_data), size));
 
                     rhost::host::send_notification(
                         "!Plot",
-                        data,
+                        plot_image_data,
                         rhost::util::to_utf8(file_path),
                         static_cast<double>(active_plot_index()),
                         static_cast<double>(plot_count())
                     );
-
-                    if (plot_image_data) {
-                        delete[size] plot_image_data;
-                    }
                 });
             }
 

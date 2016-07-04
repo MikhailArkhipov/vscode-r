@@ -1,4 +1,3 @@
-#pragma once
 /* ****************************************************************************
 *
 * Copyright (c) Microsoft Corporation. All rights reserved.
@@ -35,6 +34,6 @@ namespace rhost {
         //
         // Returns true if serialized value was NA, and false otherwise (even if it contains NA somewhere inside).
         // Errors are reported via Rf_error.
-        bool to_blobs(SEXP sexp, rhost::util::blobs& blobs, picojson::value& result);
+        bool to_blob(SEXP sexp, rhost::util::blob& blobs);
     }
 }

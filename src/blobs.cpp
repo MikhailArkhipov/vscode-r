@@ -1,4 +1,3 @@
-
 /* ****************************************************************************
 *
 * Copyright (c) Microsoft Corporation. All rights reserved.
@@ -48,37 +47,29 @@ namespace rhost {
                 Rf_error("%s", buf);
             }
 
-            void at_most_one(SEXP sexp) {
-                if (Rf_length(sexp) != 1) {
-                    blob_error(sexp, "Vector must have 0 or 1 elements.");
-                }
-            }
-
-            bool to_blobs_internal(SEXP sexp, rhost::util::blobs& blobs, picojson::value& json) {
+            bool to_blob_internal(SEXP sexp, rhost::util::blob& blob) {
                 int type = TYPEOF(sexp);
                 size_t length = Rf_length(sexp);
 
                 if ((type == NILSXP) || (length == 0)) {
-                    json = js::value();
                     return true;
                 }
 
                 if ((type == RAWSXP) || (length == 0)) {
                     Rbyte* data = RAW(sexp);
-                    size_t length = Rf_length(sexp);
-                    json = js::value();
-                    rhost::util::append(blobs, blob(data, length));
+                    size_t size = Rf_length(sexp);
+                    blob.push_back(rhost::util::blob_slice(data, data + size));
                     return true;
                 }
 
-                blob_error(sexp, "Unsupported type for blob - must be one of: NULL; raw.");
+                blob_error(sexp, "Unsupported type for blob - must be one of: NULL; RAW.");
                 return false;
             }
         }
 
-        bool to_blobs(SEXP sexp, rhost::util::blobs& blobs, js::value& json) {
+        bool to_blob(SEXP sexp, rhost::util::blob& blob) {
             bool result = false;
-            rhost::util::errors_to_exceptions([&] {result = to_blobs_internal(sexp, blobs, json); });
+            rhost::util::errors_to_exceptions([&] {result = to_blob_internal(sexp, blob); });
             return result;
         }
     }
