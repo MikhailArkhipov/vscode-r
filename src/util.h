@@ -127,20 +127,20 @@ namespace rhost {
                     fclose(fp);
                 }
             });
-            
+
             fp = fopen(path.c_str(), "rb");
             if (fp) {
                 fseek(fp, 0, SEEK_END);
                 size_t len = ftell(fp);
-				blob_slice *slice = new blob_slice(len);
+                blob_slice slice(len);
                 fseek(fp, 0, SEEK_SET);
-				if (len) {
-					size_t read = fread(static_cast<void*>(&(*slice)[0]), sizeof(byte), len, fp);
-					if (read != len) {
-						throw std::exception("Error reading file");
-					}
-				}
-                blob.push_back(*slice);
+                if (len) {
+                    size_t read = fread(&slice[0], sizeof(byte), len, fp);
+                    if (read != len) {
+                        throw std::exception("Error reading file");
+                    }
+                }
+                blob.push_back(std::move(slice));
             }
         }
 
