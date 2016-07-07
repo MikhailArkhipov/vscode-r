@@ -708,9 +708,17 @@ namespace rhost {
             void ide_device::send(const std::tr2::sys::path& filename) {
                 auto path_copy(filename);
                 rhost::host::with_cancellation([&] {
+                    std::string file_path = path_copy.make_preferred().string();
+                    rhost::util::blob plot_image_data;
+
+                    if (file_path.length() > 0) {
+                        rhost::util::append_from_file(plot_image_data, file_path);
+                    }
+
                     rhost::host::send_notification(
                         "!Plot",
-                        rhost::util::to_utf8(path_copy.make_preferred().string()),
+                        plot_image_data,
+                        rhost::util::to_utf8(file_path),
                         static_cast<double>(active_plot_index()),
                         static_cast<double>(plot_count())
                     );

@@ -174,6 +174,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="blobs.cpp" />
     <ClCompile Include="exports.cpp" />
     <ClCompile Include="grdeviceside.cpp" />
     <ClCompile Include="grdevicesxaml.cpp" />
@@ -188,6 +189,7 @@
     <ClCompile Include="util.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="blobs.h" />
     <ClInclude Include="detours.h" />
     <ClInclude Include="exports.h" />
     <ClInclude Include="grdevices.h" />
