@@ -121,9 +121,27 @@ namespace rhost {
         typedef std::vector<blob_slice> blob;
 
         inline void append_from_file(blob& blob, const std::string& path) {
-            std::ifstream ifs(path, std::ios::binary | std::ios::in);
-            std::noskipws(ifs);
-            blob.push_back(blob_slice(std::istream_iterator<byte>(ifs), std::istream_iterator<byte>()));
+            FILE* fp = nullptr;
+            SCOPE_WARDEN(close_file, {
+                if (fp) {
+                    fclose(fp);
+                }
+            });
+            
+            fp = fopen(path.c_str(), "rb");
+            if (fp) {
+                fseek(fp, 0, SEEK_END);
+                size_t len = ftell(fp);
+				blob_slice *slice = new blob_slice(len);
+                fseek(fp, 0, SEEK_SET);
+				if (len) {
+					size_t read = fread(static_cast<void*>(&(*slice)[0]), sizeof(byte), len, fp);
+					if (read != len) {
+						throw std::exception("Error reading file");
+					}
+				}
+                blob.push_back(*slice);
+            }
         }
 
         std::string to_utf8(const char* buf, size_t len);
