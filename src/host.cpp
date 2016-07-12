@@ -122,6 +122,15 @@ namespace rhost {
         std::string eval_cancel_target; // ID of the eval on the stack that is the cancellation target
         std::mutex eval_stack_mutex;
 
+        // This queue holds the JSON message that client sent before sending the blob payload. This queue should not have 
+        // more than one item in it.
+        std::queue<message> binary_message_queue;
+        std::mutex binary_message_queue_mutex;
+
+        long long next_blob_id = 0;
+        std::map<long long, rhost::util::blob> received_blobs;
+        std::mutex received_blobs_mutex;
+
         void terminate_if_closed() {
             // terminate invokes R_Suicide, which may invoke WriteConsole and/or ShowMessage, which will
             // then call terminate again, so we need to prevent infinite recursion here.
@@ -272,6 +281,42 @@ namespace rhost {
                     delay *= 2;
                 }
             }
+        }
+
+        void create_blob(const message& msg) {
+            assert(msg.name == "?CreateBlob");
+
+            if (msg.blob.size() != msg.blob_count) {
+                fatal_error("Incomplete blob creation message %s.", msg.id.c_str());
+            }
+
+            {
+                std::lock_guard<std::mutex> lock(received_blobs_mutex);
+                long long blob_id = ++next_blob_id;
+                received_blobs[blob_id] = msg.blob;
+                respond_to_message(msg, static_cast<double>(blob_id));
+            }
+        }
+
+        const std::vector<byte> get_blob(long long blob_id) {
+            std::map<long long, rhost::util::blob>::iterator res = received_blobs.find(blob_id);
+            std::vector<byte> data;
+
+            if (res == received_blobs.end()) {
+                return data;
+            }
+
+            for (blob_slice& slice : (*res).second) {
+                data.reserve(data.size() + slice.size());
+                data.insert(data.end(), slice.begin(), slice.end());
+            }
+
+            return data;
+        }
+
+        void destroy_blob(long long blob_id) {
+            std::lock_guard<std::mutex> lock(received_blobs_mutex);
+            received_blobs.erase(blob_id);
         }
 
         void handle_eval(const message& msg) {
@@ -623,7 +668,6 @@ namespace rhost {
                         } else {
                             msg = eval_requests.front();
                             eval_requests.pop();
-
                         }
                     }
 
@@ -765,7 +809,7 @@ namespace rhost {
             ws_conn->ping("", ec);
         }
 
-        void ws_message_handler(websocketpp::connection_hdl hdl, ws_connection_type::message_ptr msg) {
+        void handle_json_message(ws_connection_type::message_ptr msg) {
             const auto& json = msg->get_payload();
 #ifdef TRACE_JSON
             logf("==> %s\n\n", json.c_str());
@@ -803,8 +847,8 @@ namespace rhost {
             }
 
             incoming.blob_count = static_cast<size_t>(header[2].get<double>());
-            if (incoming.blob_count > 0) {
-                fatal_error("Incoming message does not support blobs, blob_count must be 0.");
+            if (incoming.blob_count < 0) {
+                fatal_error("blob_count must be >= 0.");
             }
 
             if (incoming.name[0] == ':') {
@@ -820,6 +864,11 @@ namespace rhost {
 
             if (incoming.name == "!/") {
                 return handle_cancel(incoming);
+            } else if (incoming.name == "?CreateBlob") {
+                std::lock_guard<std::mutex> lock(binary_message_queue_mutex);
+                binary_message_queue.push(incoming);
+                unblock_message_loop();
+                return;
             } else if (incoming.name.size() >= 2 && incoming.name[0] == '?' && incoming.name[1] == '=') {
                 std::lock_guard<std::mutex> lock(eval_requests_mutex);
                 eval_requests.push(incoming);
@@ -836,6 +885,36 @@ namespace rhost {
             response = incoming;
             response_state = RESPONSE_RECEIVED;
             unblock_message_loop();
+        }
+
+        void handle_binary_message(ws_connection_type::message_ptr msg) {
+            if (binary_message_queue.size() != 1) {
+                fatal_error("Unexpected incoming client message - host was expecting a single pending binary message.");
+            }
+
+            message incoming = binary_message_queue.front();
+            const auto& raw = msg->get_raw_payload();
+            rhost::util::blob_slice slice(raw.data(), raw.data() + raw.size());
+            incoming.blob.push_back(std::move(slice));
+
+            if (incoming.blob_count == incoming.blob.size()) {
+                std::lock_guard<std::mutex> lock(binary_message_queue_mutex);
+                create_blob(incoming);
+                binary_message_queue.pop();
+             }
+
+            unblock_message_loop();
+        }
+
+        void ws_message_handler(websocketpp::connection_hdl hdl, ws_connection_type::message_ptr msg) {
+            if (msg->get_opcode() == websocketpp::frame::opcode::value::binary) {
+                handle_binary_message(msg);
+            } else {
+                if (binary_message_queue.size() > 0) {
+                    fatal_error("Unexpected incoming client message - host was expecting a binary (blob) message.");
+                }
+                handle_json_message(msg);
+            }
         }
 
         void ws_close_handler(websocketpp::connection_hdl h) {

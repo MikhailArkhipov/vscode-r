@@ -441,6 +441,27 @@ namespace rhost {
             return result;
         }
 
+        extern "C" SEXP get_blob(SEXP id) {
+            int blob_id = Rf_asInteger(id);
+            const std::vector<byte> data = rhost::host::get_blob(blob_id);
+
+            if (data.size() == 0) {
+                return R_NilValue;
+            }
+
+            SEXP rawVector = Rf_allocVector(RAWSXP, data.size());
+            Rbyte* dest = RAW(rawVector);
+            memcpy_s(dest, data.size(), data.data(), data.size());
+
+            return rawVector;
+        }
+
+        extern "C" SEXP delete_blob(SEXP id) {
+            int blob_id = Rf_asInteger(id);
+            rhost::host::destroy_blob(blob_id);
+            return R_NilValue;
+        }
+
         R_CallMethodDef call_methods[] = {
             { "Microsoft.R.Host::Call.unevaluated_promise", (DL_FUNC)unevaluated_promise, 2 },
             { "Microsoft.R.Host::Call.memory_connection", (DL_FUNC)memory_connection_new, 4 },
@@ -453,6 +474,8 @@ namespace rhost {
             { "Microsoft.R.Host::Call.set_rdebug", (DL_FUNC)set_rdebug, 2 },
             { "Microsoft.R.Host::Call.browser_set_debug", (DL_FUNC)browser_set_debug, 2 },
             { "Microsoft.R.Host::Call.toJSON", (DL_FUNC)toJSON, 1 },
+            { "Microsoft.R.Host::Call.get_blob", (DL_FUNC)get_blob, 1 },
+            { "Microsoft.R.Host::Call.delete_blob", (DL_FUNC)delete_blob, 1 },
             { }
         };
 
