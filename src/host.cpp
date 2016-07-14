@@ -127,8 +127,8 @@ namespace rhost {
         std::queue<message> binary_message_queue;
         std::mutex binary_message_queue_mutex;
 
-        long long next_blob_id = 0;
-        std::map<long long, rhost::util::blob> received_blobs;
+        int next_blob_id = 0;
+        std::map<int, rhost::util::blob> received_blobs;
         std::mutex received_blobs_mutex;
 
         void terminate_if_closed() {
@@ -292,15 +292,22 @@ namespace rhost {
 
             {
                 std::lock_guard<std::mutex> lock(received_blobs_mutex);
-                long long blob_id = ++next_blob_id;
+                int blob_id = ++next_blob_id;
                 received_blobs[blob_id] = msg.blob;
                 respond_to_message(msg, static_cast<double>(blob_id));
             }
         }
 
-        const std::vector<byte> get_blob(long long blob_id) {
-            std::map<long long, rhost::util::blob>::iterator res = received_blobs.find(blob_id);
-            std::vector<byte> data;
+        int create_blob(const rhost::util::blob& blob) {
+            std::lock_guard<std::mutex> lock(received_blobs_mutex);
+            int blob_id = ++next_blob_id;
+            received_blobs[blob_id] = blob;
+            return blob_id;
+        }
+
+        const blob_slice get_blob_as_single_slice(int blob_id) {
+            std::map<int, rhost::util::blob>::iterator res = received_blobs.find(blob_id);
+            blob_slice data;
 
             if (res == received_blobs.end()) {
                 return data;
@@ -314,9 +321,35 @@ namespace rhost {
             return data;
         }
 
-        void destroy_blob(long long blob_id) {
+        void get_blobs(const message& msg) {
+            assert(msg.name == "?GetBlob");
+
+            blob blob;
+            picojson::array blob_ids;
+            for (int i = 0; i < msg.args.size(); ++i) {
+                int blob_id = static_cast<int>(msg.args[i].get<double>());
+                blob_slice slice = get_blob_as_single_slice(blob_id);
+                if (slice.size() > 0) {
+                    blob.push_back(slice);
+                    rhost::util::append(blob_ids, static_cast<double>(blob_id));
+                }
+            }
+
+            respond_to_message(msg, blob, blob_ids);
+        }
+
+        void destroy_blob(int blob_id) {
             std::lock_guard<std::mutex> lock(received_blobs_mutex);
             received_blobs.erase(blob_id);
+        }
+
+        void destroy_blobs(const message& msg) {
+            assert(msg.name == "!DestroyBlob");
+            std::lock_guard<std::mutex> lock(received_blobs_mutex);
+            for (int i = 0; i < msg.args.size(); ++i) {
+                int blob_id = static_cast<int>(msg.args[i].get<double>());
+                received_blobs.erase(blob_id);
+            }
         }
 
         void handle_eval(const message& msg) {
@@ -867,8 +900,11 @@ namespace rhost {
             } else if (incoming.name == "?CreateBlob") {
                 std::lock_guard<std::mutex> lock(binary_message_queue_mutex);
                 binary_message_queue.push(incoming);
-                unblock_message_loop();
                 return;
+            } else if (incoming.name == "?GetBlob") {
+                return get_blobs(incoming);
+            } else if (incoming.name == "!DestroyBlob") {
+                return destroy_blobs(incoming);
             } else if (incoming.name.size() >= 2 && incoming.name[0] == '?' && incoming.name[1] == '=') {
                 std::lock_guard<std::mutex> lock(eval_requests_mutex);
                 eval_requests.push(incoming);
@@ -902,8 +938,6 @@ namespace rhost {
                 create_blob(incoming);
                 binary_message_queue.pop();
              }
-
-            unblock_message_loop();
         }
 
         void ws_message_handler(websocketpp::connection_hdl hdl, ws_connection_type::message_ptr msg) {

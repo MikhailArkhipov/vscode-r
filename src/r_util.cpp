@@ -441,9 +441,24 @@ namespace rhost {
             return result;
         }
 
+        extern "C" SEXP create_blob(SEXP obj) {
+            int type = TYPEOF(obj);
+            size_t length = Rf_length(obj);
+
+            if (type != RAWSXP || length == 0) {
+                Rf_error("Object must be a RAW vector of length > 0.");
+            }
+
+            Rbyte* data = RAW(obj);
+            rhost::util::blob blob;
+            blob.push_back(rhost::util::blob_slice(data, data + length));
+            int id = rhost::host::create_blob(blob);
+            return Rf_ScalarInteger((int)id);
+        }
+
         extern "C" SEXP get_blob(SEXP id) {
             int blob_id = Rf_asInteger(id);
-            const std::vector<byte> data = rhost::host::get_blob(blob_id);
+            const std::vector<byte> data = rhost::host::get_blob_as_single_slice(blob_id);
 
             if (data.size() == 0) {
                 return R_NilValue;
@@ -456,7 +471,7 @@ namespace rhost {
             return rawVector;
         }
 
-        extern "C" SEXP delete_blob(SEXP id) {
+        extern "C" SEXP destroy_blob(SEXP id) {
             int blob_id = Rf_asInteger(id);
             rhost::host::destroy_blob(blob_id);
             return R_NilValue;
@@ -474,8 +489,9 @@ namespace rhost {
             { "Microsoft.R.Host::Call.set_rdebug", (DL_FUNC)set_rdebug, 2 },
             { "Microsoft.R.Host::Call.browser_set_debug", (DL_FUNC)browser_set_debug, 2 },
             { "Microsoft.R.Host::Call.toJSON", (DL_FUNC)toJSON, 1 },
+            { "Microsoft.R.Host::Call.create_blob", (DL_FUNC)create_blob, 1 },
             { "Microsoft.R.Host::Call.get_blob", (DL_FUNC)get_blob, 1 },
-            { "Microsoft.R.Host::Call.delete_blob", (DL_FUNC)delete_blob, 1 },
+            { "Microsoft.R.Host::Call.destroy_blob", (DL_FUNC)destroy_blob, 1 },
             { }
         };
 

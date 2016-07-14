@@ -90,7 +90,8 @@ namespace rhost {
             return send_request_and_get_response(name, args_array);
         }
 
-        const std::vector<byte> get_blob(long long id);
-        void destroy_blob(long long id);
+        int create_blob(const rhost::util::blob& blob);
+        const rhost::util::blob_slice get_blob_as_single_slice(int id);
+        void destroy_blob(int id);
     }
 }
