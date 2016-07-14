@@ -464,10 +464,11 @@ namespace rhost {
                 return R_NilValue;
             }
 
-            SEXP rawVector = Rf_allocVector(RAWSXP, data.size());
+            SEXP rawVector = nullptr;
+            Rf_protect(rawVector = Rf_allocVector(RAWSXP, data.size()));
             Rbyte* dest = RAW(rawVector);
             memcpy_s(dest, data.size(), data.data(), data.size());
-
+            Rf_unprotect(1);
             return rawVector;
         }
 

@@ -313,8 +313,13 @@ namespace rhost {
                 return data;
             }
 
-            for (blob_slice& slice : (*res).second) {
-                data.reserve(data.size() + slice.size());
+            size_t totalSize = 0;
+            for (blob_slice& slice : res->second) {
+                totalSize += slice.size();
+            }
+
+            data.reserve(totalSize);
+            for (blob_slice& slice : res->second) {
                 data.insert(data.end(), slice.begin(), slice.end());
             }
 
@@ -924,17 +929,17 @@ namespace rhost {
         }
 
         void handle_binary_message(ws_connection_type::message_ptr msg) {
+            std::lock_guard<std::mutex> lock(binary_message_queue_mutex);
+
             if (binary_message_queue.size() != 1) {
-                fatal_error("Unexpected incoming client message - host was expecting a single pending binary message.");
+                fatal_error("Unexpected incoming client message - host was expecting a binary message.");
             }
 
             message incoming = binary_message_queue.front();
             const auto& raw = msg->get_raw_payload();
-            rhost::util::blob_slice slice(raw.data(), raw.data() + raw.size());
-            incoming.blob.push_back(std::move(slice));
+            incoming.blob.emplace_back(rhost::util::blob_slice(raw.data(), raw.data() + raw.size()));
 
             if (incoming.blob_count == incoming.blob.size()) {
-                std::lock_guard<std::mutex> lock(binary_message_queue_mutex);
                 create_blob(incoming);
                 binary_message_queue.pop();
              }
