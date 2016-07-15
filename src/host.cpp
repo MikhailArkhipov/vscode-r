@@ -937,7 +937,7 @@ namespace rhost {
 
             message incoming = binary_message_queue.front();
             const auto& raw = msg->get_raw_payload();
-            incoming.blob.emplace_back(rhost::util::blob_slice(raw.data(), raw.data() + raw.size()));
+            incoming.blob.emplace_back(raw.data(), raw.data() + raw.size());
 
             if (incoming.blob_count == incoming.blob.size()) {
                 create_blob(incoming);
