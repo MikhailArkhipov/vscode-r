@@ -55,10 +55,9 @@ namespace rhost {
                     return true;
                 }
 
-                if ((type == RAWSXP) || (length == 0)) {
+                if (type == RAWSXP) {
                     Rbyte* data = RAW(sexp);
-                    size_t size = Rf_length(sexp);
-                    blob.push_back(rhost::util::blob_slice(data, data + size));
+                    blob.push_back(rhost::util::blob_slice(data, data + length));
                     return true;
                 }
 

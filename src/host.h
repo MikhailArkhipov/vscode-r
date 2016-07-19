@@ -32,6 +32,7 @@ namespace rhost {
             std::string request_id; // not a response if empty
             std::string name;
             size_t blob_count;
+            rhost::util::blob blob;
             picojson::array args;
         };
 
@@ -88,5 +89,9 @@ namespace rhost {
             rhost::util::append(args_array, args...);
             return send_request_and_get_response(name, args_array);
         }
+
+        int create_blob(const rhost::util::blob& blob);
+        const rhost::util::blob_slice get_blob_as_single_slice(int id);
+        void destroy_blob(int id);
     }
 }

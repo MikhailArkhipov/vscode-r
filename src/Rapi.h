@@ -322,6 +322,13 @@ extern "C" {
     extern SEXP Rf_NewEnvironment(SEXP, SEXP, SEXP);
     extern SEXP Rf_getAttrib(SEXP, SEXP);
 
+    extern SEXP Rf_ScalarComplex(Rcomplex);
+    extern SEXP Rf_ScalarInteger(int);
+    extern SEXP Rf_ScalarLogical(int);
+    extern SEXP Rf_ScalarRaw(Rbyte);
+    extern SEXP Rf_ScalarReal(double);
+    extern SEXP Rf_ScalarString(SEXP);
+
     typedef enum {
         CE_NATIVE = 0,
         CE_UTF8 = 1,
