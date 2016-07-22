@@ -29,11 +29,13 @@
 #include "blobs.h"
 
 using namespace std::literals;
+using namespace boost::endian;
 using namespace rhost::log;
 using namespace rhost::util;
 using namespace rhost::eval;
 using namespace rhost::json;
-using namespace rhost::raw;
+using namespace rhost::blobs;
+using namespace rhost::protocol;
 
 namespace rhost {
     namespace host {
@@ -80,7 +82,7 @@ namespace rhost {
         std::promise<void> connected_promise;
         std::atomic<bool> is_connection_closed = false;
         std::atomic<bool> is_waiting_for_wm = false;
-        long long next_message_id = 0;
+        std::atomic<message_id> last_message_id = -1;
         bool allow_callbacks = true, allow_intr_in_CallBack = true;
 
         // Specifies whether the host is currently expecting a response message to some earlier request that it had sent.
@@ -97,10 +99,10 @@ namespace rhost {
         std::mutex eval_requests_mutex;
 
         struct eval_info {
-            const std::string id;
+            message_id id;
             bool is_cancelable;
 
-            eval_info(const std::string& id, bool is_cancelable)
+            eval_info(message_id id, bool is_cancelable)
                 : id(id), is_cancelable(is_cancelable) {
             }
         };
@@ -117,19 +119,14 @@ namespace rhost {
         // When cancellation for any eval on the stack is requested, all evals that follow it on the stack are also canceled,
         // since execution will not return to the eval unless all nested evals are terminated. When cancellation of all evals
         // is requested, it is implemented as cancellation of the topmost dummy eval. 
-        std::vector<eval_info> eval_stack({ eval_info("", true) });
+        std::vector<eval_info> eval_stack({ eval_info(0, true) });
         bool canceling_eval; // whether we're currently processing a cancellation request by unwinding the eval stack
-        std::string eval_cancel_target; // ID of the eval on the stack that is the cancellation target
+        message_id eval_cancel_target; // ID of the eval on the stack that is the cancellation target
         std::mutex eval_stack_mutex;
 
-        // This queue holds the JSON message that client sent before sending the blob payload. This queue should not have 
-        // more than one item in it.
-        std::queue<message> binary_message_queue;
-        std::mutex binary_message_queue_mutex;
-
-        int next_blob_id = 0;
-        std::map<int, rhost::util::blob> received_blobs;
-        std::mutex received_blobs_mutex;
+        blob_id next_blob_id = 1;
+        std::map<blob_id, blob> blobs;
+        std::mutex blobs_mutex;
 
         void terminate_if_closed() {
             // terminate invokes R_Suicide, which may invoke WriteConsole and/or ShowMessage, which will
@@ -145,108 +142,83 @@ namespace rhost {
             }
         }
 
-        std::error_code send_json(const picojson::value& value) {
-            std::string json = value.serialize();
-
+        void log_message(const char* prefix, message_id id, message_id request_id, const std::string& name, const picojson::array& args, const blob& blob) {
 #ifdef TRACE_JSON
-            logf("<== %s\n\n", json.c_str());
+            std::ostringstream str;
+            str << prefix << " #" << id << "# " << name;
+
+            if (request_id > 0 && request_id < std::numeric_limits<message_id>::max()) {
+                str << " #" << request_id << "#";
+            }
+
+            str << " " << picojson::value(args).serialize();
+
+            if (!blob.empty()) {
+                str << " <raw (" << blob.size() << " bytes)>";
+            }
+
+            logf("%s\n\n", str.str().c_str());
 #endif
-
-            if (!is_connection_closed) {
-                auto err = ws_conn->send(json, websocketpp::frame::opcode::text);
-                if (err) {
-                    fatal_error("Send failed: [%d] %s", err.value(), err.message().c_str());
-                }
-                return err;
-            } else {
-                return std::error_code();
-            }
         }
 
-        std::error_code send_blob(const rhost::util::blob_slice& blob_slice) {
-#ifdef TRACE_JSON
-            logf("<== blob[%lld]\n\n", blob_slice.size());
-#endif
-            if (!is_connection_closed) {
-                auto err = ws_conn->send(static_cast<const void*>(blob_slice.data()), blob_slice.size(), websocketpp::frame::opcode::binary);
-                if (err) {
-                    fatal_error("Send failed: [%d] %s", err.value(), err.message().c_str());
-                }
-                return err;
-            } else {
-                return std::error_code();
-            }
-        }
-
-        std::string make_message_header(picojson::array& array, const char* name, const size_t blob_slices, const char* request_id) {
-            char id[0x20];
-            sprintf_s(id, "#%lld#", next_message_id);
-            next_message_id += 2;
-
-            if (request_id) {
-                append(array, id, name, static_cast<double>(blob_slices), request_id);
-            } else {
-                append(array, id, name, static_cast<double>(blob_slices));
-            }
-            return id;
-        }
-
-        void make_message_json(picojson::array& array, picojson::array& header, const picojson::array& args = picojson::array()) {
-            append(array, header);
-            array.insert(array.end(), args.begin(), args.end());
-        }
-
-        std::string send_message(const char* name, const picojson::array& args, const rhost::util::blob blob = rhost::util::blob()) {
+        message_id send_message(message_id request_id, const std::string& name, const picojson::array& args, const blob& blob) {
             assert(name[0] == '!' || name[0] == '?' || name[0] == ':');
-            picojson::array header;
-            auto id = make_message_header(header, name, blob.size(), nullptr);
 
-            picojson::value value(picojson::array_type, false);
-            auto& array = value.get<picojson::array>();
+            message_id id = last_message_id += 2;
+            log_message("<==", id, request_id, name, args, blob);
 
-            make_message_json(array, header, args);
-            send_json(value);
+            if (is_connection_closed) {
+                return id;
+            }
 
-            for (rhost::util::blob::const_iterator iter = blob.begin(); iter != blob.end(); ++iter) {
-                send_blob(*iter);
+            std::string json = picojson::value(args).serialize();
+
+            size_t buf_size = sizeof message_repr + name.size() + 1 + json.size() + 1 + blob.size();
+            std::unique_ptr<char[]> buf(new char[buf_size]);
+
+            auto& repr = *reinterpret_cast<message_repr*>(buf.get());
+            repr.id = id;
+            repr.request_id = request_id;
+
+            char* p = repr.data;
+
+            strcpy(p, name.c_str());
+            p += name.size() + 1;
+
+            strcpy(p, json.c_str());
+            p += json.size() + 1;
+
+            memcpy(p, blob.data(), blob.size());
+
+            auto err = ws_conn->send(buf.get(), buf_size, websocketpp::frame::opcode::binary);
+            if (err) {
+                fatal_error("Send failed: [%d] %s", err.value(), err.message().c_str());
             }
 
             return id;
         }
 
-        std::string send_notification(const char* name, const rhost::util::blob& blob, const picojson::array& args) {
+        message_id send_notification(const std::string& name, const picojson::array& args, const blob& blob) {
             assert(name[0] == '!');
-            return send_message(name, args, blob);
-        }
-
-        std::string send_notification(const char* name, const picojson::array& args) {
-            assert(name[0] == '!');
-            return send_message(name, args);
+            return send_message(0, name, args, blob);
         }
 
         template<class... Args>
-        std::string respond_to_message(const message& request, const rhost::util::blob& blob, Args... args) {
-            assert(request.name[0] == '?');
+        message_id respond_to_message(const message& request, const blob& blob, Args... args) {
+            assert(request.name()[0] == '?');
 
-            picojson::array header;
-            auto id = make_message_header(header, (':' + request.name.substr(1)).c_str(), blob.size(), request.id.c_str());
+            picojson::array args_array;
+            rhost::util::append(args_array, args...);
 
-            picojson::value value(picojson::array_type, false);
-            auto& array = value.get<picojson::array>();
-            append(array, header);
-            append(array, args...);
-            send_json(value);
-
-            for (rhost::util::blob::const_iterator iter = blob.begin(); iter != blob.end(); ++iter) {
-                send_blob(*iter);
-            }
-
-            return id;
+            std::string name = request.name();
+            name[0] = ':';
+            return send_message(request.id(), name, args_array, blob);
         }
 
         template<class... Args>
-        std::string respond_to_message(const message& request, Args... args) {
-            return respond_to_message(request, rhost::util::blob(), args...);
+        message_id respond_to_message(const message& request, Args... args) {
+            static const blob empty;
+            return respond_to_message(request, empty, args...);
         }
 
         bool query_interrupt() {
@@ -284,101 +256,98 @@ namespace rhost {
         }
 
         void create_blob(const message& msg) {
-            assert(msg.name == "?CreateBlob");
-
-            if (msg.blob.size() != msg.blob_count) {
-                fatal_error("Incomplete blob creation message %s.", msg.id.c_str());
-            }
-
-            {
-                std::lock_guard<std::mutex> lock(received_blobs_mutex);
-                int blob_id = ++next_blob_id;
-                received_blobs[blob_id] = msg.blob;
-                respond_to_message(msg, static_cast<double>(blob_id));
-            }
+            assert(!strcmp(msg.name(), "?CreateBlob"));
+            blob_id id = create_blob(msg.blob());
+            respond_to_message(msg, static_cast<double>(id));
         }
 
-        int create_blob(const rhost::util::blob& blob) {
-            std::lock_guard<std::mutex> lock(received_blobs_mutex);
-            int blob_id = ++next_blob_id;
-            received_blobs[blob_id] = blob;
-            return blob_id;
+        blob_id create_blob(blob&& blob) {
+            std::lock_guard<std::mutex> lock(blobs_mutex);
+            blob_id id = ++next_blob_id;
+
+            // Check that it never overflows double mantissa, and provide immediate diagnostics if it happens.
+            if (id != blob_id(double(id))) {
+                fatal_error("Blob ID overflow");
+            }
+
+            blobs[id] = std::move(blob);
+            return id;
         }
 
-        const blob_slice get_blob_as_single_slice(int blob_id) {
-            std::map<int, rhost::util::blob>::iterator res = received_blobs.find(blob_id);
-            blob_slice data;
+        bool get_blob(blob_id id, blobs::blob& blob) {
+            std::lock_guard<std::mutex> lock(blobs_mutex);
+            auto& it = blobs.find(id);
 
-            if (res == received_blobs.end()) {
-                return data;
+            if (it == blobs.end()) {
+                return false;
             }
 
-            size_t totalSize = 0;
-            for (blob_slice& slice : res->second) {
-                totalSize += slice.size();
-            }
-
-            data.reserve(totalSize);
-            for (blob_slice& slice : res->second) {
-                data.insert(data.end(), slice.begin(), slice.end());
-            }
-
-            return data;
+            blob = it->second;
+            return true;
         }
 
-        void get_blobs(const message& msg) {
-            assert(msg.name == "?GetBlob");
+        void get_blob(const message& msg) {
+            assert(!strcmp(msg.name(), "?GetBlob"));
 
-            blob blob;
-            picojson::array blob_ids;
-            for (int i = 0; i < msg.args.size(); ++i) {
-                int blob_id = static_cast<int>(msg.args[i].get<double>());
-                blob_slice slice = get_blob_as_single_slice(blob_id);
-                if (slice.size() > 0) {
-                    blob.push_back(slice);
-                    rhost::util::append(blob_ids, static_cast<double>(blob_id));
-                }
+            auto json = msg.json();
+            if (!json[0].is<double>()) {
+                fatal_error("GetBlob: non-numeric blob ID");
+            }
+            auto id = static_cast<blob_id>(json[0].get<double>());
+
+            std::lock_guard<std::mutex> lock(blobs_mutex);
+            auto& it = blobs.find(id);
+            if (it == blobs.end()) {
+                fatal_error("GetBlob: no blob with ID %llu", id);
             }
 
-            respond_to_message(msg, blob, blob_ids);
+            respond_to_message(msg, it->second);
         }
 
-        void destroy_blob(int blob_id) {
-            std::lock_guard<std::mutex> lock(received_blobs_mutex);
-            received_blobs.erase(blob_id);
+        void destroy_blob(blob_id blob_id) {
+            std::lock_guard<std::mutex> lock(blobs_mutex);
+            blobs.erase(blob_id);
         }
 
         void destroy_blobs(const message& msg) {
-            assert(msg.name == "!DestroyBlob");
-            std::lock_guard<std::mutex> lock(received_blobs_mutex);
-            for (int i = 0; i < msg.args.size(); ++i) {
-                int blob_id = static_cast<int>(msg.args[i].get<double>());
-                received_blobs.erase(blob_id);
+            assert(!strcmp(msg.name(), "!DestroyBlob"));
+
+            auto json = msg.json();
+
+            std::lock_guard<std::mutex> lock(blobs_mutex);
+            for (auto val : json) {
+                if (!val.is<double>()) {
+                    fatal_error("DestroyBlob: non-numeric blob ID");
+                }
+
+                auto id = static_cast<blob_id>(val.get<double>());
+                blobs.erase(id);
             }
         }
 
         void handle_eval(const message& msg) {
-            assert(msg.name.size() >= 2 && msg.name[0] == '?' && msg.name[1] == '=');
+            assert(msg.name()[0] == '?' && msg.name()[1] == '=');
 
-            if (msg.args.size() != 1 || !msg.args[0].is<std::string>()) {
-                fatal_error("Invalid evaluation request %s: must have form [id, '=<flags>', expr].", msg.id.c_str());
+            auto args = msg.json();
+            if (args.size() != 1 || !args[0].is<std::string>()) {
+                fatal_error("Invalid evaluation request #%llu#: must have form [expr].", msg.id());
             }
 
             SCOPE_WARDEN_RESTORE(allow_callbacks);
             allow_callbacks = false;
 
-            const auto& expr = from_utf8(msg.args[0].get<std::string>());
-            log::logf("%s = %s\n\n", msg.id.c_str(), expr.c_str());
+            const auto& expr = from_utf8(args[0].get<std::string>());
+            log::logf("#%llu# = %s\n\n", msg.id(), expr.c_str());
 
             SEXP env = nullptr;
             bool is_cancelable = false, new_env = false, no_result = false, raw_response = false;
 
-            for (auto it = msg.name.begin() + 2; it != msg.name.end(); ++it) {
-                switch (char c = *it) {
+            for (const char* p = msg.name() + 2; *p; ++p) {
+                switch (char c = *p) {
                 case 'B':
                 case 'E':
                     if (env != nullptr) {
-                        fatal_error("'%s': multiple environment flags specified.", msg.name.c_str());
+                        fatal_error("'%s': multiple environment flags specified.", msg.name());
                     }
                     env = (c == 'B') ? R_BaseEnv : R_EmptyEnv;
                     break;
@@ -398,7 +367,7 @@ namespace rhost {
                     raw_response = true;
                     break;
                 default:
-                    fatal_error("'%s': unrecognized flag '%c'.", msg.name.c_str(), c);
+                    fatal_error("'%s': unrecognized flag '%c'.", msg.name(), c);
                 }
             }
 
@@ -418,7 +387,7 @@ namespace rhost {
                 bool was_before_invoked = false;
                 auto before = [&] {
                     std::lock_guard<std::mutex> lock(eval_stack_mutex);
-                    eval_stack.push_back(eval_info(msg.id, is_cancelable));
+                    eval_stack.push_back(eval_info(msg.id(), is_cancelable));
                     was_before_invoked = true;
                 };
 
@@ -428,10 +397,10 @@ namespace rhost {
 
                     if (was_before_invoked) {
                         assert(!eval_stack.empty());
-                        assert(eval_stack.end()[-1].id == msg.id);
+                        assert(eval_stack.end()[-1].id == msg.id());
                     }
 
-                    if (canceling_eval && msg.id == eval_cancel_target) {
+                    if (canceling_eval && msg.id() == eval_cancel_target) {
                         // If we were unwinding the stack for cancellation purposes, and this eval was the target
                         // of the cancellation, then we're done and should stop unwinding. Otherwise, we should 
                         // continue unwinding after reporting the result of the evaluation, which we'll do at the
@@ -487,7 +456,7 @@ namespace rhost {
             }
 
             picojson::value error, value;
-            rhost::util::blob blob;
+            blob blob;
             if (result.has_error) {
                 error = picojson::value(to_utf8(result.error));
             }
@@ -526,16 +495,17 @@ namespace rhost {
         }
 
         void handle_cancel(const message& msg) {
-            if (msg.args.size() != 1) {
+            auto args = msg.json();
+            if (args.size() != 1) {
                 fatal_error("Evaluation cancellation request must be of the form [id, '/', eval_id].");
             }
 
-            std::string eval_id;
-            if (!msg.args[0].is<picojson::null>()) {
-                if (!msg.args[0].is<std::string>()) {
-                    fatal_error("Evaluation cancellation request eval_id must be string or null.");
+            message_id eval_id = 0;
+            if (!args[0].is<picojson::null>()) {
+                if (!args[0].is<double>()) {
+                    fatal_error("Evaluation cancellation request eval_id must be double or null.");
                 }
-                eval_id = msg.args[0].get<std::string>();
+                eval_id = static_cast<message_id>(args[0].get<double>());
             }
 
             std::lock_guard<std::mutex> lock(eval_stack_mutex);
@@ -575,7 +545,7 @@ namespace rhost {
             throw;
         }
 
-        inline message send_request_and_get_response(const char* name, const picojson::array& args) {
+        inline message send_request_and_get_response(const std::string& name, const picojson::array& args) {
             assert(name[0] == '?');
 
             response_state_t old_response_state;
@@ -585,7 +555,7 @@ namespace rhost {
                 response_state = RESPONSE_EXPECTED;
             }
 
-            auto id = send_message(name, args);
+            auto id = send_message(message::request_marker, name, args, blob());
             terminate_if_closed();
 
             indent_log(+1);
@@ -644,21 +614,21 @@ namespace rhost {
                     }
                 }
 
-                if (!msg.request_id.empty()) {
-                    if (msg.request_id != id) {
-                        fatal_error("Received response ['%s','%s'], while awaiting response for ['%s','%s'].",
-                            msg.request_id.c_str(), msg.name.c_str(), id.c_str(), name);
-                    } else if (strcmp(msg.name.c_str() + 1, name + 1) != 0) {
-                        fatal_error("Response to ['%s','%s'] has mismatched name '%s'.",
-                            id.c_str(), name, msg.name.c_str());
+                if (msg.is_response()) {
+                    if (msg.request_id() != id) {
+                        fatal_error("Received response [%llu,'%s'], while awaiting response for [%llu,'%s'].",
+                            msg.request_id(), msg.name(), id, name.c_str());
+                    } else if (strcmp(msg.name() + 1, name.c_str() + 1) != 0) {
+                        fatal_error("Response to [%llu,'%s'] has mismatched name '%s'.",
+                            id, name.c_str(), msg.name());
                     }
                     return msg;
                 }
 
-                if (msg.name.size() >= 2 && msg.name[0] == '?' && msg.name[1] == '=') {
+                if (msg.name()[0] == '?' && msg.name()[1] == '=') {
                     handle_eval(msg);
                 } else {
-                    fatal_error("Unrecognized incoming message name '%s'.", msg.name.c_str());
+                    fatal_error("Unrecognized incoming message name '%s'.", msg.name());
                 }
             }
         }
@@ -773,11 +743,12 @@ namespace rhost {
                         retry_reason.empty() ? picojson::value() : picojson::value(retry_reason),
                         to_utf8_json(prompt));
 
-                    if (msg.args.size() != 1) {
+                    auto args = msg.json();
+                    if (args.size() != 1) {
                         fatal_error("ReadConsole: response must have a single argument.");
                     }
 
-                    const auto& arg = msg.args[0];
+                    const auto& arg = args[0];
                     if (arg.is<picojson::null>()) {
                         return 0;
                     }
@@ -813,7 +784,7 @@ namespace rhost {
         extern "C" void atexit_handler() {
             if (ws_conn) {
                 with_cancellation([&] {
-                    send_json(picojson::value());
+                    send_notification("!End");
                 });
             }
         }
@@ -847,112 +818,41 @@ namespace rhost {
             ws_conn->ping("", ec);
         }
 
-        void handle_json_message(ws_connection_type::message_ptr msg) {
-            const auto& json = msg->get_payload();
-#ifdef TRACE_JSON
-            logf("==> %s\n\n", json.c_str());
-#endif
+        void ws_message_handler(websocketpp::connection_hdl hdl, ws_connection_type::message_ptr msg) {
+            const auto& payload = msg->get_payload();
 
-            picojson::value value;
-            auto err = picojson::parse(value, json);
-            if (!err.empty()) {
-                fatal_error("Malformed incoming message: %s", err.c_str());
-            }
+            auto incoming = message::parse(payload);
+            log_message("==>", incoming.id(), incoming.request_id(), incoming.name(), incoming.json(), incoming.blob());
 
-            if (value.is<picojson::null>()) {
-                terminate("Shutdown request received.");
-            }
-
-            if (!value.is<picojson::array>()) {
-                fatal_error("Message must be an array.");
-            }
-
-            auto& array = value.get<picojson::array>();
-            if (array.size() < 1) {
-                fatal_error("Message must be of the form [[id, name, blob_count], ...].");
-            }
-
-            auto& header = array[0].get<picojson::array>();
-            if (header.size() < 3 || !header[0].is<std::string>() || !header[1].is<std::string>() || !header[2].is<double>()) {
-                fatal_error("Message must be of the form [[id, name, blob_count], ...].");
-            }
-
-            message incoming = {};
-            incoming.id = header[0].get<std::string>();
-            incoming.name = header[1].get<std::string>();
-            if (incoming.name.empty()) {
-                fatal_error("Message must have a non-empty name.");
-            }
-
-            incoming.blob_count = static_cast<size_t>(header[2].get<double>());
-            if (incoming.blob_count < 0) {
-                fatal_error("blob_count must be >= 0.");
-            }
-
-            if (incoming.name[0] == ':') {
-                if (header.size() < 4 || !header[3].is<std::string>()) {
-                    fatal_error("Response message must be of the form [[id, name, blob_count, request_id], ...].");
+            if (incoming.is_response()) {
+                std::lock_guard<std::mutex> lock(response_mutex);
+                assert(response_state != RESPONSE_RECEIVED);
+                if (response_state == RESPONSE_UNEXPECTED) {
+                    fatal_error("Unexpected incoming client response.");
                 }
 
-                incoming.request_id = header[3].get<std::string>();
-            }
-
-            auto args = array.begin() + 1;
-            incoming.args.assign(args, array.end());
-
-            if (incoming.name == "!/") {
-                return handle_cancel(incoming);
-            } else if (incoming.name == "?CreateBlob") {
-                std::lock_guard<std::mutex> lock(binary_message_queue_mutex);
-                binary_message_queue.push(incoming);
-                return;
-            } else if (incoming.name == "?GetBlob") {
-                return get_blobs(incoming);
-            } else if (incoming.name == "!DestroyBlob") {
-                return destroy_blobs(incoming);
-            } else if (incoming.name.size() >= 2 && incoming.name[0] == '?' && incoming.name[1] == '=') {
-                std::lock_guard<std::mutex> lock(eval_requests_mutex);
-                eval_requests.push(incoming);
+                response = std::move(incoming);
+                response_state = RESPONSE_RECEIVED;
                 unblock_message_loop();
                 return;
             }
 
-            std::lock_guard<std::mutex> lock(response_mutex);
-            assert(response_state != RESPONSE_RECEIVED);
-            if (response_state == RESPONSE_UNEXPECTED) {
-                fatal_error("Unexpected incoming client message - not an eval or cancellation request, and not expecting a response.");
-            }
-
-            response = incoming;
-            response_state = RESPONSE_RECEIVED;
-            unblock_message_loop();
-        }
-
-        void handle_binary_message(ws_connection_type::message_ptr msg) {
-            std::lock_guard<std::mutex> lock(binary_message_queue_mutex);
-
-            if (binary_message_queue.size() != 1) {
-                fatal_error("Unexpected incoming client message - host was expecting a binary message.");
-            }
-
-            message incoming = binary_message_queue.front();
-            const auto& raw = msg->get_raw_payload();
-            incoming.blob.emplace_back(raw.data(), raw.data() + raw.size());
-
-            if (incoming.blob_count == incoming.blob.size()) {
-                create_blob(incoming);
-                binary_message_queue.pop();
-             }
-        }
-
-        void ws_message_handler(websocketpp::connection_hdl hdl, ws_connection_type::message_ptr msg) {
-            if (msg->get_opcode() == websocketpp::frame::opcode::value::binary) {
-                handle_binary_message(msg);
-            } else {
-                if (binary_message_queue.size() > 0) {
-                    fatal_error("Unexpected incoming client message - host was expecting a binary (blob) message.");
-                }
-                handle_json_message(msg);
+            std::string name = incoming.name();
+            if (name == "!End") {
+                terminate("Shutdown request received.");
+            } else if (name == "!/") {
+                return handle_cancel(incoming);
+            } else if (name == "?CreateBlob") {
+                return create_blob(incoming);
+            } else if (name == "?GetBlob") {
+                return get_blob(incoming);
+            } else if (name == "!DestroyBlob") {
+                return destroy_blobs(incoming);
+            } else if (name.size() >= 2 && name[0] == '?' && name[1] == '=') {
+                std::lock_guard<std::mutex> lock(eval_requests_mutex);
+                eval_requests.push(incoming);
+                unblock_message_loop();
+                return;
             }
         }
 
@@ -1101,11 +1001,12 @@ namespace rhost {
                 }
 
                 auto msg = send_request_and_get_response(cmd, get_context(), to_utf8_json(s));
-                if (msg.args.size() != 1 || !msg.args[0].is<std::string>()) {
+                auto args = msg.json();
+                if (args.size() != 1 || !args[0].is<std::string>()) {
                     fatal_error("ShowMessageBox: response argument must be a string.");
                 }
 
-                auto& r = msg.args[0].get<std::string>();
+                auto& r = args[0].get<std::string>();
                 if (r == "N") {
                     return -1; // graphapp.h => NO
                 } else if (r == "C") {

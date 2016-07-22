@@ -14,6 +14,7 @@
     <ClCompile Include="grdeviceside.cpp" />
     <ClCompile Include="json.cpp" />
     <ClCompile Include="blobs.cpp" />
+    <ClCompile Include="message.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h" />
@@ -34,6 +35,7 @@
     <ClInclude Include="grdeviceside.h" />
     <ClInclude Include="json.h" />
     <ClInclude Include="blobs.h" />
+    <ClInclude Include="message.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

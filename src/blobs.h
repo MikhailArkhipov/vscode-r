@@ -26,14 +26,17 @@
 #include "Rapi.h"
 
 namespace rhost {
-    namespace raw {
-        // Produces BLOB(raw bytes)-JSON from an R object according to the following mappings:
-        //
-        // NULL, NA, empty vector -> null
-        // RAW -> bytes
-        //
-        // Returns true if serialized value was NA, and false otherwise (even if it contains NA somewhere inside).
-        // Errors are reported via Rf_error.
-        bool to_blob(SEXP sexp, rhost::util::blob& blobs);
+    namespace blobs {
+        // Converts a RAWSXP or NILSXP object to a vector of bytes. For NILSXP, the vector is empty, and
+        // return value is false. Otherwise, the vector contains the same bytes, and return value is true.
+        bool to_blob(SEXP sexp, std::vector<char>& blob);
+
+        typedef std::vector<char> blob;
+
+        void append_from_file(blob& blob, const char* path);
+
+        inline void append_from_file(blob& blob, const std::string& path) {
+            return append_from_file(blob, path.c_str());
+        }
     }
 }

@@ -24,18 +24,12 @@
 #include "stdafx.h"
 #include "Rapi.h"
 #include "util.h"
+#include "blobs.h"
+#include "message.h"
+#include "log.h"
 
 namespace rhost {
     namespace host {
-        struct message {
-            std::string id;
-            std::string request_id; // not a response if empty
-            std::string name;
-            size_t blob_count;
-            rhost::util::blob blob;
-            picojson::array args;
-        };
-
         class eval_cancel_error : std::exception {
         };
 
@@ -64,34 +58,50 @@ namespace rhost {
             }
         }
 
-        std::string send_notification(const char* name, const rhost::util::blob& blob, const picojson::array& args);
-        std::string send_notification(const char* name, const picojson::array& args);
+        protocol::message_id send_notification(const std::string& name, const picojson::array& args, const blobs::blob& blob = blobs::blob());
 
         template<class... Args>
-        inline std::string send_notification(const char* name, const Args&... args) {
+        inline protocol::message_id send_notification(const std::string& name, const Args&... args) {
             picojson::array args_array;
             rhost::util::append(args_array, args...);
             return send_notification(name, args_array);
         }
 
         template<class... Args>
-        inline std::string send_notification(const char* name, const rhost::util::blob& blob, const Args&... args) {
+        inline protocol::message_id send_notification(const std::string& name, const blobs::blob& blob, const Args&... args) {
             picojson::array args_array;
             rhost::util::append(args_array, args...);
-            return send_notification(name, blob, args_array);
+            return send_notification(name, args_array, blob);
         }
 
-        message send_request_and_get_response(const char* name, const picojson::array& args);
+        protocol::message send_request_and_get_response(const std::string&, const picojson::array& args);
 
         template<class... Args>
-        inline message send_request_and_get_response(const char* name, const Args&... args) {
+        inline protocol::message send_request_and_get_response(const std::string& name, const Args&... args) {
             picojson::array args_array;
             rhost::util::append(args_array, args...);
             return send_request_and_get_response(name, args_array);
         }
 
-        int create_blob(const rhost::util::blob& blob);
-        const rhost::util::blob_slice get_blob_as_single_slice(int id);
-        void destroy_blob(int id);
+        typedef uint64_t blob_id; // range of values constrained to always fit a double
+
+        blob_id create_blob(blobs::blob&& blob);
+
+        inline blob_id create_blob(const blobs::blob& blob) {
+            auto copy = blob;
+            return create_blob(copy);
+        }
+
+        bool get_blob(blob_id id, blobs::blob& blob);
+
+        inline blobs::blob get_blob(blob_id id) {
+            blobs::blob blob;
+            if (!get_blob(id, blob)) {
+                log::fatal_error("GetBlob: no blob with ID %lld", id);
+            }
+            return blob;
+        }
+
+        void destroy_blob(blob_id id);
     }
 }

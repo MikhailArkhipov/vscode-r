@@ -102,6 +102,7 @@
       <SDLCheck>false</SDLCheck>
       <AdditionalIncludeDirectories>..\lib\picojson;..\lib\websocketpp</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <DisableSpecificWarnings>4200</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -120,6 +121,7 @@
       <SDLCheck>false</SDLCheck>
       <AdditionalIncludeDirectories>..\lib\picojson;..\lib\websocketpp</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <DisableSpecificWarnings>4200</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -140,6 +142,7 @@
       <SDLCheck>false</SDLCheck>
       <AdditionalIncludeDirectories>..\lib\picojson;..\lib\websocketpp</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <DisableSpecificWarnings>4200</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -162,6 +165,7 @@
       <SDLCheck>false</SDLCheck>
       <AdditionalIncludeDirectories>..\lib\picojson;..\lib\websocketpp</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <DisableSpecificWarnings>4200</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -178,6 +182,7 @@
     <ClCompile Include="exports.cpp" />
     <ClCompile Include="grdeviceside.cpp" />
     <ClCompile Include="grdevicesxaml.cpp" />
+    <ClCompile Include="message.cpp" />
     <ClCompile Include="msvcrt.cpp" />
     <ClCompile Include="eval.cpp" />
     <ClCompile Include="log.cpp" />
@@ -195,6 +200,7 @@
     <ClInclude Include="grdevices.h" />
     <ClInclude Include="grdeviceside.h" />
     <ClInclude Include="grdevicesxaml.h" />
+    <ClInclude Include="message.h" />
     <ClInclude Include="msvcrt.h" />
     <ClInclude Include="eval.h" />
     <ClInclude Include="log.h" />
