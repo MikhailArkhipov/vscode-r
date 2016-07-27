@@ -293,9 +293,10 @@ namespace rhost {
                 auto args = parse_args_sexp(args_sexp);
                 auto response = host::send_request_and_get_response(name, args);
 
-                protected_sexp response_args(Rf_allocVector3(STRSXP, response.args.size(), nullptr));
-                for (size_t i = 0; i < response.args.size(); ++i) {
-                    auto s = response.args[i].serialize();
+                args = response.json();
+                protected_sexp response_args(Rf_allocVector3(STRSXP, args.size(), nullptr));
+                for (size_t i = 0; i < args.size(); ++i) {
+                    auto s = args[i].serialize();
                     SET_STRING_ELT(response_args.get(), i, Rf_mkChar(from_utf8(s).c_str()));
                 }
                 return response_args.release();
@@ -450,19 +451,13 @@ namespace rhost {
             }
 
             Rbyte* data = RAW(obj);
-            rhost::util::blob blob;
-            blob.push_back(rhost::util::blob_slice(data, data + length));
-            int id = rhost::host::create_blob(blob);
-            return Rf_ScalarInteger((int)id);
+            blob_id id = rhost::host::create_blob(blobs::blob(data, data + length));
+            return Rf_ScalarReal(static_cast<double>(id));
         }
 
         extern "C" SEXP get_blob(SEXP id) {
-            int blob_id = Rf_asInteger(id);
-            const std::vector<byte> data = rhost::host::get_blob_as_single_slice(blob_id);
-
-            if (data.size() == 0) {
-                return R_NilValue;
-            }
+            auto blob_id = static_cast<host::blob_id>(Rf_asReal(id));
+            auto data = rhost::host::get_blob(blob_id);
 
             SEXP rawVector = nullptr;
             Rf_protect(rawVector = Rf_allocVector(RAWSXP, data.size()));

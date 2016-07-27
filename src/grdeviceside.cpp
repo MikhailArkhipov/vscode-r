@@ -512,13 +512,14 @@ namespace rhost {
 
                 rhost::host::with_cancellation([&] {
                     auto msg = rhost::host::send_request_and_get_response("?Locator");
-                    if (msg.args.size() != 3 || !msg.args[0].is<bool>() || !msg.args[1].is<double>() || !msg.args[2].is<double>()) {
+                    auto args = msg.json();
+                    if (args.size() != 3 || !args[0].is<bool>() || !args[1].is<double>() || !args[2].is<double>()) {
                         rhost::log::fatal_error("Locator response is malformed. It must have 3 elements: bool, double, double.");
                     }
 
-                    auto& result_clicked = msg.args[0].get<bool>();
-                    auto& result_x = msg.args[1].get<double>();
-                    auto& result_y = msg.args[2].get<double>();
+                    auto& result_clicked = args[0].get<bool>();
+                    auto& result_x = args[1].get<double>();
+                    auto& result_y = args[2].get<double>();
                     *x = result_x;
                     *y = result_y;
                     clicked = result_clicked ? R_TRUE : R_FALSE;
@@ -709,10 +710,10 @@ namespace rhost {
                 auto path_copy(filename);
                 rhost::host::with_cancellation([&] {
                     std::string file_path = path_copy.make_preferred().string();
-                    rhost::util::blob plot_image_data;
+                    blobs::blob plot_image_data;
 
                     if (file_path.length() > 0) {
-                        rhost::util::append_from_file(plot_image_data, file_path);
+                        blobs::append_from_file(plot_image_data, file_path);
                     }
 
                     rhost::host::send_notification(

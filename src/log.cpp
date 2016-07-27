@@ -235,7 +235,7 @@ namespace rhost {
                     msgbox_text += c;
                 }
                 
-                MessageBoxA(HWND_DESKTOP, msgbox_text.c_str(), "Microsoft R Host Process fatal error", MB_OK | MB_ICONERROR);
+                //MessageBoxA(HWND_DESKTOP, msgbox_text.c_str(), "Microsoft R Host Process fatal error", MB_OK | MB_ICONERROR);
 
                 // Raise and catch an exception so that minidump with a stacktrace can be produced from it.
                 [&] {
