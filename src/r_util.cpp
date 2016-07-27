@@ -28,6 +28,7 @@
 #include "host.h"
 #include "json.h"
 #include "exports.h"
+#include "rstrtmgr.h"
 
 using namespace rhost::log;
 using namespace rhost::util;
@@ -473,6 +474,12 @@ namespace rhost {
             return R_NilValue;
         }
 
+        extern "C" SEXP get_package_lock_state(SEXP path) {
+            const char* file_path = R_CHAR(STRING_ELT(path, 0));
+            SEXP pkg_lock_state = Rf_mkCharCE(rhost::util::lock_state_by_file(file_path), CE_UTF8);
+            return Rf_ScalarString(pkg_lock_state);
+        }
+
         R_CallMethodDef call_methods[] = {
             { "Microsoft.R.Host::Call.unevaluated_promise", (DL_FUNC)unevaluated_promise, 2 },
             { "Microsoft.R.Host::Call.memory_connection", (DL_FUNC)memory_connection_new, 4 },
@@ -488,6 +495,7 @@ namespace rhost {
             { "Microsoft.R.Host::Call.create_blob", (DL_FUNC)create_blob, 1 },
             { "Microsoft.R.Host::Call.get_blob", (DL_FUNC)get_blob, 1 },
             { "Microsoft.R.Host::Call.destroy_blob", (DL_FUNC)destroy_blob, 1 },
+            { "Microsoft.R.Host::Call.get_package_lock_state", (DL_FUNC)get_package_lock_state, 1 },
             { }
         };
 

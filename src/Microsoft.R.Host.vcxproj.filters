@@ -15,6 +15,7 @@
     <ClCompile Include="json.cpp" />
     <ClCompile Include="blobs.cpp" />
     <ClCompile Include="message.cpp" />
+    <ClCompile Include="rstrtmgr.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h" />
@@ -36,6 +37,7 @@
     <ClInclude Include="json.h" />
     <ClInclude Include="blobs.h" />
     <ClInclude Include="message.h" />
+    <ClInclude Include="rstrtmgr.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
