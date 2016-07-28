@@ -474,10 +474,16 @@ namespace rhost {
             return R_NilValue;
         }
 
-        extern "C" SEXP get_package_lock_state(SEXP path) {
-            const char* file_path = R_CHAR(STRING_ELT(path, 0));
-            SEXP pkg_lock_state = Rf_mkCharCE(rhost::util::lock_state_by_file(file_path), CE_UTF8);
-            return Rf_ScalarString(pkg_lock_state);
+        extern "C" SEXP get_file_lock_state(SEXP paths) {
+            R_len_t len  = Rf_length(paths);
+            std::vector<std::string> files;
+            
+            for (R_len_t i = 0; i < len; ++i) {
+                const char* file_path = R_CHAR(STRING_ELT(paths, i));
+                files.emplace_back(file_path);
+            }
+            file_lock_state lock_state = lock_state_by_file(files);
+            return Rf_ScalarInteger(static_cast<int>(lock_state));
         }
 
         R_CallMethodDef call_methods[] = {
@@ -495,7 +501,7 @@ namespace rhost {
             { "Microsoft.R.Host::Call.create_blob", (DL_FUNC)create_blob, 1 },
             { "Microsoft.R.Host::Call.get_blob", (DL_FUNC)get_blob, 1 },
             { "Microsoft.R.Host::Call.destroy_blob", (DL_FUNC)destroy_blob, 1 },
-            { "Microsoft.R.Host::Call.get_package_lock_state", (DL_FUNC)get_package_lock_state, 1 },
+            { "Microsoft.R.Host::Call.get_file_lock_state", (DL_FUNC)get_file_lock_state, 1 },
             { }
         };
 

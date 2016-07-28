@@ -118,9 +118,14 @@ namespace rhost {
         };
 
         std::string to_utf8(const char* buf, size_t len);
+        std::wstring to_unicode(const char* buf, size_t len);
 
         inline std::string to_utf8(const std::string& s) {
             return to_utf8(s.data(), s.size());
+        }
+
+        inline std::wstring to_unicode(const std::string& s) {
+            return to_unicode(s.data(), s.size());
         }
 
         inline picojson::value to_utf8_json(const char* buf) {

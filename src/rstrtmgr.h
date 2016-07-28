@@ -25,7 +25,14 @@
 
 namespace rhost {
     namespace util {
-        const char* lock_state_by_file(const char* file_path);
+
+        enum file_lock_state {
+            unlocked,
+            locked_by_r_session,
+            locked_by_other,
+        };
+
+        file_lock_state lock_state_by_file(const std::vector<std::string>& paths);
     }
 }
 
