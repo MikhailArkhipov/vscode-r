@@ -27,10 +27,8 @@
 
 namespace rhost {
     namespace util {
-        file_lock_state lock_state_by_file(const std::vector<std::string>& paths) {
+        file_lock_state lock_state_by_file(std::vector<std::wstring>& wpaths) {
 #ifdef _WIN32
-            std::vector<std::wstring> wpaths(paths.size());
-            std::transform(paths.begin(), paths.end(), wpaths.begin(), [](const std::string& path) { return to_unicode(path); });
             std::vector<LPCWSTR> wfilepaths(wpaths.size());
             std::transform(wpaths.begin(), wpaths.end(), wfilepaths.begin(), [](std::wstring& wpath) { return wpath.data(); });
 
@@ -60,10 +58,8 @@ namespace rhost {
                 return file_lock_state::unlocked;
             }
 
-            std::vector<DWORD> process_ids;
             std::vector<RM_PROCESS_INFO> process_info_data;
             while (error == ERROR_MORE_DATA) {
-                process_ids.resize(process_info_needed);
                 process_info_data.resize(process_info_needed);
                 process_info_count = process_info_needed;
                 error = RmGetList(session_handle, &process_info_needed, &process_info_count, process_info_data.data(), &reboot_reason);
@@ -73,6 +69,7 @@ namespace rhost {
                 return file_lock_state::unlocked;
             }
 
+            std::vector<DWORD> process_ids(process_info_data.size());
             std::transform(process_info_data.begin(), process_info_data.end(), process_ids.begin(), [](RM_PROCESS_INFO p) { return p.Process.dwProcessId; });
 
             DWORD rhost_pid = GetCurrentProcessId();

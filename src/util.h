@@ -117,19 +117,14 @@ namespace rhost {
             }
         };
 
-        std::string to_utf8(const char* buf, size_t len);
-        std::wstring to_unicode(const char* buf, size_t len);
+        std::string Rchar_to_utf8(const char* buf, size_t len);
 
-        inline std::string to_utf8(const std::string& s) {
-            return to_utf8(s.data(), s.size());
-        }
-
-        inline std::wstring to_unicode(const std::string& s) {
-            return to_unicode(s.data(), s.size());
+        inline std::string Rchar_to_utf8(const std::string& s) {
+            return Rchar_to_utf8(s.data(), s.size());
         }
 
         inline picojson::value to_utf8_json(const char* buf) {
-            return buf ? picojson::value(to_utf8(buf)) : picojson::value();
+            return buf ? picojson::value(Rchar_to_utf8(buf)) : picojson::value();
         }
 
         std::string from_utf8(const std::string& u8s);

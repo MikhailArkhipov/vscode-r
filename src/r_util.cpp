@@ -476,10 +476,9 @@ namespace rhost {
 
         extern "C" SEXP get_file_lock_state(SEXP paths) {
             R_len_t len  = Rf_length(paths);
-            std::vector<std::string> files;
-            
+            std::vector<std::wstring> files;
             for (R_len_t i = 0; i < len; ++i) {
-                const char* file_path = R_CHAR(STRING_ELT(paths, i));
+                const wchar_t* file_path = Rf_wtransChar(STRING_ELT(paths, i));
                 files.emplace_back(file_path);
             }
             file_lock_state lock_state = lock_state_by_file(files);

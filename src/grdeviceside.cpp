@@ -719,7 +719,7 @@ namespace rhost {
                     rhost::host::send_notification(
                         "!Plot",
                         plot_image_data,
-                        rhost::util::to_utf8(file_path),
+                        rhost::util::Rchar_to_utf8(file_path),
                         static_cast<double>(active_plot_index()),
                         static_cast<double>(plot_count())
                     );

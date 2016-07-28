@@ -32,7 +32,7 @@ namespace rhost {
             locked_by_other,
         };
 
-        file_lock_state lock_state_by_file(const std::vector<std::string>& paths);
+        file_lock_state lock_state_by_file(std::vector<std::wstring>& paths);
     }
 }
 

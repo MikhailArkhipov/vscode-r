@@ -458,7 +458,7 @@ namespace rhost {
             picojson::value error, value;
             blob blob;
             if (result.has_error) {
-                error = picojson::value(to_utf8(result.error));
+                error = picojson::value(Rchar_to_utf8(result.error));
             }
             if (result.has_value && !no_result) {
                 try {
