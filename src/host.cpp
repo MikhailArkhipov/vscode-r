@@ -807,7 +807,7 @@ namespace rhost {
         }
 
         void ws_fail_handler(websocketpp::connection_hdl hdl) {
-            fatal_error("websocket connection failed: %s", ws_conn->get_ec().message().c_str());
+            fatal_error("Websocket connection failed: %s", ws_conn->get_ec().message().c_str());
         }
 
         void ws_open_handler(websocketpp::connection_hdl hdl) {
@@ -884,6 +884,7 @@ namespace rhost {
             endpoint.init_asio();
             endpoint.set_validate_handler(ws_validate_handler);
             endpoint.set_open_handler(ws_open_handler);
+            endpoint.set_fail_handler(ws_fail_handler);
             endpoint.set_message_handler(ws_message_handler);
             endpoint.set_close_handler(ws_close_handler);
             endpoint.set_pong_handler(ws_pong_handler);
