@@ -28,7 +28,7 @@
 namespace rhost {
     namespace util {
         file_lock_state lock_state_by_file(std::vector<std::wstring>& wpaths) {
-#ifdef _WIN32
+#ifdef WIN32
             std::vector<LPCWSTR> wfilepaths(wpaths.size());
             std::transform(wpaths.begin(), wpaths.end(), wfilepaths.begin(), [](std::wstring& wpath) { return wpath.data(); });
 
