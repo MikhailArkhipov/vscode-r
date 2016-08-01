@@ -520,4 +520,5 @@ extern "C" {
     };
 
     extern size_t Rf_utf8towcs(wchar_t *wc, const char *s, size_t n);
+    extern const wchar_t* Rf_wtransChar(SEXP s);
 }

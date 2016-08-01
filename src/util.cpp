@@ -92,12 +92,12 @@ namespace rhost {
             return nc;
         }
 
-        std::string to_utf8(const char* buf, size_t len) {
+        std::string Rchar_to_utf8(const char* buf, size_t len) {
             // Convert 8-bit characters to Unicode via Windows CP. This guarantees
             // if locale for non-Unicode programs is set correctly, user can type in
             // their language. This does NOT guarantee that all languages can be used
             // since R is not Unicode app. If host app is Unicode, it must perform
-            // checks if text being passed here is convertable to Unicode.
+            // checks if text being passed here is convertible to Unicode.
             std::wstring ws;
             size_t cch = strlen(buf);
             if (cch > 0) {

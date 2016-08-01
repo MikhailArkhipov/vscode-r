@@ -28,6 +28,7 @@
 #include "host.h"
 #include "json.h"
 #include "exports.h"
+#include "rstrtmgr.h"
 
 using namespace rhost::log;
 using namespace rhost::util;
@@ -473,6 +474,19 @@ namespace rhost {
             return R_NilValue;
         }
 
+        extern "C" SEXP get_file_lock_state(SEXP paths) {
+            R_len_t len = Rf_length(paths);
+            std::vector<std::wstring> files;
+            r_top_level_exec([&]() {
+                for (R_len_t i = 0; i < len; ++i) {
+                    const wchar_t* file_path = Rf_wtransChar(STRING_ELT(paths, i));
+                    files.emplace_back(file_path);
+                }
+            }, __FUNCTION__);
+            file_lock_state lock_state = lock_state_by_file(files);
+            return Rf_ScalarInteger(static_cast<int>(lock_state));
+        }
+
         R_CallMethodDef call_methods[] = {
             { "Microsoft.R.Host::Call.unevaluated_promise", (DL_FUNC)unevaluated_promise, 2 },
             { "Microsoft.R.Host::Call.memory_connection", (DL_FUNC)memory_connection_new, 4 },
@@ -488,6 +502,7 @@ namespace rhost {
             { "Microsoft.R.Host::Call.create_blob", (DL_FUNC)create_blob, 1 },
             { "Microsoft.R.Host::Call.get_blob", (DL_FUNC)get_blob, 1 },
             { "Microsoft.R.Host::Call.destroy_blob", (DL_FUNC)destroy_blob, 1 },
+            { "Microsoft.R.Host::Call.get_file_lock_state", (DL_FUNC)get_file_lock_state, 1 },
             { }
         };
 
