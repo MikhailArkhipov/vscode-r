@@ -192,6 +192,7 @@
     <ClCompile Include="r_util.cpp" />
     <ClCompile Include="host.cpp" />
     <ClCompile Include="detours.cpp" />
+    <ClCompile Include="transport.cpp" />
     <ClCompile Include="util.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -201,6 +202,7 @@
     <ClInclude Include="grdevices.h" />
     <ClInclude Include="grdeviceside.h" />
     <ClInclude Include="grdevicesxaml.h" />
+    <ClInclude Include="transport.h" />
     <ClInclude Include="message.h" />
     <ClInclude Include="msvcrt.h" />
     <ClInclude Include="eval.h" />

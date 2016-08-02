@@ -26,6 +26,8 @@
 namespace rhost {
     namespace protocol {
         namespace {
+            std::atomic<message_id> last_message_id = -1;
+
             void log_payload(const std::string& payload) {
                 std::ostringstream str;
                 str << "\n\n<message (" << payload.size() << " bytes):\n";
@@ -37,6 +39,30 @@ namespace rhost {
                 log::logf("%s\n\n", str.str().c_str());
                 log::flush_log();
             }
+        }
+
+        message::message(message_id request_id, const std::string& name, const std::string& json, const std::vector<char>& blob) :
+            _id(last_message_id += 2),
+            _request_id(request_id),
+            _payload(sizeof _id + sizeof _request_id + name.size() + 1 + json.size() + 1 + blob.size(), '\0') {
+
+            auto& repr = *reinterpret_cast<message_repr*>(&_payload[0]);
+            repr.id = _id;
+            repr.request_id = _request_id;
+
+            const char* start = &_payload.front();
+            char* p = repr.data;
+
+            _name = p - start;
+            strcpy(p, name.c_str());
+            p += name.size() + 1;
+
+            _json = p - start;
+            strcpy(p, json.c_str());
+            p += json.size() + 1;
+
+            _blob = p - start;
+            memcpy(p, blob.data(), blob.size());
         }
 
         message message::parse(std::string&& payload) {

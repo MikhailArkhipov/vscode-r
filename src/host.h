@@ -33,9 +33,7 @@ namespace rhost {
         class eval_cancel_error : std::exception {
         };
 
-        std::future<void> wait_for_client(const boost::asio::ip::tcp::endpoint& endpoint);
-        std::future<void> connect_to_server(const websocketpp::uri& uri);
-        void register_callbacks(structRstart& rp);
+        void initialize(structRstart& rp);
         void terminate_if_closed();
 
         extern "C" void ShowMessage(const char* s);
