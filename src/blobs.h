@@ -38,5 +38,9 @@ namespace rhost {
         inline void append_from_file(blob& blob, const std::string& path) {
             return append_from_file(blob, path.c_str());
         }
+
+        inline void append_from_file(blob& blob, const std::experimental::filesystem::path& path) {
+            return append_from_file(blob, path.string().c_str());
+        }
     }
 }
