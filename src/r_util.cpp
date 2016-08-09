@@ -34,6 +34,7 @@ using namespace rhost::log;
 using namespace rhost::util;
 using namespace rhost::host;
 using namespace rhost::json;
+namespace fs = std::experimental::filesystem;
 
 namespace rhost {
     namespace r_util {
@@ -487,6 +488,22 @@ namespace rhost {
             return Rf_ScalarInteger(static_cast<int>(lock_state));
         }
 
+        extern "C" SEXP fetch_file(SEXP path) {
+            fs::path fpath;
+            r_top_level_exec([&]() {
+                fpath = fs::u8path(Rf_translateCharUTF8(STRING_ELT(path, 0)));
+            }, __FUNCTION__);
+
+            if (!fpath.empty()) {
+                blobs::blob file_data;
+                blobs::append_from_file(file_data, fpath);
+                host::send_notification("!FetchFile", file_data, fpath.filename().string());
+                return R_TrueValue;
+            }
+            
+            return R_FalseValue;
+        }
+
         R_CallMethodDef call_methods[] = {
             { "Microsoft.R.Host::Call.unevaluated_promise", (DL_FUNC)unevaluated_promise, 2 },
             { "Microsoft.R.Host::Call.memory_connection", (DL_FUNC)memory_connection_new, 4 },
@@ -503,6 +520,7 @@ namespace rhost {
             { "Microsoft.R.Host::Call.get_blob", (DL_FUNC)get_blob, 1 },
             { "Microsoft.R.Host::Call.destroy_blob", (DL_FUNC)destroy_blob, 1 },
             { "Microsoft.R.Host::Call.get_file_lock_state", (DL_FUNC)get_file_lock_state, 1 },
+            { "Microsoft.R.Host::Call.fetch_file", (DL_FUNC)fetch_file, 1 },
             { }
         };
 
