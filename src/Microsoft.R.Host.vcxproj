@@ -192,6 +192,7 @@
     <ClCompile Include="log.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="json.cpp" />
+    <ClCompile Include="project.cpp" />
     <ClCompile Include="rstrtmgr.cpp" />
     <ClCompile Include="r_util.cpp" />
     <ClCompile Include="host.cpp" />
@@ -211,6 +212,7 @@
     <ClInclude Include="msvcrt.h" />
     <ClInclude Include="eval.h" />
     <ClInclude Include="log.h" />
+    <ClInclude Include="project.h" />
     <ClInclude Include="Rapi.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="Rgraphicsapi.h" />
@@ -245,6 +247,10 @@
     <Import Project="$(SolutionDir)\..\NugetPackages\boost_program_options-vc140.1.60.0.0\build\native\boost_program_options-vc140.targets" Condition="Exists('$(SolutionDir)\..\NugetPackages\boost_program_options-vc140.1.60.0.0\build\native\boost_program_options-vc140.targets')" />
     <Import Project="$(SolutionDir)\..\NugetPackages\boost_regex-vc140.1.60.0.0\build\native\boost_regex-vc140.targets" Condition="Exists('$(SolutionDir)\..\NugetPackages\boost_regex-vc140.1.60.0.0\build\native\boost_regex-vc140.targets')" />
     <Import Project="$(SolutionDir)\..\NugetPackages\boost_system-vc140.1.60.0.0\build\native\boost_system-vc140.targets" Condition="Exists('$(SolutionDir)\..\NugetPackages\boost_system-vc140.1.60.0.0\build\native\boost_system-vc140.targets')" />
+    <Import Project="$(SolutionDir)\..\NugetPackages\libzip.redist.1.1.2.7\build\native\libzip.redist.targets" Condition="Exists('$(SolutionDir)\..\NugetPackages\libzip.redist.1.1.2.7\build\native\libzip.redist.targets')" />
+    <Import Project="$(SolutionDir)\..\NugetPackages\libzip.1.1.2.7\build\native\libzip.targets" Condition="Exists('$(SolutionDir)\..\NugetPackages\libzip.1.1.2.7\build\native\libzip.targets')" />
+    <Import Project="$(SolutionDir)\..\NugetPackages\zlib.v120.windesktop.msvcstl.dyn.rt-dyn.1.2.8.8\build\native\zlib.v120.windesktop.msvcstl.dyn.rt-dyn.targets" Condition="Exists('$(SolutionDir)\..\NugetPackages\zlib.v120.windesktop.msvcstl.dyn.rt-dyn.1.2.8.8\build\native\zlib.v120.windesktop.msvcstl.dyn.rt-dyn.targets')" />
+    <Import Project="$(SolutionDir)\..\NugetPackages\zlib.v140.windesktop.msvcstl.dyn.rt-dyn.1.2.8.8\build\native\zlib.v140.windesktop.msvcstl.dyn.rt-dyn.targets" Condition="Exists('$(SolutionDir)\..\NugetPackages\zlib.v140.windesktop.msvcstl.dyn.rt-dyn.1.2.8.8\build\native\zlib.v140.windesktop.msvcstl.dyn.rt-dyn.targets')" />
   </ImportGroup>
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
@@ -259,6 +265,10 @@
     <Error Condition="!Exists('$(SolutionDir)\..\NugetPackages\boost_system-vc140.1.60.0.0\build\native\boost_system-vc140.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\..\NugetPackages\boost_system-vc140.1.60.0.0\build\native\boost_system-vc140.targets'))" />
     <Error Condition="!Exists('$(SolutionDir)\..\NugetPackages\MicroBuild.Core.0.1.1\build\MicroBuild.Core.props')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\..\NugetPackages\MicroBuild.Core.0.1.1\build\MicroBuild.Core.props'))" />
     <Error Condition="!Exists('$(SolutionDir)\..\NugetPackages\MicroBuild.Core.0.1.1\build\MicroBuild.Core.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\..\NugetPackages\MicroBuild.Core.0.1.1\build\MicroBuild.Core.targets'))" />
+    <Error Condition="!Exists('$(SolutionDir)\..\NugetPackages\libzip.redist.1.1.2.7\build\native\libzip.redist.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\..\NugetPackages\libzip.redist.1.1.2.7\build\native\libzip.redist.targets'))" />
+    <Error Condition="!Exists('$(SolutionDir)\..\NugetPackages\libzip.1.1.2.7\build\native\libzip.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\..\NugetPackages\libzip.1.1.2.7\build\native\libzip.targets'))" />
+    <Error Condition="!Exists('$(SolutionDir)\..\NugetPackages\zlib.v120.windesktop.msvcstl.dyn.rt-dyn.1.2.8.8\build\native\zlib.v120.windesktop.msvcstl.dyn.rt-dyn.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\..\NugetPackages\zlib.v120.windesktop.msvcstl.dyn.rt-dyn.1.2.8.8\build\native\zlib.v120.windesktop.msvcstl.dyn.rt-dyn.targets'))" />
+    <Error Condition="!Exists('$(SolutionDir)\..\NugetPackages\zlib.v140.windesktop.msvcstl.dyn.rt-dyn.1.2.8.8\build\native\zlib.v140.windesktop.msvcstl.dyn.rt-dyn.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\..\NugetPackages\zlib.v140.windesktop.msvcstl.dyn.rt-dyn.1.2.8.8\build\native\zlib.v140.windesktop.msvcstl.dyn.rt-dyn.targets'))" />
   </Target>
   <Import Project="$(SolutionDir)\R.Build.Version.targets" />
 </Project>

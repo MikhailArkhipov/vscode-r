@@ -26,6 +26,8 @@
 #include "log.h"
 #include "util.h"
 #include "host.h"
+#include "blobs.h"
+#include "project.h"
 #include "json.h"
 #include "exports.h"
 #include "rstrtmgr.h"
@@ -453,12 +455,12 @@ namespace rhost {
             }
 
             Rbyte* data = RAW(obj);
-            blob_id id = rhost::host::create_blob(blobs::blob(data, data + length));
+            blobs::blob_id id = rhost::host::create_blob(blobs::blob(data, data + length));
             return Rf_ScalarReal(static_cast<double>(id));
         }
 
         extern "C" SEXP get_blob(SEXP id) {
-            auto blob_id = static_cast<host::blob_id>(Rf_asReal(id));
+            auto blob_id = static_cast<blobs::blob_id>(Rf_asReal(id));
             auto data = rhost::host::get_blob(blob_id);
 
             SEXP rawVector = nullptr;
@@ -470,7 +472,7 @@ namespace rhost {
         }
 
         extern "C" SEXP destroy_blob(SEXP id) {
-            int blob_id = Rf_asInteger(id);
+            auto blob_id = static_cast<blobs::blob_id>(Rf_asReal(id));
             rhost::host::destroy_blob(blob_id);
             return R_NilValue;
         }
@@ -504,6 +506,37 @@ namespace rhost {
             return R_FalseValue;
         }
 
+        extern "C" SEXP save_project(SEXP id, SEXP project_name, SEXP dest_dir, SEXP temp_dir) {
+            auto blob_id = static_cast<blobs::blob_id>(Rf_asReal(id));
+            fs::path prj_name, d_dir, t_dir;
+
+            r_top_level_exec([&]() {
+                prj_name = fs::u8path(Rf_translateCharUTF8(STRING_ELT(project_name, 0)));
+                d_dir = fs::u8path(Rf_translateCharUTF8(STRING_ELT(dest_dir, 0)));
+                t_dir = fs::u8path(Rf_translateCharUTF8(STRING_ELT(temp_dir, 0)));
+            }, __FUNCTION__);
+
+            fs::path zip_file = t_dir / prj_name;
+            zip_file.replace_extension(".zip");
+
+            if (fs::exists(zip_file)) {
+                fs::remove(zip_file);
+            }
+
+            blobs::save_to_file(blob_id, zip_file);
+
+            fs::path temp_proj_dir = t_dir / prj_name;
+            if (fs::exists(temp_proj_dir)) {
+                fs::remove_all(temp_proj_dir);
+            }
+
+            fs::path dest_proj_dir = d_dir / prj_name;
+
+            rproj::extract_project(zip_file, dest_proj_dir, temp_proj_dir);
+
+            return R_NilValue;
+        }
+
         R_CallMethodDef call_methods[] = {
             { "Microsoft.R.Host::Call.unevaluated_promise", (DL_FUNC)unevaluated_promise, 2 },
             { "Microsoft.R.Host::Call.memory_connection", (DL_FUNC)memory_connection_new, 4 },
@@ -521,6 +554,7 @@ namespace rhost {
             { "Microsoft.R.Host::Call.destroy_blob", (DL_FUNC)destroy_blob, 1 },
             { "Microsoft.R.Host::Call.get_file_lock_state", (DL_FUNC)get_file_lock_state, 1 },
             { "Microsoft.R.Host::Call.fetch_file", (DL_FUNC)fetch_file, 1 },
+            { "Microsoft.R.Host::Call.save_project", (DL_FUNC)save_project, 4 },
             { }
         };
 

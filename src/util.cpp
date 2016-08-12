@@ -117,7 +117,7 @@ namespace rhost {
             // Now convert to MBCS. Do it manually since WideCharToMultiByte
             // requires specific code page and fails if character
             // cannot be converted. Instead, we are going to encode 
-            // unconvertable characters into "\uABCD" form. This allows
+            // unconvertible characters into "\uABCD" form. This allows
             // us to preserve characters written in non-default OS CP.
             // Max 8 bytes per character which should fit both UTF-8 and \uABCD
             std::string converted(8 * ws.length(), '\0');

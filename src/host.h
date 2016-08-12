@@ -81,18 +81,16 @@ namespace rhost {
             return send_request_and_get_response(name, args_array);
         }
 
-        typedef uint64_t blob_id; // range of values constrained to always fit a double
+        blobs::blob_id create_blob(blobs::blob&& blob);
 
-        blob_id create_blob(blobs::blob&& blob);
-
-        inline blob_id create_blob(const blobs::blob& blob) {
+        inline blobs::blob_id create_blob(const blobs::blob& blob) {
             auto copy = blob;
             return create_blob(copy);
         }
 
-        bool get_blob(blob_id id, blobs::blob& blob);
+        bool get_blob(blobs::blob_id id, blobs::blob& blob);
 
-        inline blobs::blob get_blob(blob_id id) {
+        inline blobs::blob get_blob(blobs::blob_id id) {
             blobs::blob blob;
             if (!get_blob(id, blob)) {
                 log::fatal_error("GetBlob: no blob with ID %lld", id);
@@ -100,6 +98,6 @@ namespace rhost {
             return blob;
         }
 
-        void destroy_blob(blob_id id);
+        void destroy_blob(blobs::blob_id id);
     }
 }
