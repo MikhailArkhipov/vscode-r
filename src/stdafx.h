@@ -80,4 +80,4 @@
 
 #include "minhook.h"
 
-
+#include "zip.h"

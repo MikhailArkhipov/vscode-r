@@ -100,7 +100,7 @@ namespace rhost {
             }
         }
 
-        void save_to_file(blob_id id, const fs::path& file_path) {
+        void save_to_file(blob_id id, fs::path& file_path) {
             auto data = rhost::host::get_blob(id);
 
             fs::path parent = file_path.parent_path();
@@ -108,7 +108,7 @@ namespace rhost {
                 fs::create_directories(parent);
             }
 
-            FILE *f = std::fopen(file_path.string().c_str(), "wb");
+            FILE *f = std::fopen(file_path.make_preferred().string().c_str(), "wb");
             if (!f) {
                 throw std::exception("Error saving blob to file.");
             }

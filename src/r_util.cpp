@@ -506,7 +506,7 @@ namespace rhost {
             return R_FalseValue;
         }
 
-        extern "C" SEXP save_project(SEXP id, SEXP project_name, SEXP dest_dir, SEXP temp_dir) {
+        extern "C" SEXP save_to_project_folder(SEXP id, SEXP project_name, SEXP dest_dir, SEXP temp_dir) {
             auto blob_id = static_cast<blobs::blob_id>(Rf_asReal(id));
             fs::path prj_name, d_dir, t_dir;
 
@@ -519,20 +519,20 @@ namespace rhost {
             fs::path zip_file = t_dir / prj_name;
             zip_file.replace_extension(".zip");
 
-            if (fs::exists(zip_file)) {
-                fs::remove(zip_file);
-            }
+            fs::remove(zip_file);
 
-            blobs::save_to_file(blob_id, zip_file);
+            util::exceptions_to_errors([&]() {
+                blobs::save_to_file(blob_id, zip_file);
+            });
 
             fs::path temp_proj_dir = t_dir / prj_name;
-            if (fs::exists(temp_proj_dir)) {
-                fs::remove_all(temp_proj_dir);
-            }
+            fs::remove_all(temp_proj_dir);
 
             fs::path dest_proj_dir = d_dir / prj_name;
 
-            rproj::extract_project(zip_file, dest_proj_dir, temp_proj_dir);
+            util::exceptions_to_errors([&]() {
+                rproj::extract_project(zip_file, dest_proj_dir, temp_proj_dir);
+            });
 
             return R_NilValue;
         }
@@ -554,7 +554,7 @@ namespace rhost {
             { "Microsoft.R.Host::Call.destroy_blob", (DL_FUNC)destroy_blob, 1 },
             { "Microsoft.R.Host::Call.get_file_lock_state", (DL_FUNC)get_file_lock_state, 1 },
             { "Microsoft.R.Host::Call.fetch_file", (DL_FUNC)fetch_file, 1 },
-            { "Microsoft.R.Host::Call.save_project", (DL_FUNC)save_project, 4 },
+            { "Microsoft.R.Host::Call.save_to_project_folder", (DL_FUNC)save_to_project_folder, 4 },
             { }
         };
 
