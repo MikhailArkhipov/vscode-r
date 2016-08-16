@@ -25,6 +25,6 @@
 
 namespace rhost {
     namespace rproj {
-        void extract_project(std::experimental::filesystem::path& zip_file, std::experimental::filesystem::path& dest_dir, std::experimental::filesystem::path& temp_dir);
+        void save_to_project_folder_worker(blobs::blob_id blob_id, std::experimental::filesystem::path& project_name, std::experimental::filesystem::path& dest_dir, std::experimental::filesystem::path& temp_dir);
     }
 }

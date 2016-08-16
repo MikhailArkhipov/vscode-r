@@ -491,47 +491,38 @@ namespace rhost {
         }
 
         extern "C" SEXP fetch_file(SEXP path) {
-            fs::path fpath;
+            const char* f_path = nullptr;
+            
             r_top_level_exec([&]() {
-                fpath = fs::u8path(Rf_translateCharUTF8(STRING_ELT(path, 0)));
+                f_path = Rf_translateCharUTF8(STRING_ELT(path, 0));
             }, __FUNCTION__);
 
-            if (!fpath.empty()) {
-                blobs::blob file_data;
-                blobs::append_from_file(file_data, fpath);
-                host::send_notification("!FetchFile", file_data, fpath.filename().string());
-                return R_TrueValue;
-            }
-            
-            return R_FalseValue;
+            return util::exceptions_to_errors([&]() {
+                fs::path fpath = fs::u8path(f_path);
+                if (!fpath.empty()) {
+                    blobs::blob file_data;
+                    blobs::append_from_file(file_data, fpath);
+                    host::send_notification("!FetchFile", file_data, fpath.filename().string());
+                    return R_TrueValue;
+                }
+                return R_FalseValue;
+            });
         }
 
         extern "C" SEXP save_to_project_folder(SEXP id, SEXP project_name, SEXP dest_dir, SEXP temp_dir) {
             auto blob_id = static_cast<blobs::blob_id>(Rf_asReal(id));
-            fs::path prj_name, d_dir, t_dir;
+            const char *prj_name = nullptr;
+            const char *t_dir = nullptr;
+            const char *d_dir = nullptr;
 
             r_top_level_exec([&]() {
-                prj_name = fs::u8path(Rf_translateCharUTF8(STRING_ELT(project_name, 0)));
-                d_dir = fs::u8path(Rf_translateCharUTF8(STRING_ELT(dest_dir, 0)));
-                t_dir = fs::u8path(Rf_translateCharUTF8(STRING_ELT(temp_dir, 0)));
+                prj_name = Rf_translateCharUTF8(STRING_ELT(project_name, 0));
+                d_dir = Rf_translateCharUTF8(STRING_ELT(dest_dir, 0));
+                t_dir = Rf_translateCharUTF8(STRING_ELT(temp_dir, 0));
             }, __FUNCTION__);
 
-            fs::path zip_file = t_dir / prj_name;
-            zip_file.replace_extension(".zip");
-
-            fs::remove(zip_file);
-
             util::exceptions_to_errors([&]() {
-                blobs::save_to_file(blob_id, zip_file);
-            });
-
-            fs::path temp_proj_dir = t_dir / prj_name;
-            fs::remove_all(temp_proj_dir);
-
-            fs::path dest_proj_dir = d_dir / prj_name;
-
-            util::exceptions_to_errors([&]() {
-                rproj::extract_project(zip_file, dest_proj_dir, temp_proj_dir);
+                rproj::save_to_project_folder_worker(blob_id, fs::u8path(prj_name), fs::u8path(d_dir), fs::u8path(t_dir));
             });
 
             return R_NilValue;
