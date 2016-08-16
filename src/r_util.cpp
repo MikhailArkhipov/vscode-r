@@ -491,12 +491,7 @@ namespace rhost {
         }
 
         extern "C" SEXP fetch_file(SEXP path) {
-            const char* f_path = nullptr;
-            
-            r_top_level_exec([&]() {
-                f_path = Rf_translateCharUTF8(STRING_ELT(path, 0));
-            }, __FUNCTION__);
-
+            const char* f_path = Rf_translateCharUTF8(STRING_ELT(path, 0));
             return util::exceptions_to_errors([&]() {
                 fs::path fpath = fs::u8path(f_path);
                 if (!fpath.empty()) {
@@ -511,15 +506,9 @@ namespace rhost {
 
         extern "C" SEXP save_to_project_folder(SEXP id, SEXP project_name, SEXP dest_dir, SEXP temp_dir) {
             auto blob_id = static_cast<blobs::blob_id>(Rf_asReal(id));
-            const char *prj_name = nullptr;
-            const char *t_dir = nullptr;
-            const char *d_dir = nullptr;
-
-            r_top_level_exec([&]() {
-                prj_name = Rf_translateCharUTF8(STRING_ELT(project_name, 0));
-                d_dir = Rf_translateCharUTF8(STRING_ELT(dest_dir, 0));
-                t_dir = Rf_translateCharUTF8(STRING_ELT(temp_dir, 0));
-            }, __FUNCTION__);
+            const char *prj_name = Rf_translateCharUTF8(STRING_ELT(project_name, 0));
+            const char *t_dir = Rf_translateCharUTF8(STRING_ELT(dest_dir, 0));
+            const char *d_dir = Rf_translateCharUTF8(STRING_ELT(temp_dir, 0));
 
             util::exceptions_to_errors([&]() {
                 rproj::save_to_project_folder_worker(blob_id, fs::u8path(prj_name), fs::u8path(d_dir), fs::u8path(t_dir));
