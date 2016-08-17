@@ -25,11 +25,34 @@
 
 namespace rhost {
     namespace log {
+        enum class log_level {
+            trace,
+            information,
+            warning,
+            error
+        };
+
         void init_log(const std::string& log_suffix);
 
-        void vlogf(const char* format, va_list va);
+        void vlogf(log_level level, const char* format, va_list va);
 
-        void logf(const char* format, ...);
+        inline void logf(log_level level, const char* format, ...) {
+            va_list va;
+            va_start(va, format);
+            vlogf(level, format, va);
+            va_end(format);
+        }
+
+        inline void vlogf(const char* format, va_list va) {
+            vlogf(log_level::trace, format, va);
+        }
+
+        inline void logf(const char* format, ...) {
+            va_list va;
+            va_start(va, format);
+            vlogf(format, va);
+            va_end(format);
+        }
 
         void indent_log(int n);
 
