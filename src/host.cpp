@@ -27,6 +27,7 @@
 #include "util.h"
 #include "json.h"
 #include "blobs.h"
+#include "transport.h"
 
 using namespace std::literals;
 using namespace boost::endian;
@@ -39,50 +40,11 @@ using namespace rhost::protocol;
 
 namespace rhost {
     namespace host {
-        const char subprotocol[] = "Microsoft.R.Host";
-        const long heartbeat_timeout =
-#ifdef NDEBUG
-            5'000;
-#else 
-            // In debug mode, make the timeout much longer, so that debugging the host client won't cause
-            // the host to disconnect quickly because the client is not responding when paused in debugger.
-            600'000;
-#endif
-
         boost::signals2::signal<void()> callback_started;
         boost::signals2::signal<void()> readconsole_done;
 
-        typedef websocketpp::connection<websocketpp::config::asio> ws_connection_type;
-
-        // There's no std::atomic<std::shared_ptr<...>>, but there are free-standing atomic_* functions that can do 
-        // the same manually - wrap ws_conn into a class that ensures that all access goes through those functions.
-        // TODO: replace with C++17 atomic_shared_ptr once it is available.
-        struct {
-            std::shared_ptr<ws_connection_type> operator-> () const {
-                return std::atomic_load(&ptr);
-            }
-
-            operator std::shared_ptr<ws_connection_type>() const {
-                return operator->();
-            }
-
-            explicit operator bool() const {
-                return static_cast<bool>(operator->());
-            }
-
-            void operator= (std::shared_ptr<ws_connection_type> value) {
-                std::atomic_store(&ptr, value);
-            }
-
-        private:
-            std::shared_ptr<ws_connection_type> ptr;
-        } ws_conn;
-
         DWORD main_thread_id;
-        std::promise<void> connected_promise;
-        std::atomic<bool> is_connection_closed = false;
         std::atomic<bool> is_waiting_for_wm = false;
-        std::atomic<message_id> last_message_id = -1;
         bool allow_callbacks = true, allow_intr_in_CallBack = true;
 
         // Specifies whether the host is currently expecting a response message to some earlier request that it had sent.
@@ -136,7 +98,7 @@ namespace rhost {
                 return;
             }
 
-            if (is_connection_closed) {
+            if (!transport::is_connected()) {
                 is_terminating = true;
                 terminate("Lost connection to client.");
             }
@@ -161,58 +123,26 @@ namespace rhost {
 #endif
         }
 
-        message_id send_message(message_id request_id, const std::string& name, const picojson::array& args, const blob& blob) {
-            assert(name[0] == '!' || name[0] == '?' || name[0] == ':');
-
-            message_id id = last_message_id += 2;
-            log_message("<==", id, request_id, name, args, blob);
-
-            if (is_connection_closed) {
-                return id;
-            }
-
-            std::string json = picojson::value(args).serialize();
-
-            size_t buf_size = sizeof message_repr + name.size() + 1 + json.size() + 1 + blob.size();
-            std::unique_ptr<char[]> buf(new char[buf_size]);
-
-            auto& repr = *reinterpret_cast<message_repr*>(buf.get());
-            repr.id = id;
-            repr.request_id = request_id;
-
-            char* p = repr.data;
-
-            strcpy(p, name.c_str());
-            p += name.size() + 1;
-
-            strcpy(p, json.c_str());
-            p += json.size() + 1;
-
-            memcpy(p, blob.data(), blob.size());
-
-            auto err = ws_conn->send(buf.get(), buf_size, websocketpp::frame::opcode::binary);
-            if (err) {
-                fatal_error("Send failed: [%d] %s", err.value(), err.message().c_str());
-            }
-
-            return id;
-        }
-
         message_id send_notification(const std::string& name, const picojson::array& args, const blob& blob) {
             assert(name[0] == '!');
-            return send_message(0, name, args, blob);
+            message msg(0, name, args, blob);
+            transport::send_message(msg);
+            return msg.id();
         }
 
         template<class... Args>
         message_id respond_to_message(const message& request, const blob& blob, Args... args) {
             assert(request.name()[0] == '?');
 
-            picojson::array args_array;
-            rhost::util::append(args_array, args...);
+            picojson::array json;
+            rhost::util::append(json, args...);
 
             std::string name = request.name();
             name[0] = ':';
-            return send_message(request.id(), name, args_array, blob);
+
+            message msg(request.id(), name, json, blob);
+            transport::send_message(msg);
+            return msg.id();
         }
 
         template<class... Args>
@@ -555,7 +485,9 @@ namespace rhost {
                 response_state = RESPONSE_EXPECTED;
             }
 
-            auto id = send_message(message::request_marker, name, args, blob());
+            message request(message::request_marker, name, args, blob());
+            transport::send_message(request);
+            auto id = request.id();
             terminate_if_closed();
 
             indent_log(+1);
@@ -586,6 +518,8 @@ namespace rhost {
                             break;
                         }
                     }
+
+                    terminate_if_closed();
 
                     // R_ProcessEvents may invoke CallBack. If there is a pending cancellation request, we do
                     // not want CallBack to call Rf_onintr as it normally does, since it would unwind the stack
@@ -642,6 +576,8 @@ namespace rhost {
         }
 
         extern "C" void CallBack() {
+            terminate_if_closed();
+
             // Called periodically by R_ProcessEvents and Rf_eval. This is where we check for various
             // cancellation requests and issue an interrupt (Rf_onintr) if one is applicable in the
             // current context.
@@ -782,61 +718,14 @@ namespace rhost {
         }
 
         extern "C" void atexit_handler() {
-            if (ws_conn) {
+            if (transport::is_connected()) {
                 with_cancellation([&] {
                     send_notification("!End");
                 });
             }
         }
 
-        bool ws_validate_handler(websocketpp::connection_hdl hdl) {
-            auto& protos = ws_conn->get_requested_subprotocols();
-            logf("Incoming connection requesting subprotocols: [ ");
-            for (auto proto : protos) {
-                logf("'%s' ", proto.c_str());
-            }
-            logf("]\n");
-
-            auto it = std::find(protos.begin(), protos.end(), subprotocol);
-            if (it == protos.end()) {
-                fatal_error("Expected subprotocol %s was not requested", subprotocol);
-            }
-
-            ws_conn->select_subprotocol(subprotocol);
-            return true;
-        }
-
-        void ws_fail_handler(websocketpp::connection_hdl hdl) {
-            fatal_error("Websocket connection failed: %s", ws_conn->get_ec().message().c_str());
-        }
-
-        void ws_open_handler(websocketpp::connection_hdl hdl) {
-            send_notification("!Microsoft.R.Host", 1.0, getDLLVersion());
-            connected_promise.set_value();
-
-            std::error_code ec;
-            ws_conn->ping("", ec);
-        }
-
-        void ws_message_handler(websocketpp::connection_hdl hdl, ws_connection_type::message_ptr msg) {
-            const auto& payload = msg->get_payload();
-
-            auto incoming = message::parse(payload);
-            log_message("==>", incoming.id(), incoming.request_id(), incoming.name(), incoming.json(), incoming.blob());
-
-            if (incoming.is_response()) {
-                std::lock_guard<std::mutex> lock(response_mutex);
-                assert(response_state != RESPONSE_RECEIVED);
-                if (response_state == RESPONSE_UNEXPECTED) {
-                    fatal_error("Unexpected incoming client response.");
-                }
-
-                response = std::move(incoming);
-                response_state = RESPONSE_RECEIVED;
-                unblock_message_loop();
-                return;
-            }
-
+        void message_received(const message& incoming) {
             std::string name = incoming.name();
             if (name == "!End") {
                 terminate("Shutdown request received.");
@@ -853,140 +742,40 @@ namespace rhost {
                 eval_requests.push(incoming);
                 unblock_message_loop();
                 return;
-            }
-        }
-
-        void ws_close_handler(websocketpp::connection_hdl h) {
-            is_connection_closed = true;
-            unblock_message_loop();
-        }
-
-        void ws_pong_handler(websocketpp::connection_hdl hdl, std::string) {
-            if (auto conn = ws_conn) {
-                conn->set_timer(1'000, [](auto error_code) {
-                    if (auto conn = ws_conn) {
-                        conn->ping("", error_code);
-                    }
-                });
-            }
-        }
-
-        void ws_pong_timeout_handler(websocketpp::connection_hdl, std::string) {
-            terminate("Client did not respond to heartbeat ping.");
-        }
-
-        void initialize_ws_endpoint(websocketpp::endpoint<websocketpp::connection<websocketpp::config::asio>, websocketpp::config::asio>& endpoint) {
-#ifndef TRACE_WEBSOCKET
-            endpoint.set_access_channels(websocketpp::log::alevel::none);
-            endpoint.set_error_channels(websocketpp::log::elevel::none);
-#endif
-
-            endpoint.init_asio();
-            endpoint.set_validate_handler(ws_validate_handler);
-            endpoint.set_open_handler(ws_open_handler);
-            endpoint.set_fail_handler(ws_fail_handler);
-            endpoint.set_message_handler(ws_message_handler);
-            endpoint.set_close_handler(ws_close_handler);
-            endpoint.set_pong_handler(ws_pong_handler);
-            endpoint.set_pong_timeout_handler(ws_pong_timeout_handler);
-            endpoint.set_pong_timeout(heartbeat_timeout);
-        }
-
-        void server_worker(boost::asio::ip::tcp::endpoint endpoint) {
-            websocketpp::server<websocketpp::config::asio> server;
-            initialize_ws_endpoint(server);
-
-            std::ostringstream endpoint_str;
-            endpoint_str << endpoint;
-            logf("Waiting for incoming connection on %s ...\n", endpoint_str.str().c_str());
-
-            std::error_code error_code;
-            server.listen(endpoint, error_code);
-            if (error_code) {
-                fatal_error("Could not open server socket for listening: %s", error_code.message().c_str());
-            }
-
-            auto conn = server.get_connection();
-            ws_conn = conn;
-            server.async_accept(conn, [&](auto error_code) {
-                if (error_code) {
-                    conn->terminate(error_code);
-                    fatal_error("Could not establish connection to client: %s", error_code.message().c_str());
-                } else {
-                    conn->start();
-                    conn->ping("", error_code);
+            } else if (incoming.is_response()) {
+                std::lock_guard<std::mutex> lock(response_mutex);
+                assert(response_state != RESPONSE_RECEIVED);
+                if (response_state == RESPONSE_UNEXPECTED) {
+                    fatal_error("Unexpected incoming client response.");
                 }
-            });
 
-            server.run();
+                response = std::move(incoming);
+                response_state = RESPONSE_RECEIVED;
+                unblock_message_loop();
+                return;
+            } else {
+                fatal_error("Unrecognized message.");
+            }
         }
 
-        void client_worker(websocketpp::uri uri) {
-            websocketpp::client<websocketpp::config::asio> client;
-            initialize_ws_endpoint(client);
-
-            logf("Establishing connection to %s ...\n", uri.str().c_str());
-
-            auto uri_ptr = std::make_shared<websocketpp::uri>(uri);
-            std::error_code error_code;
-            ws_conn = client.get_connection(uri_ptr, error_code);
-            if (error_code) {
-                ws_conn->terminate(error_code);
-                fatal_error("Could not establish connection to server: %s", error_code.message().c_str());
-            }
-
-            ws_conn->add_subprotocol(subprotocol);
-            client.connect(ws_conn);
-
+        void initialize(structRstart& rp) {
             // R itself is built with MinGW, and links to msvcrt.dll, so it uses the latter's exit() to terminate the main loop.
             // To ensure that our code runs during shutdown, we need to use the corresponding atexit().
             msvcrt::atexit(atexit_handler);
 
-            client.run();
-        }
-
-        void server_thread_func(const boost::asio::ip::tcp::endpoint& endpoint) {
-        }
-
-        void register_atexit_handler() {
-            // R itself is built with MinGW, and links to msvcrt.dll, so it uses the latter's exit() to terminate the main loop.
-            // To ensure that our code runs during shutdown, we need to use the corresponding atexit().
-            msvcrt::atexit(atexit_handler);
-        }
-
-        std::future<void> wait_for_client(const boost::asio::ip::tcp::endpoint& endpoint) {
-            register_atexit_handler();
             main_thread_id = GetCurrentThreadId();
-            std::thread([&] {
-                __try {
-                    [&] { server_worker(endpoint); } ();
-                } __finally {
-                    flush_log();
-                }
-            }).detach();
-            return connected_promise.get_future();
-        }
 
-        std::future<void> connect_to_server(const websocketpp::uri& uri) {
-            register_atexit_handler();
-            main_thread_id = GetCurrentThreadId();
-            std::thread([&] {
-                __try {
-                    [&] { client_worker(uri); }();
-                } __finally {
-                    flush_log();
-                }
-            }).detach();
-            return connected_promise.get_future();
-        }
+            transport::message_received.connect(message_received);
+            transport::disconnected.connect(unblock_message_loop);
 
-        void register_callbacks(structRstart& rp) {
             rp.ReadConsole = R_ReadConsole;
             rp.WriteConsoleEx = WriteConsoleEx;
             rp.CallBack = CallBack;
             rp.ShowMessage = ShowMessage;
             rp.YesNoCancel = YesNoCancel;
             rp.Busy = Busy;
+
+            send_notification("!Microsoft.R.Host", 1.0, getDLLVersion());
         }
 
         extern "C" void ShowMessage(const char* s) {

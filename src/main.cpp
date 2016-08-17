@@ -32,6 +32,7 @@
 #include "grdeviceside.h"
 #include "grdevicesxaml.h"
 #include "exports.h"
+#include "transport.h"
 
 using namespace rhost::eval;
 using namespace rhost::log;
@@ -41,9 +42,6 @@ namespace po = boost::program_options;
 namespace rhost {
     struct command_line_args {
         std::string name;
-        boost::optional<boost::asio::ip::tcp::endpoint> listen_endpoint;
-        boost::optional<websocketpp::uri> connect_uri;
-
         std::vector<std::string> unrecognized;
         int argc;
         std::vector<char*> argv;
@@ -54,12 +52,10 @@ namespace rhost {
 
         po::option_description
             help("rhost-help", new po::untyped_value(true), "Produce help message."),
-            name("rhost-name", po::value<std::string>(), "Name of this host instance."),
-            listen("rhost-listen", po::value<boost::asio::ip::tcp::endpoint>(), "Listen for incoming connections on the specified IP address and port."),
-            connect("rhost-connect", po::value<websocketpp::uri>(), "Connect to a websocket server at the specified URI.");
+            name("rhost-name", po::value<std::string>(), "Name of this host instance.");
 
         po::options_description desc;
-        for (auto&& opt : { help, name, /*listen,*/ connect }) {
+        for (auto&& opt : { help, name }) {
             boost::shared_ptr<po::option_description> popt(new po::option_description(opt));
             desc.add(popt);
         }
@@ -84,26 +80,6 @@ namespace rhost {
         auto name_arg = vm.find(name.long_name());
         if (name_arg != vm.end()) {
             args.name = name_arg->second.as<std::string>();
-        }
-
-        auto listen_arg = vm.find(listen.long_name());
-        if (listen_arg != vm.end()) {
-            args.listen_endpoint = listen_arg->second.as<boost::asio::ip::tcp::endpoint>();
-        }
-
-        auto connect_arg = vm.find(connect.long_name());
-        if (connect_arg != vm.end()) {
-            args.connect_uri = connect_arg->second.as<websocketpp::uri>();
-        }
-
-        if (!args.listen_endpoint && !args.connect_uri) {
-            std::cerr << "Either " << listen.format_name() << " or " << connect.format_name() << " must be specified." << std::endl;
-            std::cerr << desc << std::endl;
-            std::exit(EXIT_FAILURE);
-        } else if (args.listen_endpoint && args.connect_uri) {
-            std::cerr << "Both " << listen.format_name() << " and " << connect.format_name() << " cannot be specified at the same time." << std::endl;
-            std::cerr << desc << std::endl;
-            std::exit(EXIT_FAILURE);
         }
 
         args.argv.push_back(argv[0]);
@@ -156,14 +132,7 @@ namespace rhost {
 
     int run(command_line_args& args) {
         init_log(args.name);
-
-        if (args.listen_endpoint) {
-            rhost::host::wait_for_client(*args.listen_endpoint).get();
-        } else if (args.connect_uri) {
-            rhost::host::connect_to_server(*args.connect_uri).get();
-        } else {
-            return EXIT_FAILURE;
-        }
+        transport::initialize();
 
         R_setStartTime();
         structRstart rp = {};
@@ -177,7 +146,7 @@ namespace rhost {
         rp.RestoreAction = SA_RESTORE;
         rp.SaveAction = SA_NOSAVE;
 
-        rhost::host::register_callbacks(rp);
+        rhost::host::initialize(rp);
         rhost::detours::init_ui_detours();
 
         R_set_command_line_arguments(args.argc, args.argv.data());
@@ -214,6 +183,7 @@ namespace rhost {
 }
 
 int main(int argc, char** argv) {
+    //MessageBox(0, 0, 0, 0);
     setlocale(LC_NUMERIC, "C");
     __try {
         return rhost::run(argc, argv);

@@ -41,10 +41,20 @@ namespace rhost {
                 _id(0), _request_id(0), _name(0), _json(0), _blob(0) {
             }
 
+            message(message_id request_id, const std::string& name, const picojson::array& json, const std::vector<char>& blob) :
+                message(request_id, name, picojson::value(json).serialize(), blob) {
+            }
+
+            message(message_id request_id, const std::string& name, const std::string& json, const std::vector<char>& blob);
+
             static message parse(std::string&& payload);
 
             static message parse(const std::string& payload) {
                 return parse(std::string(payload));
+            }
+
+            const std::string& payload() const {
+                return _payload;
             }
 
             message_id id() const {
