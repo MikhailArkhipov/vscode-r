@@ -32,6 +32,7 @@ namespace rhost {
         bool to_blob(SEXP sexp, std::vector<char>& blob);
 
         typedef std::vector<char> blob;
+        typedef uint64_t blob_id; // range of values constrained to always fit a double
 
         void append_from_file(blob& blob, const char* path);
 
@@ -42,5 +43,7 @@ namespace rhost {
         inline void append_from_file(blob& blob, const std::experimental::filesystem::path& path) {
             return append_from_file(blob, path.string().c_str());
         }
+
+        void save_to_file(blob_id id, std::experimental::filesystem::path& file_path);
     }
 }

@@ -26,6 +26,8 @@
 #include "log.h"
 #include "util.h"
 #include "host.h"
+#include "blobs.h"
+#include "project.h"
 #include "json.h"
 #include "exports.h"
 #include "rstrtmgr.h"
@@ -453,12 +455,12 @@ namespace rhost {
             }
 
             Rbyte* data = RAW(obj);
-            blob_id id = rhost::host::create_blob(blobs::blob(data, data + length));
+            blobs::blob_id id = rhost::host::create_blob(blobs::blob(data, data + length));
             return Rf_ScalarReal(static_cast<double>(id));
         }
 
         extern "C" SEXP get_blob(SEXP id) {
-            auto blob_id = static_cast<host::blob_id>(Rf_asReal(id));
+            auto blob_id = static_cast<blobs::blob_id>(Rf_asReal(id));
             auto data = rhost::host::get_blob(blob_id);
 
             SEXP rawVector = nullptr;
@@ -470,7 +472,7 @@ namespace rhost {
         }
 
         extern "C" SEXP destroy_blob(SEXP id) {
-            int blob_id = Rf_asInteger(id);
+            auto blob_id = static_cast<blobs::blob_id>(Rf_asReal(id));
             rhost::host::destroy_blob(blob_id);
             return R_NilValue;
         }
@@ -489,19 +491,30 @@ namespace rhost {
         }
 
         extern "C" SEXP fetch_file(SEXP path) {
-            fs::path fpath;
-            r_top_level_exec([&]() {
-                fpath = fs::u8path(Rf_translateCharUTF8(STRING_ELT(path, 0)));
-            }, __FUNCTION__);
+            const char* f_path = Rf_translateCharUTF8(STRING_ELT(path, 0));
+            return util::exceptions_to_errors([&]() {
+                fs::path fpath = fs::u8path(f_path);
+                if (!fpath.empty()) {
+                    blobs::blob file_data;
+                    blobs::append_from_file(file_data, fpath);
+                    host::send_notification("!FetchFile", file_data, fpath.filename().string());
+                    return R_TrueValue;
+                }
+                return R_FalseValue;
+            });
+        }
 
-            if (!fpath.empty()) {
-                blobs::blob file_data;
-                blobs::append_from_file(file_data, fpath);
-                host::send_notification("!FetchFile", file_data, fpath.filename().string());
-                return R_TrueValue;
-            }
-            
-            return R_FalseValue;
+        extern "C" SEXP save_to_project_folder(SEXP id, SEXP project_name, SEXP dest_dir, SEXP temp_dir) {
+            auto blob_id = static_cast<blobs::blob_id>(Rf_asReal(id));
+            const char *prj_name = Rf_translateCharUTF8(STRING_ELT(project_name, 0));
+            const char *t_dir = Rf_translateCharUTF8(STRING_ELT(dest_dir, 0));
+            const char *d_dir = Rf_translateCharUTF8(STRING_ELT(temp_dir, 0));
+
+            util::exceptions_to_errors([&]() {
+                rproj::save_to_project_folder_worker(blob_id, fs::u8path(prj_name), fs::u8path(d_dir), fs::u8path(t_dir));
+            });
+
+            return R_NilValue;
         }
 
         R_CallMethodDef call_methods[] = {
@@ -521,6 +534,7 @@ namespace rhost {
             { "Microsoft.R.Host::Call.destroy_blob", (DL_FUNC)destroy_blob, 1 },
             { "Microsoft.R.Host::Call.get_file_lock_state", (DL_FUNC)get_file_lock_state, 1 },
             { "Microsoft.R.Host::Call.fetch_file", (DL_FUNC)fetch_file, 1 },
+            { "Microsoft.R.Host::Call.save_to_project_folder", (DL_FUNC)save_to_project_folder, 4 },
             { }
         };
 

@@ -187,16 +187,16 @@ namespace rhost {
 
         void create_blob(const message& msg) {
             assert(!strcmp(msg.name(), "?CreateBlob"));
-            blob_id id = create_blob(msg.blob());
+            blobs::blob_id id = create_blob(msg.blob());
             respond_to_message(msg, static_cast<double>(id));
         }
 
-        blob_id create_blob(blob&& blob) {
+        blobs::blob_id create_blob(blobs::blob&& blob) {
             std::lock_guard<std::mutex> lock(blobs_mutex);
-            blob_id id = ++next_blob_id;
+            blobs::blob_id id = ++next_blob_id;
 
             // Check that it never overflows double mantissa, and provide immediate diagnostics if it happens.
-            if (id != blob_id(double(id))) {
+            if (id != blobs::blob_id(double(id))) {
                 fatal_error("Blob ID overflow");
             }
 
@@ -204,7 +204,7 @@ namespace rhost {
             return id;
         }
 
-        bool get_blob(blob_id id, blobs::blob& blob) {
+        bool get_blob(blobs::blob_id id, blobs::blob& blob) {
             std::lock_guard<std::mutex> lock(blobs_mutex);
             auto& it = blobs.find(id);
 
@@ -223,7 +223,7 @@ namespace rhost {
             if (!json[0].is<double>()) {
                 fatal_error("GetBlob: non-numeric blob ID");
             }
-            auto id = static_cast<blob_id>(json[0].get<double>());
+            auto id = static_cast<blobs::blob_id>(json[0].get<double>());
 
             std::lock_guard<std::mutex> lock(blobs_mutex);
             auto& it = blobs.find(id);
@@ -234,7 +234,7 @@ namespace rhost {
             respond_to_message(msg, it->second);
         }
 
-        void destroy_blob(blob_id blob_id) {
+        void destroy_blob(blobs::blob_id blob_id) {
             std::lock_guard<std::mutex> lock(blobs_mutex);
             blobs.erase(blob_id);
         }
@@ -250,7 +250,7 @@ namespace rhost {
                     fatal_error("DestroyBlob: non-numeric blob ID");
                 }
 
-                auto id = static_cast<blob_id>(val.get<double>());
+                auto id = static_cast<blobs::blob_id>(val.get<double>());
                 blobs.erase(id);
             }
         }

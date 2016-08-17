@@ -17,6 +17,7 @@
     <ClCompile Include="message.cpp" />
     <ClCompile Include="transport.cpp" />
     <ClCompile Include="rstrtmgr.cpp" />
+    <ClCompile Include="project.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h" />
@@ -40,6 +41,7 @@
     <ClInclude Include="message.h" />
     <ClInclude Include="transport.h" />
     <ClInclude Include="rstrtmgr.h" />
+    <ClInclude Include="project.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
