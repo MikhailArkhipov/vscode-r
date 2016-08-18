@@ -161,7 +161,7 @@ namespace rhost {
 #endif
         }
 
-        void vlogf(const char* format, va_list va) {
+        void vlogf(log_level level, const char* format, va_list va) {
             std::lock_guard<std::mutex> lock(log_mutex);
 
 #ifndef NDEBUG
@@ -182,20 +182,14 @@ namespace rhost {
 #endif
             }
 
-#ifndef NDEBUG
-            for (int i = 0; i < indent; ++i) {
-                fputc('\t', stderr);
+            // Don't log trace level messages to stderr by default.
+            if (level != log_level::trace) {
+                for (int i = 0; i < indent; ++i) {
+                    fputc('\t', stderr);
+                }
+                vfprintf(stderr, format, va2);
+                va_end(va2);
             }
-            vfprintf(stderr, format, va2);
-            va_end(va2);
-#endif
-        }
-
-        void logf(const char* format, ...) {
-            va_list va;
-            va_start(va, format);
-            vlogf(format, va);
-            va_end(format);
         }
 
         void indent_log(int n) {
@@ -222,7 +216,7 @@ namespace rhost {
             if (unexpected) {
                 logf("Fatal error: ");
             }
-            logf("%s\n", message);
+            logf(unexpected ? log_level::error : log_level::information, "%s\n", message);
             flush_log();
 
             if (unexpected) {
