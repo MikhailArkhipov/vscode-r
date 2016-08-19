@@ -164,10 +164,8 @@ namespace rhost {
         void vlogf(log_level level, const char* format, va_list va) {
             std::lock_guard<std::mutex> lock(log_mutex);
 
-#ifndef NDEBUG
             va_list va2;
             va_copy(va2, va);
-#endif
 
             if (logfile) {
                 for (int i = 0; i < indent; ++i) {
@@ -188,8 +186,9 @@ namespace rhost {
                     fputc('\t', stderr);
                 }
                 vfprintf(stderr, format, va2);
-                va_end(va2);
             }
+
+            va_end(va2);
         }
 
         void indent_log(int n) {
