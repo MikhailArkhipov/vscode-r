@@ -36,8 +36,7 @@ namespace rhost {
         namespace ide {
             class plot {
             public:
-                plot(pDevDesc dd);
-                plot(pDevDesc dd, plot* source_plot);
+                plot(pDevDesc dd, plot* source_plot = nullptr);
                 virtual ~plot();
 
                 boost::uuids::uuid get_id() const;
@@ -199,17 +198,10 @@ namespace rhost {
             // Ide device plot
             ///////////////////////////////////////////////////////////////////////
 
-            plot::plot(pDevDesc dd) :
-                _plot_id(uuid_generator()),
-                _device_desc(dd),
-                _snapshot(nullptr),
-                _has_pending_render(false) {
-            }
-
             plot::plot(pDevDesc dd, plot* source_plot) :
                 _plot_id(uuid_generator()),
                 _device_desc(dd),
-                _snapshot(source_plot->_snapshot),
+                _snapshot(source_plot ? source_plot->_snapshot : nullptr),
                 _has_pending_render(false) {
             }
 
@@ -343,12 +335,8 @@ namespace rhost {
             }
 
             plot* plot_history::get_plot(const boost::uuids::uuid& plot_id) {
-                for (auto it = _plots.begin(); it != _plots.end(); ++it) {
-                    if ((*it)->get_id() == plot_id) {
-                        return (*it).get();
-                    }
-                }
-                return nullptr;
+                auto plot = find_if(_plots.begin(), _plots.end(), [&](auto& p) { return p->get_id() == plot_id; });
+                return (plot != _plots.end()) ? (*plot).get() : nullptr;
             }
 
             bool plot_history::select(const boost::uuids::uuid& plot_id) {
@@ -356,11 +344,10 @@ namespace rhost {
                     return false;
                 }
 
-                for (auto it = _plots.begin(); it != _plots.end(); ++it) {
-                    if ((*it)->get_id() == plot_id) {
-                        _active_plot = it;
-                        return true;
-                    }
+                auto plot = find_if(_plots.begin(), _plots.end(), [&](auto& p) { return p->get_id() == plot_id; });
+                if (plot != _plots.end()) {
+                    _active_plot = plot;
+                    return true;
                 }
 
                 return false;
@@ -988,24 +975,19 @@ namespace rhost {
             }
 
             static ide_device* find_device_by_num(int device_num) {
-                for (auto dev : devices) {
-                    int num = Rf_ndevNumber(dev->device_desc) + 1;
-                    if (num == device_num) {
-                        return dev;
-                    }
-                }
+                auto dev = find_if(devices.begin(), devices.end(), [&](auto& d) {
+                    return Rf_ndevNumber(d->device_desc) == (device_num - 1);
+                });
 
-                return nullptr;
+                return (dev != devices.end()) ? *dev : nullptr;
             }
 
             static ide_device* find_device_by_id(const boost::uuids::uuid& device_id) {
-                for (auto dev : devices) {
-                    if (dev->get_id() == device_id) {
-                        return dev;
-                    }
-                }
+                auto dev = find_if(devices.begin(), devices.end(), [&](auto& d) {
+                    return d->get_id() == device_id;
+                });
 
-                return nullptr;
+                return (dev != devices.end()) ? *dev : nullptr;
             }
 
             ///////////////////////////////////////////////////////////////////////
@@ -1170,22 +1152,22 @@ namespace rhost {
                 return rhost::util::exceptions_to_errors([&] {
                     auto source_dev = find_device_by_id(source_device_id);
                     if (source_dev != nullptr) {
-                        auto target_dev = find_device_by_id(target_device_id);
-                        if (target_dev != nullptr) {
-                            auto target_plot = target_dev->copy_plot_from(source_dev, source_plot_id);
-                            if (target_plot != nullptr) {
-                                target_dev->select();
-                                if (target_dev->history_select(target_plot->get_id(), true)) {
-                                    target_dev->render_request(true);
-                                }
-                            } else {
-                                throw rhost::util::r_error("Could not copy plot.");
-                            }
-                        } else {
-                            throw rhost::util::r_error("Destination device could not be found.");
-                        }
-                    } else {
                         throw rhost::util::r_error("Source device could not be found.");
+                    }
+
+                    auto target_dev = find_device_by_id(target_device_id);
+                    if (target_dev == nullptr) {
+                        throw rhost::util::r_error("Destination device could not be found.");
+                    }
+
+                    auto target_plot = target_dev->copy_plot_from(source_dev, source_plot_id);
+                    if (target_plot == nullptr) {
+                        throw rhost::util::r_error("Could not copy plot.");
+                    }
+
+                    target_dev->select();
+                    if (target_dev->history_select(target_plot->get_id(), true)) {
+                        target_dev->render_request(true);
                     }
 
                     return R_NilValue;
