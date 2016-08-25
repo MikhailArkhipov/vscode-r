@@ -397,14 +397,7 @@ namespace rhost {
             }
 
             void plot_history::remove(const boost::uuids::uuid& plot_id) {
-                std::vector<std::unique_ptr<plot>>::iterator plot = _plots.end();
-                for (auto it = _plots.begin(); it != _plots.end(); ++it) {
-                    if ((*it)->get_id() == plot_id) {
-                        plot = it;
-                        break;
-                    }
-                }
-
+                auto plot = find_if(_plots.begin(), _plots.end(), [&](auto& p) { return p->get_id() == plot_id; });
                 if (plot != _plots.end()) {
                     _active_plot = _plots.erase(plot);
                     // erase() returns an iterator that points to end() when removing the last item
