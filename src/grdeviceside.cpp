@@ -1144,7 +1144,7 @@ namespace rhost {
 
                 return rhost::util::exceptions_to_errors([&] {
                     auto source_dev = find_device_by_id(source_device_id);
-                    if (source_dev != nullptr) {
+                    if (source_dev == nullptr) {
                         throw rhost::util::r_error("Source device could not be found.");
                     }
 
