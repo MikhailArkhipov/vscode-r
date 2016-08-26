@@ -101,11 +101,20 @@ namespace rhost {
             return;
         }
 
-        double memory_limit = static_cast<double>(ms.ullTotalPhys / 1024 / 1024);
-        logf("Setting R memory limit to %0.0f MB\n", memory_limit);
+        double new_limit = static_cast<double>(ms.ullTotalPhys / 1024 / 1024);
+
+        double old_limit = 0;
+        r_top_level_exec([&] {
+            old_limit = *REAL(in_memsize(R_LogicalNAValue));
+        });
+        if (old_limit >= new_limit) {
+            return;
+        }
+
+        logf("Setting R memory limit to %0.0f MB\n", new_limit);
 
         protected_sexp limit = Rf_allocVector(REALSXP, 1);
-        *REAL(limit.get()) = memory_limit;
+        *REAL(limit.get()) = new_limit;
         if (!r_top_level_exec([&] { in_memsize(limit.get()); })) {
             logf("Couldn't set R memory limit - in_memsize failed: %s\n", R_curErrorBuf());
         }
