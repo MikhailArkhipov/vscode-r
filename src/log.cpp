@@ -26,7 +26,6 @@
 
 using namespace std::literals;
 
-
 namespace rhost {
     namespace log {
         namespace {
@@ -46,7 +45,7 @@ namespace rhost {
 #endif
 
             std::mutex log_mutex, terminate_mutex;
-            std::string log_filename, stackdump_filename, fulldump_filename;
+            fs::path log_filename, stackdump_filename, fulldump_filename;
             FILE* logfile;
             int indent;
 
@@ -69,7 +68,7 @@ namespace rhost {
             mei.ClientPointers = FALSE;
 
             // Create a regular minidump.
-            HANDLE dump_file = CreateFileA(stackdump_filename.c_str(), GENERIC_ALL, 0, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+            HANDLE dump_file = CreateFileA(stackdump_filename.make_preferred().string().c_str(), GENERIC_ALL, 0, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
             if (MiniDumpWriteDump(GetCurrentProcess(), GetCurrentProcessId(), dump_file, MiniDumpNormal, &mei, nullptr, nullptr)) {
                 logf("Stack-only minidump written out to %s\n", stackdump_filename.c_str());
             } else {
@@ -79,7 +78,7 @@ namespace rhost {
             flush_log();
 
             // Create a full heap minidump with as much data as possible.
-            dump_file = CreateFileA(fulldump_filename.c_str(), GENERIC_ALL, 0, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+            dump_file = CreateFileA(fulldump_filename.make_preferred().string().c_str(), GENERIC_ALL, 0, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
             if (MiniDumpWriteDump(GetCurrentProcess(), GetCurrentProcessId(), dump_file, fulldump_type, &mei, nullptr, nullptr)) {
                 logf("Full minidump written out to %s\n", fulldump_filename.c_str());
             } else {
@@ -110,14 +109,9 @@ namespace rhost {
         }
 #endif
 
-        void init_log(const std::string& log_suffix) {
+        void init_log(const std::string& log_suffix, const fs::path& log_dir) {
             {
-                std::string filename;
-                filename.resize(MAX_PATH);
-                GetTempPathA(static_cast<DWORD>(filename.size()), &filename[0]);
-                filename.resize(strlen(filename.c_str()));
-                filename += "/Microsoft.R.Host_";
-
+                std::string filename = "Microsoft.R.Host_";
                 if (!log_suffix.empty()) {
                     filename += log_suffix + "_";
                 }
@@ -138,12 +132,12 @@ namespace rhost {
                 // get started at the same time.
                 filename += "_pid" + std::to_string(getpid());
 
-                log_filename = filename + ".log";
-                stackdump_filename = filename + ".stack.dmp";
-                fulldump_filename = filename + ".full.dmp";
+                log_filename = log_dir / (filename + ".log");
+                stackdump_filename = log_dir / (filename + ".stack.dmp");
+                fulldump_filename = log_dir / (filename + ".full.dmp");
             }
         
-            logfile = _fsopen(log_filename.c_str(), "wc", _SH_DENYWR);
+            logfile = _fsopen(log_filename.make_preferred().string().c_str(), "wc", _SH_DENYWR);
             if (logfile) {
                 // Logging happens often, so use a large buffer to avoid hitting the disk all the time.
                 setvbuf(logfile, nullptr, _IOFBF, 0x100000);
@@ -151,7 +145,8 @@ namespace rhost {
                 // Start a thread that will flush the buffer periodically.
                 std::thread(log_flush_thread).detach();
             } else {
-                std::string error = "Error creating logfile: " + std::string(log_filename) + "\r\n";
+                std::string error = "Error creating logfile: " + log_filename.make_preferred().string() + "\r\n";
+                fprintf(stderr, "Error: %d\r\n", errno);
                 fputs(error.c_str(), stderr);
                 MessageBoxA(HWND_DESKTOP, error.c_str(), "Microsoft R Host", MB_OK | MB_ICONWARNING);
             }
