@@ -36,7 +36,6 @@ using namespace rhost::log;
 using namespace rhost::util;
 using namespace rhost::host;
 using namespace rhost::json;
-namespace fs = std::experimental::filesystem;
 
 namespace rhost {
     namespace r_util {
@@ -507,8 +506,8 @@ namespace rhost {
         extern "C" SEXP save_to_project_folder(SEXP id, SEXP project_name, SEXP dest_dir, SEXP temp_dir) {
             auto blob_id = static_cast<blobs::blob_id>(Rf_asReal(id));
             const char *prj_name = Rf_translateCharUTF8(STRING_ELT(project_name, 0));
-            const char *t_dir = Rf_translateCharUTF8(STRING_ELT(dest_dir, 0));
-            const char *d_dir = Rf_translateCharUTF8(STRING_ELT(temp_dir, 0));
+            const char *t_dir = Rf_translateCharUTF8(STRING_ELT(temp_dir, 0));
+            const char *d_dir = Rf_translateCharUTF8(STRING_ELT(dest_dir, 0));
 
             util::exceptions_to_errors([&]() {
                 rproj::save_to_project_folder_worker(blob_id, fs::u8path(prj_name), fs::u8path(d_dir), fs::u8path(t_dir));

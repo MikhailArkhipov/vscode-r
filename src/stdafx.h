@@ -81,3 +81,5 @@
 #include "minhook.h"
 
 #include "zip.h"
+
+namespace fs = std::experimental::filesystem;

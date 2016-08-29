@@ -23,7 +23,6 @@
 #include "blobs.h"
 #include "project.h"
 #include "util.h"
-namespace fs = std::experimental::filesystem;
 
 namespace rhost {
     namespace rproj {
