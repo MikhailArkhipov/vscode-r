@@ -40,10 +40,10 @@ namespace rhost {
             return append_from_file(blob, path.c_str());
         }
 
-        inline void append_from_file(blob& blob, const std::experimental::filesystem::path& path) {
+        inline void append_from_file(blob& blob, const fs::path& path) {
             return append_from_file(blob, path.string().c_str());
         }
 
-        void save_to_file(blob_id id, std::experimental::filesystem::path& file_path);
+        void save_to_file(blob_id id, fs::path& file_path);
     }
 }
