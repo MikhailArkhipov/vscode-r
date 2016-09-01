@@ -32,7 +32,7 @@ namespace rhost {
             error
         };
 
-        void init_log(const std::string& log_suffix);
+        void init_log(const std::string& log_suffix, const fs::path& log_dir);
 
         void vlogf(log_level level, const char* format, va_list va);
 

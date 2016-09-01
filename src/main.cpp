@@ -41,6 +41,7 @@ namespace po = boost::program_options;
 
 namespace rhost {
     struct command_line_args {
+        fs::path log_dir;
         std::string name;
         std::vector<std::string> unrecognized;
         int argc;
@@ -52,10 +53,11 @@ namespace rhost {
 
         po::option_description
             help("rhost-help", new po::untyped_value(true), "Produce help message."),
-            name("rhost-name", po::value<std::string>(), "Name of this host instance.");
+            name("rhost-name", po::value<std::string>(), "Name of this host instance."),
+            log_dir("rhost-log-dir", po::value<std::string>(), "Directory to store host logs and dumps.");
 
         po::options_description desc;
-        for (auto&& opt : { help, name }) {
+        for (auto&& opt : { help, name, log_dir }) {
             boost::shared_ptr<po::option_description> popt(new po::option_description(opt));
             desc.add(popt);
         }
@@ -80,6 +82,13 @@ namespace rhost {
         auto name_arg = vm.find(name.long_name());
         if (name_arg != vm.end()) {
             args.name = name_arg->second.as<std::string>();
+        }
+
+        auto log_dir_arg = vm.find(log_dir.long_name());
+        if (log_dir_arg != vm.end()) {
+            args.log_dir = log_dir_arg->second.as<std::string>();
+        } else {
+            args.log_dir = fs::temp_directory_path();
         }
 
         args.argv.push_back(argv[0]);
@@ -140,7 +149,7 @@ namespace rhost {
     }
 
     int run(command_line_args& args) {
-        init_log(args.name);
+        init_log(args.name, args.log_dir);
         transport::initialize();
 
         R_setStartTime();

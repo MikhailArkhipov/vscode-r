@@ -27,7 +27,6 @@
 using namespace rhost::util;
 using namespace rhost::log;
 namespace js = picojson;
-namespace fs = std::experimental::filesystem;
 
 namespace rhost {
     namespace blobs {
