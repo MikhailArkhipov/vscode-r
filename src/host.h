@@ -33,8 +33,8 @@ namespace rhost {
         class eval_cancel_error : std::exception {
         };
 
-        void initialize(structRstart& rp);
-        void terminate_if_closed();
+        void initialize(structRstart& rp, const fs::path& rdata, std::chrono::seconds idle_timeout);
+        void shutdown_if_requested();
 
         extern "C" void ShowMessage(const char* s);
         extern "C" int YesNoCancel(const char* s);
@@ -48,7 +48,7 @@ namespace rhost {
 
         template <class F>
         auto with_cancellation(F body) -> decltype(body()) {
-            terminate_if_closed();
+            shutdown_if_requested();
             try {
                 return body();
             } catch (const eval_cancel_error&) {

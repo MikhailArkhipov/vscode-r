@@ -41,25 +41,36 @@ namespace po = boost::program_options;
 
 namespace rhost {
     struct command_line_args {
-        fs::path log_dir;
+        fs::path log_dir, rdata;
         std::string name;
         log::log_verbosity log_level;
+        std::chrono::seconds idle_timeout;
         std::vector<std::string> unrecognized;
         int argc;
         std::vector<char*> argv;
     };
 
     command_line_args parse_command_line(int argc, char** argv) {
-        command_line_args args;
+        command_line_args args = {};
 
         po::option_description
-            help("rhost-help", new po::untyped_value(true), "Produce help message."),
-            name("rhost-name", po::value<std::string>(), "Name of this host instance."),
-            log_level("rhost-log-verbosity", po::value<int>(), "Log verbosity."),
-            log_dir("rhost-log-dir", po::value<std::string>(), "Directory to store host logs and dumps.");
+            help("rhost-help", new po::untyped_value(true),
+                "Produce help message."),
+            name("rhost-name", po::value<std::string>(),
+                "Name of this host instance."),
+            log_level("rhost-log-verbosity", po::value<int>(),
+                "Log verbosity."),
+            log_dir("rhost-log-dir", po::value<std::string>(),
+                "Directory to store host logs and dumps."),
+            rdata("rhost-rdata", po::value<std::string>(),
+                "RData file to load initial workspace from, and to save it to when suspending."),
+            idle_timeout("rhost-idle-timeout", po::value<std::chrono::seconds::rep>(), (
+                "Shut down the host if it is idle for the specified duration in seconds. "
+                "If " + rdata.long_name() + " was specified, save workspace before exiting."
+                ).c_str());
 
         po::options_description desc;
-        for (auto&& opt : { help, name, log_level, log_dir }) {
+        for (auto&& opt : { help, name, log_level, log_dir, rdata, idle_timeout }) {
             boost::shared_ptr<po::option_description> popt(new po::option_description(opt));
             desc.add(popt);
         }
@@ -86,11 +97,29 @@ namespace rhost {
             args.name = name_arg->second.as<std::string>();
         }
 
+        auto log_level_arg = vm.find(log_level.long_name());
+        if (log_level_arg != vm.end()) {
+            args.log_level = static_cast<log_verbosity>(log_level_arg->second.as<int>());
+        } else {
+            args.log_level = log_verbosity::normal;
+        }
+
         auto log_dir_arg = vm.find(log_dir.long_name());
         if (log_dir_arg != vm.end()) {
             args.log_dir = log_dir_arg->second.as<std::string>();
         } else {
             args.log_dir = fs::temp_directory_path();
+        }
+
+        auto rdata_arg = vm.find(rdata.long_name());
+        if (rdata_arg != vm.end()) {
+            args.rdata = rdata_arg->second.as<std::string>();
+        }
+
+        auto idle_timeout_arg = vm.find(idle_timeout.long_name());
+        if (idle_timeout_arg != vm.end()) {
+            auto n = idle_timeout_arg->second.as<std::chrono::seconds::rep>();
+            args.idle_timeout = std::chrono::seconds(n);
         }
 
         args.argv.push_back(argv[0]);
@@ -163,10 +192,10 @@ namespace rhost {
         rp.CharacterMode = RGui;
         rp.R_Quiet = R_FALSE;
         rp.R_Interactive = R_TRUE;
-        rp.RestoreAction = SA_RESTORE;
+        rp.RestoreAction = SA_NORESTORE;
         rp.SaveAction = SA_NOSAVE;
 
-        rhost::host::initialize(rp);
+        rhost::host::initialize(rp, args.rdata, args.idle_timeout);
         rhost::detours::init_ui_detours();
 
         R_set_command_line_arguments(args.argc, args.argv.data());
@@ -190,6 +219,17 @@ namespace rhost {
 
         // setup_Rmainloop above prints out the license banner, so this will follow that.
         suggest_mro(rp);
+
+        if (!args.rdata.empty()) {
+            std::string s = args.rdata.string();
+            log::logf(log_verbosity::minimal, "Loading workspace from file %s\n", s.c_str());
+
+            bool ok = r_top_level_exec([&] {
+                R_RestoreGlobalEnvFromFile(s.c_str(), R_FALSE);
+            });
+
+            log::logf(log_verbosity::minimal, ok ? "Workspace loaded successfully.\n" : "Failed to load workspace.\n");
+        }
 
         run_Rmainloop();
 

@@ -43,6 +43,16 @@ namespace rhost {
         boost::signals2::signal<void()> callback_started;
         boost::signals2::signal<void()> readconsole_done;
 
+        fs::path rdata;
+        std::atomic<bool> shutdown_requested = false;
+
+        bool is_r_ready = false;
+        std::mutex is_r_ready_lock;
+        std::condition_variable is_r_ready_cond;
+
+        std::mutex idle_timer_lock;
+        std::chrono::steady_clock::time_point idling_since;
+
         DWORD main_thread_id;
         std::atomic<bool> is_waiting_for_wm = false;
         bool allow_callbacks = true, allow_intr_in_CallBack = true;
@@ -90,20 +100,6 @@ namespace rhost {
         std::map<blob_id, blob> blobs;
         std::mutex blobs_mutex;
 
-        void terminate_if_closed() {
-            // terminate invokes R_Suicide, which may invoke WriteConsole and/or ShowMessage, which will
-            // then call terminate again, so we need to prevent infinite recursion here.
-            static bool is_terminating;
-            if (is_terminating) {
-                return;
-            }
-
-            if (!transport::is_connected()) {
-                is_terminating = true;
-                terminate("Lost connection to client.");
-            }
-        }
-
         void log_message(const char* prefix, message_id id, message_id request_id, const std::string& name, const picojson::array& args, const blob& blob) {
 #ifdef TRACE_JSON
             std::ostringstream str;
@@ -123,8 +119,16 @@ namespace rhost {
 #endif
         }
 
+        void reset_idle_timer() {
+            std::lock_guard<std::mutex> lock(idle_timer_lock);
+            idling_since = std::chrono::steady_clock::now();
+        }
+
         message_id send_notification(const std::string& name, const picojson::array& args, const blob& blob) {
             assert(name[0] == '!');
+
+            reset_idle_timer();
+
             message msg(0, name, args, blob);
             transport::send_message(msg);
             return msg.id();
@@ -133,6 +137,8 @@ namespace rhost {
         template<class... Args>
         message_id respond_to_message(const message& request, const blob& blob, Args... args) {
             assert(request.name()[0] == '?');
+
+            reset_idle_timer();
 
             picojson::array json;
             rhost::util::append(json, args...);
@@ -162,7 +168,6 @@ namespace rhost {
             return it == eval_stack.end();
         }
 
-
         // Unblock any pending with_response call that is waiting in a message loop.
         void unblock_message_loop() {
             // Because PeekMessage can dispatch messages that were sent, which may in turn result 
@@ -182,6 +187,98 @@ namespace rhost {
                 if (delay < 5000ms) {
                     delay *= 2;
                 }
+            }
+        }
+
+        void terminate_if_disconnected() {
+            // terminate invokes R_Suicide, which may invoke WriteConsole and/or ShowMessage, which will
+            // then call terminate again, so we need to prevent infinite recursion here.
+            static bool is_terminating;
+            if (is_terminating) {
+                return;
+            }
+
+            if (!transport::is_connected()) {
+                is_terminating = true;
+                terminate("Lost connection to client.");
+            }
+        }
+
+        void shutdown_if_requested() {
+            terminate_if_disconnected();
+
+            if (!shutdown_requested) {
+                return;
+            }
+
+            // Make sure we don't try handle the pending shutdown request more than once.
+            static std::atomic<bool> is_shutting_down;
+            bool expected = false;
+            if (!is_shutting_down.compare_exchange_strong(expected, true)) {
+                return;
+            }
+
+            if (!rdata.empty()) {
+                std::string s = rdata.string();
+                logf(log_verbosity::minimal, "Saving workspace to %s...\n", s.c_str());
+
+                bool saved = r_top_level_exec([&] {
+                    R_SaveGlobalEnvToFile(s.c_str());
+                });
+
+                logf(log_verbosity::minimal, saved ? "Workspace saved successfully.\n" : "Failed to save workspace.\n");
+                send_notification("!End", saved);
+            }
+
+            terminate("Shutting down by request.");
+        }
+
+        void request_shutdown(bool save_rdata) {
+            if (!save_rdata) {
+                rdata.clear();
+            }
+
+            shutdown_requested = true;
+
+            std::thread([] {
+                std::this_thread::sleep_for(1min);
+                terminate("Timed out while waiting for graceful shutdown to complete; terminating process.");
+            }).detach();
+
+            unblock_message_loop();
+        }
+
+        void request_shutdown(const message& msg) {
+            assert(!strcmp(msg.name(), "!Shutdown"));
+
+            if (shutdown_requested) {
+                return;
+            }
+
+            auto json = msg.json();
+            if (!json[0].is<bool>()) {
+                fatal_error("Invalid evaluation request: 1 boolean argument expected");
+            }
+            auto save_rdata = json[0].get<bool>();
+
+            request_shutdown(save_rdata);
+        }
+
+        void idle_timer_thread(std::chrono::seconds idle_timeout) {
+            for (;;) {
+                std::chrono::steady_clock::time_point idling_since;
+                {
+                    std::lock_guard<std::mutex> lock(idle_timer_lock);
+                    idling_since = host::idling_since;
+                }
+
+                auto delta = std::chrono::steady_clock::now() - idling_since;
+                if (delta > idle_timeout) {
+                    request_shutdown(true);
+                    break;
+                }
+
+                std::this_thread::sleep_until(idling_since + idle_timeout);
             }
         }
 
@@ -557,16 +654,19 @@ namespace rhost {
             }
         }
 
-        void handle_cancel(const message& msg) {
+        void handle_cancel(const std::string& name, const message& msg) {
+            assert(name == "!/" || name == "!//");
             auto args = msg.json();
-            if (args.size() != 1) {
-                fatal_error("Evaluation cancellation request must be of the form [id, '/', eval_id].");
-            }
 
-            message_id eval_id = 0;
-            if (!args[0].is<picojson::null>()) {
-                if (!args[0].is<double>()) {
-                    fatal_error("Evaluation cancellation request eval_id must be double or null.");
+            message_id eval_id;
+            if (name == "!//") {
+                if (!args.empty()) {
+                    fatal_error("Incorrect number or type of arguments to '!//'.");
+                }
+                eval_id = 0;
+            } else {
+                if (args.size() != 1 || !args[0].is<double>()) {
+                    fatal_error("Incorrect number or type of arguments to '!/'.");
                 }
                 eval_id = static_cast<message_id>(args[0].get<double>());
             }
@@ -608,6 +708,23 @@ namespace rhost {
             throw;
         }
 
+        void handle_pending_evals() {
+            for (;;) {
+                message msg;
+                {
+                    std::lock_guard<std::mutex> lock(eval_requests_mutex);
+                    if (eval_requests.empty()) {
+                        break;
+                    } else {
+                        msg = eval_requests.front();
+                        eval_requests.pop();
+                    }
+                }
+
+                handle_eval(msg);
+            }
+        }
+
         inline message send_request_and_get_response(const std::string& name, const picojson::array& args) {
             assert(name[0] == '?');
 
@@ -621,7 +738,8 @@ namespace rhost {
             message request(message::request_marker, name, args, blob());
             transport::send_message(request);
             auto id = request.id();
-            terminate_if_closed();
+
+            shutdown_if_requested();
 
             indent_log(+1);
             SCOPE_WARDEN(dedent_log, { indent_log(-1); });
@@ -630,15 +748,7 @@ namespace rhost {
                 message msg;
                 for (;;) {
                     {
-                        // If there's anything in eval queue, break to process that.
-                        {
-                            std::lock_guard<std::mutex> lock(eval_requests_mutex);
-                            if (!eval_requests.empty()) {
-                                msg = eval_requests.front();
-                                eval_requests.pop();
-                                break;
-                            }
-                        }
+                        handle_pending_evals();
 
                         std::lock_guard<std::mutex> lock(response_mutex);
                         if (response_state == RESPONSE_UNEXPECTED) {
@@ -652,7 +762,7 @@ namespace rhost {
                         }
                     }
 
-                    terminate_if_closed();
+                    shutdown_if_requested();
 
                     // R_ProcessEvents may invoke CallBack. If there is a pending cancellation request, we do
                     // not want CallBack to call Rf_onintr as it normally does, since it would unwind the stack
@@ -674,29 +784,24 @@ namespace rhost {
 
                     allow_intr_in_CallBack = true;
 
-                    terminate_if_closed();
+                    shutdown_if_requested();
 
                     if (query_interrupt()) {
                         throw eval_cancel_error();
                     }
                 }
 
-                if (msg.is_response()) {
-                    if (msg.request_id() != id) {
-                        fatal_error("Received response [%llu,'%s'], while awaiting response for [%llu,'%s'].",
-                            msg.request_id(), msg.name(), id, name.c_str());
-                    } else if (strcmp(msg.name() + 1, name.c_str() + 1) != 0) {
-                        fatal_error("Response to [%llu,'%s'] has mismatched name '%s'.",
-                            id, name.c_str(), msg.name());
-                    }
-                    return msg;
+                assert(msg.is_response());
+
+                if (msg.request_id() != id) {
+                    fatal_error("Received response [%llu,'%s'], while awaiting response for [%llu,'%s'].",
+                        msg.request_id(), msg.name(), id, name.c_str());
+                } else if (strcmp(msg.name() + 1, name.c_str() + 1) != 0) {
+                    fatal_error("Response to [%llu,'%s'] has mismatched name '%s'.",
+                        id, name.c_str(), msg.name());
                 }
 
-                if (msg.name()[0] == '?' && msg.name()[1] == '=') {
-                    handle_eval(msg);
-                } else {
-                    fatal_error("Unrecognized incoming message name '%s'.", msg.name());
-                }
+                return msg;
             }
         }
 
@@ -709,7 +814,9 @@ namespace rhost {
         }
 
         extern "C" void CallBack() {
-            terminate_if_closed();
+            shutdown_if_requested();
+
+            reset_idle_timer();
 
             // Called periodically by R_ProcessEvents and Rf_eval. This is where we check for various
             // cancellation requests and issue an interrupt (Rf_onintr) if one is applicable in the
@@ -735,26 +842,21 @@ namespace rhost {
 
             // Process any pending eval requests if reentrancy is allowed.
             if (allow_callbacks) {
-                for (;;) {
-                    message msg;
-                    {
-                        std::lock_guard<std::mutex> lock(eval_requests_mutex);
-                        if (eval_requests.empty()) {
-                            break;
-
-                        } else {
-                            msg = eval_requests.front();
-                            eval_requests.pop();
-                        }
-                    }
-
-                    handle_eval(msg);
-                }
+                handle_pending_evals();
             }
         }
 
         extern "C" int R_ReadConsole(const char* prompt, char* buf, int len, int addToHistory) {
             return with_cancellation([&] {
+                // The moment we get the first ReadConsole from R is when it's ready to process our requests.
+                // Until then, attempts to do things (especially to eval arbitrary code) can fail because
+                // the standard library is not fully loaded yet.
+                {
+                    std::lock_guard<std::mutex> lock(is_r_ready_lock);
+                    is_r_ready = true;
+                    is_r_ready_cond.notify_all();
+                }
+
                 if (!allow_intr_in_CallBack) {
                     // If we got here, this means that we've just processed a cancellation request that had
                     // unwound the context stack all the way to the bottom, cancelling all the active evals;
@@ -850,20 +952,21 @@ namespace rhost {
             });
         }
 
-        extern "C" void atexit_handler() {
-            if (transport::is_connected()) {
-                with_cancellation([&] {
-                    send_notification("!End");
-                });
-            }
-        }
-
         void message_received(const message& incoming) {
+            reset_idle_timer();
+
+            // If R is not ready yet, wait until it is before processing any incoming requests
+            // to avoid racing with R initialization code.
+            {
+                std::unique_lock<std::mutex> lock(is_r_ready_lock);
+                is_r_ready_cond.wait(lock, [] { return is_r_ready; });
+            }
+
             std::string name = incoming.name();
-            if (name == "!End") {
-                terminate("Shutdown request received.");
-            } else if (name == "!/") {
-                return handle_cancel(incoming);
+            if (name == "!Shutdown") {
+                request_shutdown(incoming);
+            } else if (name == "!/" || name == "!//") {
+                return handle_cancel(name, incoming);
             } else if (name == "?CreateBlob") {
                 return create_blob(incoming);
             } else if (name == "?GetBlobSize") {
@@ -897,10 +1000,8 @@ namespace rhost {
             }
         }
 
-        void initialize(structRstart& rp) {
-            // R itself is built with MinGW, and links to msvcrt.dll, so it uses the latter's exit() to terminate the main loop.
-            // To ensure that our code runs during shutdown, we need to use the corresponding atexit().
-            msvcrt::atexit(atexit_handler);
+        void initialize(structRstart& rp, const fs::path& rdata, std::chrono::seconds idle_timeout) {
+            host::rdata = rdata;
 
             main_thread_id = GetCurrentThreadId();
 
@@ -915,6 +1016,11 @@ namespace rhost {
             rp.Busy = Busy;
 
             send_notification("!Microsoft.R.Host", 1.0, getDLLVersion());
+
+            if (idle_timeout > 0s) {
+                logf(log_verbosity::minimal, "Host process will shut down after %lld seconds of inactivity.\n", idle_timeout.count());
+                std::thread([&] { idle_timer_thread(idle_timeout); }).detach();
+            }
         }
 
         extern "C" void ShowMessage(const char* s) {
