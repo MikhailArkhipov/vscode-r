@@ -187,7 +187,18 @@ namespace rhost {
 
         void create_blob(const message& msg) {
             assert(!strcmp(msg.name(), "?CreateBlob"));
-            blobs::blob_id id = create_blob(msg.blob());
+            
+            std::lock_guard<std::mutex> lock(blobs_mutex);
+            blobs::blob_id id = ++next_blob_id;
+
+            // Check that it never overflows double mantissa, and provide immediate diagnostics if it happens.
+            if (id != blobs::blob_id(double(id))) {
+                fatal_error("CreateBlob: Blob ID overflow");
+            }
+            
+            // Create a empty blob
+            blobs[id] = blobs::blob();
+
             respond_to_message(msg, static_cast<double>(id));
         }
 
@@ -216,24 +227,6 @@ namespace rhost {
             return true;
         }
 
-        void get_blob(const message& msg) {
-            assert(!strcmp(msg.name(), "?GetBlob"));
-
-            auto json = msg.json();
-            if (!json[0].is<double>()) {
-                fatal_error("GetBlob: non-numeric blob ID");
-            }
-            auto id = static_cast<blobs::blob_id>(json[0].get<double>());
-
-            std::lock_guard<std::mutex> lock(blobs_mutex);
-            auto& it = blobs.find(id);
-            if (it == blobs.end()) {
-                fatal_error("GetBlob: no blob with ID %llu", id);
-            }
-
-            respond_to_message(msg, it->second);
-        }
-
         void destroy_blob(blobs::blob_id blob_id) {
             std::lock_guard<std::mutex> lock(blobs_mutex);
             blobs.erase(blob_id);
@@ -253,6 +246,124 @@ namespace rhost {
                 auto id = static_cast<blobs::blob_id>(val.get<double>());
                 blobs.erase(id);
             }
+        }
+
+        void get_blob_size(const message& msg) {
+            assert(!strcmp(msg.name(), "?GetBlobSize"));
+
+            auto json = msg.json();
+            if (!json[0].is<double>()) {
+                fatal_error("GetBlobSize: non-numeric blob ID");
+            }
+            auto id = static_cast<blobs::blob_id>(json[0].get<double>());
+
+            std::lock_guard<std::mutex> lock(blobs_mutex);
+            auto& it = blobs.find(id);
+            if (it == blobs.end()) {
+                fatal_error("GetBlobSize: no blob with ID %llu", id);
+            }
+
+            respond_to_message(msg, static_cast<double>(it->second.size()));
+        }
+
+        void set_blob_size(const message& msg) {
+            assert(!strcmp(msg.name(), "!SetBlobSize"));
+
+            auto json = msg.json();
+            if (!json[0].is<double>()) {
+                fatal_error("SetBlobSize: non-numeric blob ID");
+            }
+            auto id = static_cast<blobs::blob_id>(json[0].get<double>());
+
+            if (!json[1].is<double>()) {
+                fatal_error("SetBlobSize: non-numeric blob Size");
+            }
+            auto size = static_cast<size_t>(json[1].get<double>());
+
+            std::lock_guard<std::mutex> lock(blobs_mutex);
+            auto& it = blobs.find(id);
+            if (it == blobs.end()) {
+                fatal_error("SetBlobSize: no blob with ID %llu", id);
+            }
+
+            it->second.resize(size);
+            respond_to_message(msg, static_cast<double>(it->second.size()));
+        }
+
+        void read_blob(const message& msg) {
+            assert(!strcmp(msg.name(), "?ReadBlob"));
+
+            auto json = msg.json();
+            if (!json[0].is<double>()) {
+                fatal_error("ReadBlob: non-numeric blob ID");
+            }
+            auto id = static_cast<blobs::blob_id>(json[0].get<double>());
+
+            if (!json[1].is<double>()) {
+                fatal_error("ReadBlob: non-numeric position");
+            }
+            long long pos = static_cast<long long>(json[1].get<double>());
+
+            if (!json[2].is<double>()) {
+                fatal_error("ReadBlob: non-numeric byte count");
+            }
+            long long count = static_cast<long long>(json[2].get<double>());
+
+            if (count < -1) {
+                fatal_error("ReadBlob: byte count cannot be < -1");
+            }
+
+            std::lock_guard<std::mutex> lock(blobs_mutex);
+            auto& it = blobs.find(id);
+            if (it == blobs.end()) {
+                fatal_error("ReadBlob: no blob with ID %llu", id);
+            }
+
+            if (((pos != 0) && pos >= static_cast<long long>(it->second.size())) || pos < 0) {
+                blobs::blob empty;
+                respond_to_message(msg, empty);
+                return;
+            }
+
+            if (pos == 0 && count == -1) {
+                // Read all
+                respond_to_message(msg, it->second);
+                return;
+            } 
+            
+            // Read at position and count
+            size_t size = pos;
+            size += count;
+            if (count == -1 || size > it->second.size()) {
+                count = it->second.size() - pos;
+            }
+
+            blobs::blob::const_iterator begin = it->second.begin() + pos;
+            blobs::blob::const_iterator end = it->second.begin() + pos + count;
+
+            blobs::blob part(begin, end);
+            respond_to_message(msg, part);
+        }
+
+        void write_blob(const message& msg) {
+            assert(!strcmp(msg.name(), "?WriteBlob"));
+
+            auto json = msg.json();
+            if (!json[0].is<double>()) {
+                fatal_error("WriteBlob: non-numeric blob ID");
+            }
+            auto id = static_cast<blobs::blob_id>(json[0].get<double>());
+
+            std::lock_guard<std::mutex> lock(blobs_mutex);
+            auto& it = blobs.find(id);
+            if (it == blobs.end()) {
+                fatal_error("WriteBlob: no blob with ID %llu", id);
+            }
+
+            // append to the end of the blob
+            auto blob = msg.blob();
+            it->second.insert(it->second.end(), blob.begin(), blob.end());
+            respond_to_message(msg, static_cast<double>(it->second.size()));
         }
 
         void handle_eval(const message& msg) {
@@ -733,8 +844,14 @@ namespace rhost {
                 return handle_cancel(incoming);
             } else if (name == "?CreateBlob") {
                 return create_blob(incoming);
-            } else if (name == "?GetBlob") {
-                return get_blob(incoming);
+            } else if (name == "?GetBlobSize") {
+                return get_blob_size(incoming);
+            } else if (name == "!SetBlobSize") {
+                return set_blob_size(incoming);
+            } else if (name == "?ReadBlob") {
+                return read_blob(incoming);
+            } else if (name == "?WriteBlob") {
+                return write_blob(incoming);
             } else if (name == "!DestroyBlob") {
                 return destroy_blobs(incoming);
             } else if (name.size() >= 2 && name[0] == '?' && name[1] == '=') {
