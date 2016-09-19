@@ -386,7 +386,6 @@ namespace rhost {
             }
             
             respond_to_message(msg, ensure_fits_double(it->second.size()));
-            return;
         }
 
         void handle_eval(const message& msg) {
