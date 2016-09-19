@@ -263,7 +263,7 @@ namespace rhost {
                 fatal_error("GetBlobSize: no blob with ID %llu", id);
             }
 
-            respond_to_message(msg, static_cast<double>(it->second.size()));
+            respond_to_message(msg, ensure_fits_double(it->second.size()));
         }
 
         void set_blob_size(const message& msg) {
@@ -287,7 +287,7 @@ namespace rhost {
             }
 
             it->second.resize(size);
-            respond_to_message(msg, static_cast<double>(it->second.size()));
+            respond_to_message(msg, ensure_fits_double(it->second.size()));
         }
 
         void read_blob(const message& msg) {
@@ -303,6 +303,9 @@ namespace rhost {
                 fatal_error("ReadBlob: non-numeric position");
             }
             long long pos = static_cast<long long>(json[1].get<double>());
+            if (pos < 0) {
+                fatal_error("ReadBlob: position cannot be < 0");
+            }
 
             if (!json[2].is<double>()) {
                 fatal_error("ReadBlob: non-numeric byte count");
@@ -319,7 +322,8 @@ namespace rhost {
                 fatal_error("ReadBlob: no blob with ID %llu", id);
             }
 
-            if (((pos != 0) && pos >= static_cast<long long>(it->second.size())) || pos < 0) {
+            if (pos >= static_cast<long long>(it->second.size()) && count >= 0) {
+                // .net stream read requires an empty/zero sized read to identify end-of-stream.
                 blobs::blob empty;
                 respond_to_message(msg, empty);
                 return;
@@ -381,7 +385,7 @@ namespace rhost {
                 std::copy(blob.begin(), blob.end(), it->second.begin() + pos);
             }
             
-            respond_to_message(msg, static_cast<double>(it->second.size()));
+            respond_to_message(msg, ensure_fits_double(it->second.size()));
             return;
         }
 
