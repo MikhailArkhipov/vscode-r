@@ -199,5 +199,15 @@ namespace rhost {
         inline std::string deparse(SEXP sexp) {
             return R_CHAR(STRING_ELT(Rf_deparse1line(sexp, R_FALSE), 0));
         }
+
+        inline double ensure_fits_double(size_t size) {
+            double dsize = static_cast<double>(size);
+            size_t tsize = static_cast<size_t>(dsize);
+            if (size != tsize) {
+                log::fatal_error("Overflow during cast");
+            }
+
+            return dsize;
+        }
     }
 }
