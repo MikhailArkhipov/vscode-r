@@ -339,7 +339,7 @@ namespace rhost {
             }
 
             blobs::blob::const_iterator begin = it->second.begin() + pos;
-            blobs::blob::const_iterator end = it->second.begin() + pos + count;
+            blobs::blob::const_iterator end = begin + count;
 
             blobs::blob part(begin, end);
             respond_to_message(msg, part);
@@ -354,16 +354,35 @@ namespace rhost {
             }
             auto id = static_cast<blobs::blob_id>(json[0].get<double>());
 
+            if (!json[1].is<double>()) {
+                fatal_error("ReadBlob: non-numeric position");
+            }
+            long long pos = static_cast<long long>(json[1].get<double>());
+
             std::lock_guard<std::mutex> lock(blobs_mutex);
             auto& it = blobs.find(id);
             if (it == blobs.end()) {
                 fatal_error("WriteBlob: no blob with ID %llu", id);
             }
 
-            // append to the end of the blob
-            auto blob = msg.blob();
-            it->second.insert(it->second.end(), blob.begin(), blob.end());
+            if (pos == -1 || pos == it->second.size()) {
+                // append to the end of the blob
+                auto blob = msg.blob();
+                it->second.insert(it->second.end(), blob.begin(), blob.end());
+            } else {
+                // write/over-write at position
+                auto blob = msg.blob();
+                size_t size = pos;
+                size += blob.size();
+                if (it->second.size() < size) {
+                    it->second.resize(size);
+                }
+
+                std::copy(blob.begin(), blob.end(), it->second.begin() + pos);
+            }
+            
             respond_to_message(msg, static_cast<double>(it->second.size()));
+            return;
         }
 
         void handle_eval(const message& msg) {
