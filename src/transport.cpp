@@ -54,7 +54,7 @@ namespace rhost {
                     str << " <raw (" << blob.size() << " bytes)>";
                 }
 
-                log::logf("%s\n\n", str.str().c_str());
+                log::logf(log::log_verbosity::traffic, "%s\n\n", str.str().c_str());
 #endif
             }
 

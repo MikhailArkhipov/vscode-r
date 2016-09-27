@@ -43,6 +43,7 @@ namespace rhost {
     struct command_line_args {
         fs::path log_dir;
         std::string name;
+        log::log_verbosity log_level;
         std::vector<std::string> unrecognized;
         int argc;
         std::vector<char*> argv;
@@ -54,10 +55,11 @@ namespace rhost {
         po::option_description
             help("rhost-help", new po::untyped_value(true), "Produce help message."),
             name("rhost-name", po::value<std::string>(), "Name of this host instance."),
+            log_level("rhost-log-verbosity", po::value<int>(), "Log verbosity."),
             log_dir("rhost-log-dir", po::value<std::string>(), "Directory to store host logs and dumps.");
 
         po::options_description desc;
-        for (auto&& opt : { help, name, log_dir }) {
+        for (auto&& opt : { help, name, log_level, log_dir }) {
             boost::shared_ptr<po::option_description> popt(new po::option_description(opt));
             desc.add(popt);
         }
@@ -106,7 +108,7 @@ namespace rhost {
         MEMORYSTATUSEX ms = {};
         ms.dwLength = sizeof ms;
         if (!GlobalMemoryStatusEx(&ms)) {
-            logf("Couldn't set R memory limit - GlobalMemoryStatusEx failed with GetLastError=%u\n", GetLastError());
+            logf(log_verbosity::minimal, "Couldn't set R memory limit - GlobalMemoryStatusEx failed with GetLastError=%u\n", GetLastError());
             return;
         }
 
@@ -120,12 +122,12 @@ namespace rhost {
             return;
         }
 
-        logf("Setting R memory limit to %0.0f MB\n", new_limit);
+        logf(log_verbosity::minimal, "Setting R memory limit to %0.0f MB\n", new_limit);
 
         protected_sexp limit = Rf_allocVector(REALSXP, 1);
         *REAL(limit.get()) = new_limit;
         if (!r_top_level_exec([&] { in_memsize(limit.get()); })) {
-            logf("Couldn't set R memory limit - in_memsize failed: %s\n", R_curErrorBuf());
+            logf(log_verbosity::minimal, "Couldn't set R memory limit - in_memsize failed: %s\n", R_curErrorBuf());
         }
 #endif
     }
@@ -149,7 +151,7 @@ namespace rhost {
     }
 
     int run(command_line_args& args) {
-        init_log(args.name, args.log_dir);
+        init_log(args.name, args.log_dir, args.log_level);
         transport::initialize();
 
         R_setStartTime();

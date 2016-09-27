@@ -170,7 +170,7 @@ namespace rhost {
             if (!R_ToplevelExec([](void* arg) { (*reinterpret_cast<FExecute*>(arg))(); }, &protected_eval)) {
                 const char* err = R_curErrorBuf();
                 if (log_error_prefix != nullptr) {
-                    log::logf("%s: error: %s\n", log_error_prefix, err);
+                    log::logf(log::log_verbosity::normal, "%s: error: %s\n", log_error_prefix, err);
                 }
                 return false;
             }
