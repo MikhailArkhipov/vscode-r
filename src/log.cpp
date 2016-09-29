@@ -48,6 +48,7 @@ namespace rhost {
             fs::path log_filename, stackdump_filename, fulldump_filename;
             FILE* logfile;
             int indent;
+            log::log_verbosity current_verbosity;
 
             void log_flush_thread() {
                 for (;;) {
@@ -70,9 +71,9 @@ namespace rhost {
             // Create a regular minidump.
             HANDLE dump_file = CreateFileA(stackdump_filename.make_preferred().string().c_str(), GENERIC_ALL, 0, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
             if (MiniDumpWriteDump(GetCurrentProcess(), GetCurrentProcessId(), dump_file, MiniDumpNormal, &mei, nullptr, nullptr)) {
-                logf("Stack-only minidump written out to %s\n", stackdump_filename.c_str());
+                logf(log_verbosity::minimal, "Stack-only minidump written out to %s\n", stackdump_filename.c_str());
             } else {
-                logf("Failed to write stack-only minidump to %s\n", stackdump_filename.c_str());
+                logf(log_verbosity::minimal, "Failed to write stack-only minidump to %s\n", stackdump_filename.c_str());
             }
             CloseHandle(dump_file);
             flush_log();
@@ -80,9 +81,9 @@ namespace rhost {
             // Create a full heap minidump with as much data as possible.
             dump_file = CreateFileA(fulldump_filename.make_preferred().string().c_str(), GENERIC_ALL, 0, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
             if (MiniDumpWriteDump(GetCurrentProcess(), GetCurrentProcessId(), dump_file, fulldump_type, &mei, nullptr, nullptr)) {
-                logf("Full minidump written out to %s\n", fulldump_filename.c_str());
+                logf(log_verbosity::minimal, "Full minidump written out to %s\n", fulldump_filename.c_str());
             } else {
-                logf("Failed to write full minidump to %s\n", fulldump_filename.c_str());
+                logf(log_verbosity::minimal, "Failed to write full minidump to %s\n", fulldump_filename.c_str());
             }
             CloseHandle(dump_file);
             flush_log();
@@ -100,7 +101,7 @@ namespace rhost {
             // if we're out of memory), at least the stuff that's already in the log gets written
             flush_log();
 
-            logf("Terminating process due to unhandled Win32 exception 0x%x\n", ei->ExceptionRecord->ExceptionCode);
+            logf(log_verbosity::minimal, "Terminating process due to unhandled Win32 exception 0x%x\n", ei->ExceptionRecord->ExceptionCode);
             flush_log();
             create_minidump(ei);
 
@@ -109,8 +110,10 @@ namespace rhost {
         }
 #endif
 
-        void init_log(const std::string& log_suffix, const fs::path& log_dir) {
+        void init_log(const std::string& log_suffix, const fs::path& log_dir, log::log_verbosity verbosity) {
             {
+                current_verbosity = verbosity;
+
                 std::string filename = "Microsoft.R.Host_";
                 if (!log_suffix.empty()) {
                     filename += log_suffix + "_";
@@ -156,7 +159,11 @@ namespace rhost {
 #endif
         }
 
-        void vlogf(log_level level, const char* format, va_list va) {
+        void vlogf(log_verbosity verbosity, log_level message_type, const char* format, va_list va) {
+            if (verbosity > current_verbosity) {
+                return;
+            }
+
             std::lock_guard<std::mutex> lock(log_mutex);
 
             va_list va2;
@@ -176,7 +183,7 @@ namespace rhost {
             }
 
             // Don't log trace level messages to stderr by default.
-            if (level != log_level::trace) {
+            if (message_type != log_level::trace) {
                 for (int i = 0; i < indent; ++i) {
                     fputc('\t', stderr);
                 }
@@ -208,9 +215,9 @@ namespace rhost {
             vsprintf_s(message, format, va);
 
             if (unexpected) {
-                logf("Fatal error: ");
+                logf(log_verbosity::minimal, "Fatal error: ");
             }
-            logf(unexpected ? log_level::error : log_level::information, "%s\n", message);
+            logf(log_verbosity::minimal, unexpected ? log_level::error : log_level::information, "%s\n", message);
             flush_log();
 
             if (unexpected) {

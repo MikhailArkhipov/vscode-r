@@ -36,7 +36,7 @@ namespace rhost {
                 }
                 str << ">";
 
-                log::logf("%s\n\n", str.str().c_str());
+                log::logf(log::log_verbosity::traffic, "%s\n\n", str.str().c_str());
                 log::flush_log();
             }
         }
