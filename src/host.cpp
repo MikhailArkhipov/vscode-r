@@ -119,7 +119,7 @@ namespace rhost {
                 str << " <raw (" << blob.size() << " bytes)>";
             }
 
-            logf("%s\n\n", str.str().c_str());
+            logf(log_verbosity::traffic, "%s\n\n", str.str().c_str());
 #endif
         }
 
@@ -400,7 +400,7 @@ namespace rhost {
             allow_callbacks = false;
 
             const auto& expr = from_utf8(args[0].get<std::string>());
-            log::logf("#%llu# = %s\n\n", msg.id(), expr.c_str());
+            log::logf(log_verbosity::traffic, "#%llu# = %s\n\n", msg.id(), expr.c_str());
 
             SEXP env = nullptr;
             bool is_cancelable = false, new_env = false, no_result = false, raw_response = false;

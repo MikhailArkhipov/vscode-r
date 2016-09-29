@@ -25,6 +25,13 @@
 
 namespace rhost {
     namespace log {
+        enum class log_verbosity {
+            none,
+            minimal,
+            normal,
+            traffic
+        };
+
         enum class log_level {
             trace,
             information,
@@ -32,25 +39,25 @@ namespace rhost {
             error
         };
 
-        void init_log(const std::string& log_suffix, const fs::path& log_dir);
+        void init_log(const std::string& log_suffix, const fs::path& log_dir, log_verbosity log_level);
 
-        void vlogf(log_level level, const char* format, va_list va);
+        void vlogf(log_verbosity level, log_level message_type, const char* format, va_list va);
 
-        inline void logf(log_level level, const char* format, ...) {
+        inline void logf(log_verbosity verbosity, log_level message_type, const char* format, ...) {
             va_list va;
             va_start(va, format);
-            vlogf(level, format, va);
+            vlogf(verbosity, message_type, format, va);
             va_end(format);
         }
 
-        inline void vlogf(const char* format, va_list va) {
-            vlogf(log_level::trace, format, va);
+        inline void vlogf(log_verbosity verbosity, const char* format, va_list va) {
+            vlogf(verbosity, log_level::trace, format, va);
         }
 
-        inline void logf(const char* format, ...) {
+        inline void logf(log_verbosity verbosity, const char* format, ...) {
             va_list va;
             va_start(va, format);
-            vlogf(format, va);
+            vlogf(verbosity, format, va);
             va_end(format);
         }
 
