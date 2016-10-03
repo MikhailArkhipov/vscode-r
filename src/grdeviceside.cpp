@@ -244,7 +244,7 @@ namespace rhost {
                 remove_snapshot_render_file();
 
                 _snapshot_render_filename = path;
-                xdd->send(boost::uuids::uuid(), path);
+                xdd->send(_plot_id, path);
             }
 
             void plot::render(bool save_snapshot) {
@@ -751,13 +751,13 @@ namespace rhost {
 
                 // Recreate the file device to obtain its new attributes,
                 // based on the new width/height/resolution.
-                auto file_dd = get_or_create_file_device();
+                _file_device = create_file_device();
 
                 // Update the ide device with attributes based
                 // on the new width/height/resolution, so that 
                 // future plots on this device are calculated correctly.
                 // https://github.com/Microsoft/RTVS/issues/2017
-                copy_device_attributes(file_dd, device_desc);
+                copy_device_attributes(_file_device, device_desc);
 
                 // Kill the temporary file device and delete the file it opened on disk
                 auto file_device_filename = _file_device_filename;
