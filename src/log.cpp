@@ -230,8 +230,6 @@ namespace rhost {
                     msgbox_text += c;
                 }
                 
-                //MessageBoxA(HWND_DESKTOP, msgbox_text.c_str(), "Microsoft R Host Process fatal error", MB_OK | MB_ICONERROR);
-
                 // Raise and catch an exception so that minidump with a stacktrace can be produced from it.
                 [&] {
                     terminate_mutex.unlock();
@@ -243,7 +241,7 @@ namespace rhost {
                 }();
             }
             
-            R_Suicide(message);
+            R_CleanUp(SA_NOSAVE, (unexpected ? EXIT_FAILURE : EXIT_SUCCESS), 0);
         }
 
         void terminate(const char* format, ...) {
