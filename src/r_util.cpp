@@ -516,6 +516,17 @@ namespace rhost {
             return R_NilValue;
         }
 
+        protected_sexp disconnect_callback;
+
+        extern "C" SEXP set_disconnect_callback(SEXP func) {
+            disconnect_callback.reset(func);
+            return R_NilValue;
+        }
+
+        extern "C" SEXP get_disconnect_callback() {
+            return disconnect_callback.get();
+        }
+
         R_CallMethodDef call_methods[] = {
             { "Microsoft.R.Host::Call.unevaluated_promise", (DL_FUNC)unevaluated_promise, 2 },
             { "Microsoft.R.Host::Call.memory_connection", (DL_FUNC)memory_connection_new, 4 },
@@ -534,11 +545,28 @@ namespace rhost {
             { "Microsoft.R.Host::Call.get_file_lock_state", (DL_FUNC)get_file_lock_state, 1 },
             { "Microsoft.R.Host::Call.fetch_file", (DL_FUNC)fetch_file, 1 },
             { "Microsoft.R.Host::Call.save_to_project_folder", (DL_FUNC)save_to_project_folder, 4 },
+            { "Microsoft.R.Host::Call.set_disconnect_callback", (DL_FUNC)set_disconnect_callback, 1 },
+            { "Microsoft.R.Host::Call.get_disconnect_callback", (DL_FUNC)get_disconnect_callback, 0 },
             { }
         };
 
         void init(DllInfo *dll) {
             rhost::exports::add_call_methods(call_methods);
+
+            rhost::host::disconnected.connect([] {
+                auto func = disconnect_callback.get();
+                if (func && func != R_NilValue) {
+                    SEXP call = Rf_protect(Rf_allocList(1));
+                    SET_TYPEOF(call, LANGSXP);
+                    SETCAR(call, func);
+
+                    rhost::util::r_top_level_exec([&] {
+                        Rf_eval(call, R_GlobalEnv);
+                    }, __FUNCTION__);
+
+                    Rf_unprotect(1);
+                }
+            });
         }
     }
 }

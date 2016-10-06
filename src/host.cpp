@@ -42,6 +42,7 @@ namespace rhost {
     namespace host {
         boost::signals2::signal<void()> callback_started;
         boost::signals2::signal<void()> readconsole_done;
+        boost::signals2::signal<void()> disconnected;
 
         fs::path rdata;
         std::atomic<bool> shutdown_requested = false;
@@ -200,6 +201,7 @@ namespace rhost {
 
             if (!transport::is_connected()) {
                 is_terminating = true;
+                disconnected();
                 terminate("Lost connection to client.");
             }
         }

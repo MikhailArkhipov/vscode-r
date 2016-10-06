@@ -43,6 +43,7 @@ namespace rhost {
 
         extern boost::signals2::signal<void()> callback_started;
         extern boost::signals2::signal<void()> readconsole_done;
+        extern boost::signals2::signal<void()> disconnected;
 
         __declspec(noreturn) void propagate_cancellation();
 
