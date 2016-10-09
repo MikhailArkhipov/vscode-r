@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\NugetPackages\MicroBuild.Core.0.2.0\build\MicroBuild.Core.props" Condition="Exists('..\NugetPackages\MicroBuild.Core.0.2.0\build\MicroBuild.Core.props')" />
+  <Import Project="$(SolutionDir)\..\NugetPackages\MicroBuild.Core.0.2.0\build\MicroBuild.Core.props" Condition="Exists('..\NugetPackages\MicroBuild.Core.0.2.0\build\MicroBuild.Core.props')" />
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
       <Configuration>Debug</Configuration>
@@ -272,13 +272,13 @@
     <Import Project="$(SolutionDir)\..\NugetPackages\libzip.1.1.2.7\build\native\libzip.targets" Condition="Exists('$(SolutionDir)\..\NugetPackages\libzip.1.1.2.7\build\native\libzip.targets')" />
     <Import Project="$(SolutionDir)\..\NugetPackages\zlib.v120.windesktop.msvcstl.dyn.rt-dyn.1.2.8.8\build\native\zlib.v120.windesktop.msvcstl.dyn.rt-dyn.targets" Condition="Exists('$(SolutionDir)\..\NugetPackages\zlib.v120.windesktop.msvcstl.dyn.rt-dyn.1.2.8.8\build\native\zlib.v120.windesktop.msvcstl.dyn.rt-dyn.targets')" />
     <Import Project="$(SolutionDir)\..\NugetPackages\zlib.v140.windesktop.msvcstl.dyn.rt-dyn.1.2.8.8\build\native\zlib.v140.windesktop.msvcstl.dyn.rt-dyn.targets" Condition="Exists('$(SolutionDir)\..\NugetPackages\zlib.v140.windesktop.msvcstl.dyn.rt-dyn.1.2.8.8\build\native\zlib.v140.windesktop.msvcstl.dyn.rt-dyn.targets')" />
-    <Import Project="..\NugetPackages\boost.1.62.0.0\build\native\boost.targets" Condition="Exists('..\NugetPackages\boost.1.62.0.0\build\native\boost.targets')" />
-    <Import Project="..\NugetPackages\boost_date_time-vc140.1.62.0.0\build\native\boost_date_time-vc140.targets" Condition="Exists('..\NugetPackages\boost_date_time-vc140.1.62.0.0\build\native\boost_date_time-vc140.targets')" />
-    <Import Project="..\NugetPackages\boost_locale-vc140.1.62.0.0\build\native\boost_locale-vc140.targets" Condition="Exists('..\NugetPackages\boost_locale-vc140.1.62.0.0\build\native\boost_locale-vc140.targets')" />
-    <Import Project="..\NugetPackages\boost_program_options-vc140.1.62.0.0\build\native\boost_program_options-vc140.targets" Condition="Exists('..\NugetPackages\boost_program_options-vc140.1.62.0.0\build\native\boost_program_options-vc140.targets')" />
-    <Import Project="..\NugetPackages\boost_regex-vc140.1.62.0.0\build\native\boost_regex-vc140.targets" Condition="Exists('..\NugetPackages\boost_regex-vc140.1.62.0.0\build\native\boost_regex-vc140.targets')" />
-    <Import Project="..\NugetPackages\boost_system-vc140.1.62.0.0\build\native\boost_system-vc140.targets" Condition="Exists('..\NugetPackages\boost_system-vc140.1.62.0.0\build\native\boost_system-vc140.targets')" />
-    <Import Project="..\NugetPackages\MicroBuild.Core.0.2.0\build\MicroBuild.Core.targets" Condition="Exists('..\NugetPackages\MicroBuild.Core.0.2.0\build\MicroBuild.Core.targets')" />
+    <Import Project="$(SolutionDir)\..\NugetPackages\boost.1.62.0.0\build\native\boost.targets" Condition="Exists('..\NugetPackages\boost.1.62.0.0\build\native\boost.targets')" />
+    <Import Project="$(SolutionDir)\..\NugetPackages\boost_date_time-vc140.1.62.0.0\build\native\boost_date_time-vc140.targets" Condition="Exists('..\NugetPackages\boost_date_time-vc140.1.62.0.0\build\native\boost_date_time-vc140.targets')" />
+    <Import Project="$(SolutionDir)\..\NugetPackages\boost_locale-vc140.1.62.0.0\build\native\boost_locale-vc140.targets" Condition="Exists('..\NugetPackages\boost_locale-vc140.1.62.0.0\build\native\boost_locale-vc140.targets')" />
+    <Import Project="$(SolutionDir)\..\NugetPackages\boost_program_options-vc140.1.62.0.0\build\native\boost_program_options-vc140.targets" Condition="Exists('..\NugetPackages\boost_program_options-vc140.1.62.0.0\build\native\boost_program_options-vc140.targets')" />
+    <Import Project="$(SolutionDir)\..\NugetPackages\boost_regex-vc140.1.62.0.0\build\native\boost_regex-vc140.targets" Condition="Exists('..\NugetPackages\boost_regex-vc140.1.62.0.0\build\native\boost_regex-vc140.targets')" />
+    <Import Project="$(SolutionDir)\..\NugetPackages\boost_system-vc140.1.62.0.0\build\native\boost_system-vc140.targets" Condition="Exists('..\NugetPackages\boost_system-vc140.1.62.0.0\build\native\boost_system-vc140.targets')" />
+    <Import Project="$(SolutionDir)\..\NugetPackages\MicroBuild.Core.0.2.0\build\MicroBuild.Core.targets" Condition="Exists('..\NugetPackages\MicroBuild.Core.0.2.0\build\MicroBuild.Core.targets')" />
   </ImportGroup>
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
