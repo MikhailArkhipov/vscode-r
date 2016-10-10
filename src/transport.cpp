@@ -117,6 +117,10 @@ namespace rhost {
 
             log_message("<==", msg.id(), msg.request_id(), msg.name(), msg.json_text(), msg.blob());
 
+            if (!connected) {
+                return;
+            }
+
             auto& payload = msg.payload();
             boost::endian::little_uint32_buf_t msg_size(static_cast<uint32_t>(payload.size()));
 
