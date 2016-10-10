@@ -30,7 +30,7 @@ namespace rhost {
 
         struct message_repr {
             boost::endian::little_uint64_buf_t id, request_id;
-            char* data;
+            char data[];
         };
 
         class message {
