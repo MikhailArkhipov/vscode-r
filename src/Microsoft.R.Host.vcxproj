@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(SolutionDir)\..\NugetPackages\MicroBuild.Core.0.2.0\build\MicroBuild.Core.props" Condition="Exists('..\NugetPackages\MicroBuild.Core.0.2.0\build\MicroBuild.Core.props')" />
+  <Import Project="..\NugetPackages\MicroBuild.Core.0.2.0\build\MicroBuild.Core.props" Condition="Exists('..\NugetPackages\MicroBuild.Core.0.2.0\build\MicroBuild.Core.props')" />
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
       <Configuration>Debug</Configuration>
@@ -32,34 +32,26 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset Condition="'$(VisualStudioVersion)'=='14.0'">v140</PlatformToolset>
-    <PlatformToolset Condition="'$(VisualStudioVersion)'=='15.0'">v140</PlatformToolset>
-    <!--<PlatformToolset Condition="'$(VisualStudioVersion)'=='15.0'">v141</PlatformToolset>-->
+    <PlatformToolset>v141</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset Condition="'$(VisualStudioVersion)'=='14.0'">v140</PlatformToolset>
-    <PlatformToolset Condition="'$(VisualStudioVersion)'=='15.0'">v140</PlatformToolset>
-    <!--<PlatformToolset Condition="'$(VisualStudioVersion)'=='15.0'">v141</PlatformToolset>-->
+    <PlatformToolset>v141</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset Condition="'$(VisualStudioVersion)'=='14.0'">v140</PlatformToolset>
-    <PlatformToolset Condition="'$(VisualStudioVersion)'=='15.0'">v140</PlatformToolset>
-    <!--<PlatformToolset Condition="'$(VisualStudioVersion)'=='15.0'">v141</PlatformToolset>-->
+    <PlatformToolset>v140</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset Condition="'$(VisualStudioVersion)'=='14.0'">v140</PlatformToolset>
-    <PlatformToolset Condition="'$(VisualStudioVersion)'=='15.0'">v140</PlatformToolset>
-    <!--<PlatformToolset Condition="'$(VisualStudioVersion)'=='15.0'">v141</PlatformToolset>-->
+    <PlatformToolset>v140</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
@@ -111,14 +103,12 @@
       <SDLCheck>false</SDLCheck>
       <AdditionalIncludeDirectories>..\lib\picojson;..\lib\websocketpp</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <DisableSpecificWarnings>4200</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>..\lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>R.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;Rstrtmgr.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <StackReserveSize>20971520</StackReserveSize>
+      <AdditionalDependencies>R.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;dbghelp.lib;Rstrtmgr.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -131,7 +121,6 @@
       <SDLCheck>false</SDLCheck>
       <AdditionalIncludeDirectories>..\lib\picojson;..\lib\websocketpp</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <DisableSpecificWarnings>4200</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -141,6 +130,7 @@
       <AdditionalDependencies>zip.lib;zlibd.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)..\NugetPackages\zlib.v140.windesktop.msvcstl.dyn.rt-dyn.1.2.8.8\lib\native\v140\windesktop\msvcstl\dyn\rt-dyn\x64\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalLibraryDirectories>$(SolutionDir)..\NugetPackages\libzip.1.1.2.7\build\native\lib\x64\v140\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <EntryPointSymbol>mainCRTStartup</EntryPointSymbol>
       <StackReserveSize>20971520</StackReserveSize>
     </Link>
     <Manifest>
@@ -159,7 +149,6 @@
       <SDLCheck>false</SDLCheck>
       <AdditionalIncludeDirectories>..\lib\picojson;..\lib\websocketpp</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <DisableSpecificWarnings>4200</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -167,8 +156,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalLibraryDirectories>..\lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>R.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;Rstrtmgr.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <StackReserveSize>20971520</StackReserveSize>
+      <AdditionalDependencies>R.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -183,7 +171,6 @@
       <SDLCheck>false</SDLCheck>
       <AdditionalIncludeDirectories>..\lib\picojson;..\lib\websocketpp</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <DisableSpecificWarnings>4200</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -191,7 +178,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalLibraryDirectories>..\lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>R.lib;Rgraphapp.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;dbghelp.lib;Rstrtmgr.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>R.lib;Rgraphapp.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;dbghelp.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalDependencies>zip.lib;zlib.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)..\NugetPackages\zlib.v140.windesktop.msvcstl.dyn.rt-dyn.1.2.8.8\lib\native\v140\windesktop\msvcstl\dyn\rt-dyn\x64\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalLibraryDirectories>$(SolutionDir)..\NugetPackages\libzip.1.1.2.7\build\native\lib\x64\v140\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
@@ -228,7 +215,6 @@
     <ClInclude Include="grdevices.h" />
     <ClInclude Include="grdeviceside.h" />
     <ClInclude Include="grdevicesxaml.h" />
-    <ClInclude Include="transport.h" />
     <ClInclude Include="message.h" />
     <ClInclude Include="msvcrt.h" />
     <ClInclude Include="eval.h" />
@@ -242,6 +228,7 @@
     <ClInclude Include="r_util.h" />
     <ClInclude Include="host.h" />
     <ClInclude Include="stdafx.h" />
+    <ClInclude Include="transport.h" />
     <ClInclude Include="util.h" />
     <ClInclude Include="xamlbuilder.h" />
   </ItemGroup>
@@ -261,10 +248,6 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
     <Import Project="$(SolutionDir)\..\NugetPackages\minhook.1.3.2.1\build\native\minhook.targets" Condition="Exists('$(SolutionDir)\..\NugetPackages\minhook.1.3.2.1\build\native\minhook.targets')" />
-    <Import Project="$(SolutionDir)\..\NugetPackages\libzip.redist.1.1.2.7\build\native\libzip.redist.targets" Condition="Exists('$(SolutionDir)\..\NugetPackages\libzip.redist.1.1.2.7\build\native\libzip.redist.targets')" />
-    <Import Project="$(SolutionDir)\..\NugetPackages\libzip.1.1.2.7\build\native\libzip.targets" Condition="Exists('$(SolutionDir)\..\NugetPackages\libzip.1.1.2.7\build\native\libzip.targets')" />
-    <Import Project="$(SolutionDir)\..\NugetPackages\zlib.v120.windesktop.msvcstl.dyn.rt-dyn.1.2.8.8\build\native\zlib.v120.windesktop.msvcstl.dyn.rt-dyn.targets" Condition="Exists('$(SolutionDir)\..\NugetPackages\zlib.v120.windesktop.msvcstl.dyn.rt-dyn.1.2.8.8\build\native\zlib.v120.windesktop.msvcstl.dyn.rt-dyn.targets')" />
-    <Import Project="$(SolutionDir)\..\NugetPackages\zlib.v140.windesktop.msvcstl.dyn.rt-dyn.1.2.8.8\build\native\zlib.v140.windesktop.msvcstl.dyn.rt-dyn.targets" Condition="Exists('$(SolutionDir)\..\NugetPackages\zlib.v140.windesktop.msvcstl.dyn.rt-dyn.1.2.8.8\build\native\zlib.v140.windesktop.msvcstl.dyn.rt-dyn.targets')" />
     <Import Project="$(SolutionDir)\..\NugetPackages\boost.1.62.0.0\build\native\boost.targets" Condition="Exists('$(SolutionDir)\..\NugetPackages\boost.1.62.0.0\build\native\boost.targets')" />
     <Import Project="$(SolutionDir)\..\NugetPackages\boost_date_time-vc140.1.62.0.0\build\native\boost_date_time-vc140.targets" Condition="Exists('$(SolutionDir)\..\NugetPackages\boost_date_time-vc140.1.62.0.0\build\native\boost_date_time-vc140.targets')" />
     <Import Project="$(SolutionDir)\..\NugetPackages\boost_locale-vc140.1.62.0.0\build\native\boost_locale-vc140.targets" Condition="Exists('$(SolutionDir)\..\NugetPackages\boost_locale-vc140.1.62.0.0\build\native\boost_locale-vc140.targets')" />
@@ -272,24 +255,28 @@
     <Import Project="$(SolutionDir)\..\NugetPackages\boost_regex-vc140.1.62.0.0\build\native\boost_regex-vc140.targets" Condition="Exists('$(SolutionDir)\..\NugetPackages\boost_regex-vc140.1.62.0.0\build\native\boost_regex-vc140.targets')" />
     <Import Project="$(SolutionDir)\..\NugetPackages\boost_system-vc140.1.62.0.0\build\native\boost_system-vc140.targets" Condition="Exists('$(SolutionDir)\..\NugetPackages\boost_system-vc140.1.62.0.0\build\native\boost_system-vc140.targets')" />
     <Import Project="$(SolutionDir)\..\NugetPackages\MicroBuild.Core.0.2.0\build\MicroBuild.Core.targets" Condition="Exists('$(SolutionDir)\..\NugetPackages\MicroBuild.Core.0.2.0\build\MicroBuild.Core.targets')" />
+    <Import Project="$(SolutionDir)\..\NugetPackages\libzip.redist.1.1.2.7\build\native\libzip.redist.targets" Condition="Exists('$(SolutionDir)\..\NugetPackages\libzip.redist.1.1.2.7\build\native\libzip.redist.targets')" />
+    <Import Project="$(SolutionDir)\..\NugetPackages\libzip.1.1.2.7\build\native\libzip.targets" Condition="Exists('$(SolutionDir)\..\NugetPackages\libzip.1.1.2.7\build\native\libzip.targets')" />
+    <Import Project="$(SolutionDir)\..\NugetPackages\zlib.v120.windesktop.msvcstl.dyn.rt-dyn.1.2.8.8\build\native\zlib.v120.windesktop.msvcstl.dyn.rt-dyn.targets" Condition="Exists('$(SolutionDir)\..\NugetPackages\zlib.v120.windesktop.msvcstl.dyn.rt-dyn.1.2.8.8\build\native\zlib.v120.windesktop.msvcstl.dyn.rt-dyn.targets')" />
+    <Import Project="$(SolutionDir)\..\NugetPackages\zlib.v140.windesktop.msvcstl.dyn.rt-dyn.1.2.8.8\build\native\zlib.v140.windesktop.msvcstl.dyn.rt-dyn.targets" Condition="Exists('$(SolutionDir)\..\NugetPackages\zlib.v140.windesktop.msvcstl.dyn.rt-dyn.1.2.8.8\build\native\zlib.v140.windesktop.msvcstl.dyn.rt-dyn.targets')" />
   </ImportGroup>
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
     <Error Condition="!Exists('$(SolutionDir)\..\NugetPackages\minhook.1.3.2.1\build\native\minhook.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\..\NugetPackages\minhook.1.3.2.1\build\native\minhook.targets'))" />
+    <Error Condition="!Exists('$(SolutionDir)\..\NugetPackages\boost.1.62.0.0\build\native\boost.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\..\NugetPackages\boost.1.62.0.0\build\native\boost.targets'))" />
+    <Error Condition="!Exists('$(SolutionDir)\..\NugetPackages\boost_date_time-vc140.1.62.0.0\build\native\boost_date_time-vc140.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\..\NugetPackages\boost_date_time-vc140.1.62.0.0\build\native\boost_date_time-vc140.targets'))" />
+    <Error Condition="!Exists('$(SolutionDir)\..\NugetPackages\boost_locale-vc140.1.62.0.0\build\native\boost_locale-vc140.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\..\NugetPackages\boost_locale-vc140.1.62.0.0\build\native\boost_locale-vc140.targets'))" />
+    <Error Condition="!Exists('$(SolutionDir)\..\NugetPackages\boost_program_options-vc140.1.62.0.0\build\native\boost_program_options-vc140.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\..\NugetPackages\boost_program_options-vc140.1.62.0.0\build\native\boost_program_options-vc140.targets'))" />
+    <Error Condition="!Exists('$(SolutionDir)\..\NugetPackages\boost_regex-vc140.1.62.0.0\build\native\boost_regex-vc140.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\..\NugetPackages\boost_regex-vc140.1.62.0.0\build\native\boost_regex-vc140.targets'))" />
+    <Error Condition="!Exists('$(SolutionDir)\..\NugetPackages\boost_system-vc140.1.62.0.0\build\native\boost_system-vc140.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\..\NugetPackages\boost_system-vc140.1.62.0.0\build\native\boost_system-vc140.targets'))" />
+    <Error Condition="!Exists('$(SolutionDir)\..\NugetPackages\MicroBuild.Core.0.2.0\build\MicroBuild.Core.props')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\..\NugetPackages\MicroBuild.Core.0.2.0\build\MicroBuild.Core.props'))" />
+    <Error Condition="!Exists('$(SolutionDir)\..\NugetPackages\MicroBuild.Core.0.2.0\build\MicroBuild.Core.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\..\NugetPackages\MicroBuild.Core.0.2.0\build\MicroBuild.Core.targets'))" />
     <Error Condition="!Exists('$(SolutionDir)\..\NugetPackages\libzip.redist.1.1.2.7\build\native\libzip.redist.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\..\NugetPackages\libzip.redist.1.1.2.7\build\native\libzip.redist.targets'))" />
     <Error Condition="!Exists('$(SolutionDir)\..\NugetPackages\libzip.1.1.2.7\build\native\libzip.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\..\NugetPackages\libzip.1.1.2.7\build\native\libzip.targets'))" />
     <Error Condition="!Exists('$(SolutionDir)\..\NugetPackages\zlib.v120.windesktop.msvcstl.dyn.rt-dyn.1.2.8.8\build\native\zlib.v120.windesktop.msvcstl.dyn.rt-dyn.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\..\NugetPackages\zlib.v120.windesktop.msvcstl.dyn.rt-dyn.1.2.8.8\build\native\zlib.v120.windesktop.msvcstl.dyn.rt-dyn.targets'))" />
     <Error Condition="!Exists('$(SolutionDir)\..\NugetPackages\zlib.v140.windesktop.msvcstl.dyn.rt-dyn.1.2.8.8\build\native\zlib.v140.windesktop.msvcstl.dyn.rt-dyn.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\..\NugetPackages\zlib.v140.windesktop.msvcstl.dyn.rt-dyn.1.2.8.8\build\native\zlib.v140.windesktop.msvcstl.dyn.rt-dyn.targets'))" />
-    <Error Condition="!Exists('$(SolutionDir)\..\NugetPackages\boost.1.62.0.0\build\native\boost.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\NugetPackages\boost.1.62.0.0\build\native\boost.targets'))" />
-    <Error Condition="!Exists('$(SolutionDir)\..\NugetPackages\boost_date_time-vc140.1.62.0.0\build\native\boost_date_time-vc140.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\NugetPackages\boost_date_time-vc140.1.62.0.0\build\native\boost_date_time-vc140.targets'))" />
-    <Error Condition="!Exists('$(SolutionDir)\..\NugetPackages\boost_locale-vc140.1.62.0.0\build\native\boost_locale-vc140.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\NugetPackages\boost_locale-vc140.1.62.0.0\build\native\boost_locale-vc140.targets'))" />
-    <Error Condition="!Exists('$(SolutionDir)\..\NugetPackages\boost_program_options-vc140.1.62.0.0\build\native\boost_program_options-vc140.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\NugetPackages\boost_program_options-vc140.1.62.0.0\build\native\boost_program_options-vc140.targets'))" />
-    <Error Condition="!Exists('$(SolutionDir)\..\NugetPackages\boost_regex-vc140.1.62.0.0\build\native\boost_regex-vc140.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\NugetPackages\boost_regex-vc140.1.62.0.0\build\native\boost_regex-vc140.targets'))" />
-    <Error Condition="!Exists('$(SolutionDir)\..\NugetPackages\boost_system-vc140.1.62.0.0\build\native\boost_system-vc140.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\NugetPackages\boost_system-vc140.1.62.0.0\build\native\boost_system-vc140.targets'))" />
-    <Error Condition="!Exists('$(SolutionDir)\..\NugetPackages\MicroBuild.Core.0.2.0\build\MicroBuild.Core.props')" Text="$([System.String]::Format('$(ErrorText)', '..\NugetPackages\MicroBuild.Core.0.2.0\build\MicroBuild.Core.props'))" />
-    <Error Condition="!Exists('$(SolutionDir)\..\NugetPackages\MicroBuild.Core.0.2.0\build\MicroBuild.Core.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\NugetPackages\MicroBuild.Core.0.2.0\build\MicroBuild.Core.targets'))" />
   </Target>
   <Import Project="$(SolutionDir)\R.Build.Version.targets" />
 </Project>
