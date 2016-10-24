@@ -190,6 +190,22 @@ namespace rhost {
                 plot_history _history;
             };
 
+            class current_device_restorer {
+            private:
+                int _device_num;
+            public:
+                current_device_restorer() {
+                    rhost::util::errors_to_exceptions([&] {
+                        _device_num = Rf_curDevice();
+                    });
+                }
+
+                ~current_device_restorer() {
+                    rhost::util::errors_to_exceptions([&] {
+                        Rf_selectDevice(_device_num);
+                    });
+                }
+            };
 
             static std::vector<ide_device*> devices;
             static boost::uuids::random_generator uuid_generator;
@@ -1046,6 +1062,8 @@ namespace rhost {
 
                     auto dev = find_device_by_id(device_id);
                     if (dev != nullptr) {
+                        current_device_restorer device_restorer;
+
                         dev->select();
                         dev->resize(width, height, resolution);
                         dev->render_request(true);
@@ -1064,6 +1082,8 @@ namespace rhost {
                 return rhost::util::exceptions_to_errors([&] {
                     auto dev = find_device_by_id(device_id);
                     if (dev != nullptr) {
+                        current_device_restorer device_restorer;
+
                         dev->select();
                         dev->history_next();
                         dev->render_request(true);
@@ -1082,6 +1102,8 @@ namespace rhost {
                 return rhost::util::exceptions_to_errors([&] {
                     auto dev = find_device_by_id(device_id);
                     if (dev != nullptr) {
+                        current_device_restorer device_restorer;
+
                         dev->select();
                         dev->history_previous();
                         dev->render_request(true);
@@ -1100,6 +1122,8 @@ namespace rhost {
                 return rhost::util::exceptions_to_errors([&] {
                     auto dev = find_device_by_id(device_id);
                     if (dev != nullptr) {
+                        current_device_restorer device_restorer;
+
                         dev->select();
                         dev->history_clear();
                         dev->render_request(true);
@@ -1121,6 +1145,8 @@ namespace rhost {
                 return rhost::util::exceptions_to_errors([&] {
                     auto dev = find_device_by_id(device_id);
                     if (dev != nullptr) {
+                        current_device_restorer device_restorer;
+
                         dev->select();
                         dev->history_remove(plot_id);
                         dev->render_request(true);
@@ -1143,6 +1169,8 @@ namespace rhost {
                 auto target_device_id = boost::lexical_cast<boost::uuids::uuid>(R_CHAR(STRING_ELT(param3, 0)));
 
                 return rhost::util::exceptions_to_errors([&] {
+                    current_device_restorer device_restorer;
+
                     auto source_dev = find_device_by_id(source_device_id);
                     if (source_dev == nullptr) {
                         throw rhost::util::r_error("Source device could not be found.");
@@ -1167,7 +1195,6 @@ namespace rhost {
                 });
             }
 
-
             extern "C" SEXP ide_graphicsdevice_select_plot(SEXP args) {
                 args = CDR(args);
                 SEXP param1 = CAR(args);
@@ -1183,6 +1210,8 @@ namespace rhost {
                 return rhost::util::exceptions_to_errors([&] {
                     auto dev = find_device_by_id(device_id);
                     if (dev != nullptr) {
+                        current_device_restorer device_restorer;
+
                         dev->select();
                         if (dev->history_select(plot_id, force_render != 0)) {
                             dev->render_request(true);
