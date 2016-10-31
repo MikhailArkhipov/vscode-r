@@ -89,6 +89,8 @@ namespace rhost {
             return create_blob(copy);
         }
 
+        blobs::blob_id create_compressed_blob(blobs::blob&& blob);
+
         bool get_blob(blobs::blob_id id, blobs::blob& blob);
 
         inline blobs::blob get_blob(blobs::blob_id id) {
