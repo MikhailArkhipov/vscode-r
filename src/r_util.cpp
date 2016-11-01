@@ -553,7 +553,7 @@ namespace rhost {
             { "Microsoft.R.Host::Call.browser_set_debug", (DL_FUNC)browser_set_debug, 2 },
             { "Microsoft.R.Host::Call.toJSON", (DL_FUNC)toJSON, 1 },
             { "Microsoft.R.Host::Call.create_blob", (DL_FUNC)create_blob, 1 },
-            { "Microsoft.R.Host::Call.create_compressed_blob", (DL_FUNC)create_blob, 1 },
+            { "Microsoft.R.Host::Call.create_compressed_blob", (DL_FUNC)create_compressed_blob, 1 },
             { "Microsoft.R.Host::Call.get_blob", (DL_FUNC)get_blob, 1 },
             { "Microsoft.R.Host::Call.destroy_blob", (DL_FUNC)destroy_blob, 1 },
             { "Microsoft.R.Host::Call.get_file_lock_state", (DL_FUNC)get_file_lock_state, 1 },
