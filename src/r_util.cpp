@@ -449,8 +449,8 @@ namespace rhost {
             int type = TYPEOF(obj);
             size_t length = Rf_length(obj);
 
-            if (type != RAWSXP || length == 0) {
-                Rf_error("Object must be a RAW vector of length > 0.");
+            if (type != RAWSXP) {
+                Rf_error("Object must be a RAW vector.");
             }
 
             Rbyte* data = RAW(obj);
@@ -462,8 +462,8 @@ namespace rhost {
             int type = TYPEOF(obj);
             size_t length = Rf_length(obj);
 
-            if (type != RAWSXP || length == 0) {
-                Rf_error("Object must be a RAW vector of length > 0.");
+            if (type != RAWSXP) {
+                Rf_error("Object must be a RAW vector.");
             }
 
             Rbyte* data = RAW(obj);

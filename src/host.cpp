@@ -344,6 +344,7 @@ namespace rhost {
                 }
 
                 // NOTE: Do NOT free source after a successful zip_file_add
+                // zip_close on scope exit will do the cleanup.
             }
 
             append_from_file(compressed_blob, temp_archive.make_preferred().string().c_str());
@@ -353,7 +354,17 @@ namespace rhost {
         blobs::blob_id create_compressed_blob(blobs::blob&& blob) {
             blobs::blob compressed_blob;
             compress_data(compressed_blob, blob.data(), blob.size());
-            return create_blob(compressed_blob);
+            
+            std::lock_guard<std::mutex> lock(blobs_mutex);
+            blobs::blob_id id = ++next_blob_id;
+
+            // Check that it never overflows double mantissa, and provide immediate diagnostics if it happens.
+            if (id != blobs::blob_id(double(id))) {
+                fatal_error("Blob ID overflow");
+            }
+
+            blobs[id] = std::move(compressed_blob);
+            return id;
         }
 
         bool get_blob(blobs::blob_id id, blobs::blob& blob) {
