@@ -449,12 +449,25 @@ namespace rhost {
             int type = TYPEOF(obj);
             size_t length = Rf_length(obj);
 
-            if (type != RAWSXP || length == 0) {
-                Rf_error("Object must be a RAW vector of length > 0.");
+            if (type != RAWSXP) {
+                Rf_error("Object must be a RAW vector.");
             }
 
             Rbyte* data = RAW(obj);
             blobs::blob_id id = rhost::host::create_blob(blobs::blob(data, data + length));
+            return Rf_ScalarReal(static_cast<double>(id));
+        }
+
+        extern "C" SEXP create_compressed_blob(SEXP obj) {
+            int type = TYPEOF(obj);
+            size_t length = Rf_length(obj);
+
+            if (type != RAWSXP) {
+                Rf_error("Object must be a RAW vector.");
+            }
+
+            Rbyte* data = RAW(obj);
+            blobs::blob_id id = rhost::host::create_compressed_blob(blobs::blob(data, data + length));
             return Rf_ScalarReal(static_cast<double>(id));
         }
 
@@ -540,6 +553,7 @@ namespace rhost {
             { "Microsoft.R.Host::Call.browser_set_debug", (DL_FUNC)browser_set_debug, 2 },
             { "Microsoft.R.Host::Call.toJSON", (DL_FUNC)toJSON, 1 },
             { "Microsoft.R.Host::Call.create_blob", (DL_FUNC)create_blob, 1 },
+            { "Microsoft.R.Host::Call.create_compressed_blob", (DL_FUNC)create_compressed_blob, 1 },
             { "Microsoft.R.Host::Call.get_blob", (DL_FUNC)get_blob, 1 },
             { "Microsoft.R.Host::Call.destroy_blob", (DL_FUNC)destroy_blob, 1 },
             { "Microsoft.R.Host::Call.get_file_lock_state", (DL_FUNC)get_file_lock_state, 1 },
