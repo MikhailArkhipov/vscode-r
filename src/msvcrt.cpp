@@ -30,7 +30,7 @@ namespace rhost {
     namespace msvcrt {
         namespace {
             HMODULE get_msvcrt() {
-                static HMODULE msvcrt = LoadLibrary(L"msvcrt.dll");
+                static HMODULE msvcrt = LoadLibraryEx(L"msvcrt.dll", NULL, LOAD_LIBRARY_SEARCH_SYSTEM32);
                 return msvcrt;
             }
         }
