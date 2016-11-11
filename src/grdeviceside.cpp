@@ -167,6 +167,7 @@ namespace rhost {
                 plot* active_plot() const;
 
                 void select();
+                void delete_file_device();
                 void output_and_kill_file_device();
 
             private:
@@ -556,6 +557,8 @@ namespace rhost {
                     );
                 });
 
+                delete_file_device();
+
                 closed(this);
                 delete this;
             }
@@ -775,15 +778,7 @@ namespace rhost {
                 // https://github.com/Microsoft/RTVS/issues/2017
                 copy_device_attributes(_file_device, device_desc);
 
-                // Kill the temporary file device and delete the file it opened on disk
-                auto file_device_filename = _file_device_filename;
-                output_and_kill_file_device();
-                if (!file_device_filename.empty()) {
-                    try {
-                        std::tr2::sys::remove(file_device_filename);
-                    } catch (const std::tr2::sys::filesystem_error&) {
-                    }
-                }
+                delete_file_device();
 
                 _history.resize(width, height, resolution);
             }
@@ -885,6 +880,19 @@ namespace rhost {
                 } catch (rhost::util::r_error&) {
                     auto path = save_empty();
                     send(boost::uuids::uuid(), path);
+                }
+            }
+
+            void ide_device::delete_file_device() {
+                // Kill the temporary file device and delete the file it opened on disk
+                auto file_device_filename = _file_device_filename;
+                output_and_kill_file_device();
+                if (!file_device_filename.empty()) {
+                    try {
+                        std::tr2::sys::remove(file_device_filename);
+                    }
+                    catch (const std::tr2::sys::filesystem_error&) {
+                    }
                 }
             }
 
