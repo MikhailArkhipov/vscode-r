@@ -46,6 +46,7 @@ namespace rhost {
         log::log_verbosity log_level;
         std::chrono::seconds idle_timeout;
         std::vector<std::string> unrecognized;
+        bool suppress_ui;
         int argc;
         std::vector<char*> argv;
     };
@@ -67,10 +68,12 @@ namespace rhost {
             idle_timeout("rhost-idle-timeout", po::value<std::chrono::seconds::rep>(), (
                 "Shut down the host if it is idle for the specified duration in seconds. "
                 "If " + rdata.long_name() + " was specified, save workspace before exiting."
-                ).c_str());
+                ).c_str()),
+            suppress_ui("suppress-ui", new po::untyped_value(true),
+                "Suppress any UI (e.g., Message Box) from this host instance.");
 
         po::options_description desc;
-        for (auto&& opt : { help, name, log_level, log_dir, rdata, idle_timeout }) {
+        for (auto&& opt : { help, name, log_level, log_dir, rdata, idle_timeout, suppress_ui }) {
             boost::shared_ptr<po::option_description> popt(new po::option_description(opt));
             desc.add(popt);
         }
@@ -120,6 +123,12 @@ namespace rhost {
         if (idle_timeout_arg != vm.end()) {
             auto n = idle_timeout_arg->second.as<std::chrono::seconds::rep>();
             args.idle_timeout = std::chrono::seconds(n);
+        }
+
+        if (vm.count(suppress_ui.long_name())) {
+            args.suppress_ui = true;
+        } else {
+            args.suppress_ui = false;
         }
 
         args.argv.push_back(argv[0]);
@@ -180,7 +189,7 @@ namespace rhost {
     }
 
     int run(command_line_args& args) {
-        init_log(args.name, args.log_dir, args.log_level);
+        init_log(args.name, args.log_dir, args.log_level, args.suppress_ui);
         transport::initialize();
 
         R_setStartTime();

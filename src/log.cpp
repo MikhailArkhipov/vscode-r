@@ -110,7 +110,7 @@ namespace rhost {
         }
 #endif
 
-        void init_log(const std::string& log_suffix, const fs::path& log_dir, log::log_verbosity verbosity) {
+        void init_log(const std::string& log_suffix, const fs::path& log_dir, log::log_verbosity verbosity, bool suppress_ui) {
             {
                 current_verbosity = verbosity;
 
@@ -151,7 +151,10 @@ namespace rhost {
                 std::string error = "Error creating logfile: " + log_filename.make_preferred().string() + "\r\n";
                 fprintf(stderr, "Error: %d\r\n", errno);
                 fputs(error.c_str(), stderr);
-                MessageBoxA(HWND_DESKTOP, error.c_str(), "Microsoft R Host", MB_OK | MB_ICONWARNING);
+                
+                if (!suppress_ui) {
+                    MessageBoxA(HWND_DESKTOP, error.c_str(), "Microsoft R Host", MB_OK | MB_ICONWARNING);
+                }
             }
 
 #ifdef WIN32

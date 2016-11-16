@@ -39,7 +39,7 @@ namespace rhost {
             error
         };
 
-        void init_log(const std::string& log_suffix, const fs::path& log_dir, log_verbosity log_level);
+        void init_log(const std::string& log_suffix, const fs::path& log_dir, log_verbosity log_level, bool suppress_ui);
 
         void vlogf(log_verbosity level, log_level message_type, const char* format, va_list va);
 
