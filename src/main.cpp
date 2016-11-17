@@ -125,11 +125,7 @@ namespace rhost {
             args.idle_timeout = std::chrono::seconds(n);
         }
 
-        if (vm.count(suppress_ui.long_name())) {
-            args.suppress_ui = true;
-        } else {
-            args.suppress_ui = false;
-        }
+        args.suppress_ui = vm.count(suppress_ui.long_name()) != 0;
 
         args.argv.push_back(argv[0]);
         for (auto& s : args.unrecognized) {
