@@ -502,14 +502,17 @@ namespace rhost {
             return Rf_ScalarInteger(static_cast<int>(lock_state));
         }
 
-        extern "C" SEXP fetch_file(SEXP path, SEXP silent) {
-            const char* f_path = Rf_translateCharUTF8(STRING_ELT(path, 0));
+        extern "C" SEXP fetch_file(SEXP remotePath, SEXP localPath, SEXP silent) {
+            const char* f_remotePath = Rf_translateCharUTF8(STRING_ELT(remotePath, 0));
+            const char* f_localPath = Rf_translateCharUTF8(STRING_ELT(localPath, 0));
             return util::exceptions_to_errors([&]() {
-                fs::path fpath = fs::u8path(f_path);
-                if (!fpath.empty()) {
+                fs::path file_remote_path = fs::u8path(f_remotePath);
+                fs::path file_local_path = fs::u8path(f_localPath);
+                if (!file_remote_path.empty()) {
                     blobs::blob file_data;
-                    blobs::append_from_file(file_data, fpath);
-                    host::send_notification("!FetchFile", file_data, fpath.filename().string(), Rf_asLogical(silent) != 0 ? true : false);
+                    blobs::append_from_file(file_data, file_remote_path);
+                    auto file_remote_name = file_remote_path.filename().string();
+                    host::send_notification("!FetchFile", file_data, file_remote_name, file_local_path.string(), Rf_asLogical(silent) != 0 ? true : false);
                     return R_TrueValue;
                 }
                 return R_FalseValue;
