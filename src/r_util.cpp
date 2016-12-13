@@ -512,7 +512,7 @@ namespace rhost {
                     blobs::blob file_data;
                     blobs::append_from_file(file_data, file_remote_path);
                     auto file_remote_name = file_remote_path.filename().string();
-                    host::send_notification("!FetchFile", file_data, file_remote_name, file_local_path.string(), Rf_asLogical(silent) != 0 ? true : false);
+                    host::send_notification("!FetchFile", file_data, file_remote_name, file_local_path.string(), Rf_asLogical(silent) != 0);
                     return R_TrueValue;
                 }
                 return R_FalseValue;
