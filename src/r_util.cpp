@@ -560,7 +560,7 @@ namespace rhost {
             { "Microsoft.R.Host::Call.get_blob", (DL_FUNC)get_blob, 1 },
             { "Microsoft.R.Host::Call.destroy_blob", (DL_FUNC)destroy_blob, 1 },
             { "Microsoft.R.Host::Call.get_file_lock_state", (DL_FUNC)get_file_lock_state, 1 },
-            { "Microsoft.R.Host::Call.fetch_file", (DL_FUNC)fetch_file, 1 },
+            { "Microsoft.R.Host::Call.fetch_file", (DL_FUNC)fetch_file, 3 },
             { "Microsoft.R.Host::Call.save_to_project_folder", (DL_FUNC)save_to_project_folder, 4 },
             { "Microsoft.R.Host::Call.set_disconnect_callback", (DL_FUNC)set_disconnect_callback, 1 },
             { "Microsoft.R.Host::Call.get_disconnect_callback", (DL_FUNC)get_disconnect_callback, 0 },
