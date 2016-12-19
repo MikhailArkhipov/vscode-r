@@ -63,7 +63,6 @@
 #include "boost/uuid/uuid_io.hpp"
 #include "boost/uuid/uuid_generators.hpp"
 
-#define PICOJSON_USE_INT64
 #include "picojson.h"
 
 #ifdef _WIN32

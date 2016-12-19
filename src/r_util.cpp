@@ -513,7 +513,7 @@ namespace rhost {
                     blobs::append_from_file(file_data, file_remote_path);
                     auto blob_id = rhost::host::create_compressed_blob(blobs::blob(file_data.data(), file_data.data() + file_data.size()));
                     auto file_remote_name = file_remote_path.filename().string();
-                    host::send_notification("!FetchFile", file_remote_name, (int64_t)blob_id, file_local_path.string(), Rf_asLogical(silent) != 0);
+                    host::send_notification("!FetchFile", file_remote_name, (double)blob_id, file_local_path.string(), Rf_asLogical(silent) != 0);
                     return R_TrueValue;
                 }
                 return R_FalseValue;
