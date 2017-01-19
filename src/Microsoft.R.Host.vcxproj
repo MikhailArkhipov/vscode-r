@@ -118,6 +118,7 @@
       <AdditionalLibraryDirectories>$(SolutionDir)..\NugetPackages\libzip.1.1.2.7\build\native\lib\Win32\v140\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <EntryPointSymbol>mainCRTStartup</EntryPointSymbol>
       <StackReserveSize>20971520</StackReserveSize>
+      <AdditionalOptions>/HIGHENTROPYVA:NO %(AdditionalOptions)</AdditionalOptions>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -143,6 +144,7 @@
       <AdditionalLibraryDirectories>$(SolutionDir)..\NugetPackages\libzip.1.1.2.7\build\native\lib\x64\v140\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <EntryPointSymbol>mainCRTStartup</EntryPointSymbol>
       <StackReserveSize>20971520</StackReserveSize>
+      <AdditionalOptions>/HIGHENTROPYVA:NO %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <Manifest>
       <EnableDpiAwareness>true</EnableDpiAwareness>
@@ -174,6 +176,7 @@
       <AdditionalLibraryDirectories>$(SolutionDir)..\NugetPackages\libzip.1.1.2.7\build\native\lib\Win32\v140\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <EntryPointSymbol>mainCRTStartup</EntryPointSymbol>
       <StackReserveSize>20971520</StackReserveSize>
+      <AdditionalOptions>/HIGHENTROPYVA:NO %(AdditionalOptions)</AdditionalOptions>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -203,6 +206,7 @@
       <AdditionalLibraryDirectories>$(SolutionDir)..\NugetPackages\libzip.1.1.2.7\build\native\lib\x64\v140\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <EntryPointSymbol>mainCRTStartup</EntryPointSymbol>
       <StackReserveSize>20971520</StackReserveSize>
+      <AdditionalOptions>/HIGHENTROPYVA:NO %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <Manifest>
       <EnableDpiAwareness>true</EnableDpiAwareness>
