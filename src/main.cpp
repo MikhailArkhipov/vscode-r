@@ -180,7 +180,7 @@ namespace rhost {
             return;
         }
 
-        static const char mro_banner[] = "Check out Microsoft's enhanced R distribution at http://go.microsoft.com/fwlink/?LinkId=734720. \n\n";
+        static const char mro_banner[] = "Check out Microsoft's enhanced R distribution at https://aka.ms/mrclient. \n\n";
         rp.WriteConsoleEx(mro_banner, static_cast<int>(strlen(mro_banner)), 0);
     }
 
