@@ -51,6 +51,7 @@ namespace rhost {
             return IDOK;
         }
 
+#ifdef WIN32
         // MessageBoxW
         decltype(MessageBoxW) *pMessageBoxW = nullptr;
         int WINAPI DetourMessageBoxW(HWND hWnd, LPCWSTR lpText, LPCWSTR lpCaption, UINT uType) {
@@ -64,6 +65,7 @@ namespace rhost {
         int WINAPI DetourMessageBoxA(HWND hWnd, LPCSTR lpText, LPCSTR lpCaption, UINT uType) {
             return HostMessageBox(lpText, uType);
         }
+#endif
 
         std::unordered_map<HWND, std::string> hWndTitleMap;
         decltype(CreateWindowExA) *pCreateWindowExA = nullptr;
@@ -134,6 +136,8 @@ namespace rhost {
 
         void init_ui_detours(bool is_remote) {
             MH_Initialize();
+
+#ifdef WIN32
             MH_CreateHook(&MessageBoxW, &DetourMessageBoxW, reinterpret_cast<LPVOID*>(&pMessageBoxW));
             MH_CreateHook(&MessageBoxA, &DetourMessageBoxA, reinterpret_cast<LPVOID*>(&pMessageBoxA));
 
@@ -143,6 +147,7 @@ namespace rhost {
                 MH_CreateHookApi(L"User32.dll", "CreateWindowExA", &DetourCreateWindowExA, reinterpret_cast<LPVOID*>(&pCreateWindowExA));
                 MH_CreateHookApi(L"User32.dll", "DestroyWindow", &DetourDestroyWindow, reinterpret_cast<LPVOID*>(&pDestroyWindow));
             }
+#endif
 
             MH_EnableHook(MH_ALL_HOOKS);
         }

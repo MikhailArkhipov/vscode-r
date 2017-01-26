@@ -106,7 +106,7 @@ namespace rhost {
                 }
 
                 _data.append(pbuf);
-                if (_max_size != R_NaInt && _data.size() > _max_size) {
+                if (_max_size != R_NaInt && _data.size() > static_cast<size_t>(_max_size)) {
                     _data.resize(_max_size - _overflow_suffix.size());
                     _data += _overflow_suffix;
                     _overflown = true;
@@ -125,7 +125,7 @@ namespace rhost {
             }
 
             const std::string& overflow_suffix(const std::string& value) {
-                if (value.size() > _max_size) {
+                if (value.size() > static_cast<size_t>(_max_size)) {
                     throw std::invalid_argument("max_size is not large enough to fit overflow_suffix");
                 }
                 return _overflow_suffix = value;

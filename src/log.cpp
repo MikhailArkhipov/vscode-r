@@ -153,7 +153,9 @@ namespace rhost {
                 fputs(error.c_str(), stderr);
                 
                 if (!suppress_ui) {
+#ifdef WIN32
                     MessageBoxA(HWND_DESKTOP, error.c_str(), "Microsoft R Host", MB_OK | MB_ICONWARNING);
+#endif
                 }
             }
 
@@ -225,7 +227,7 @@ namespace rhost {
 
             if (unexpected) {
                 std::string msgbox_text;
-                for (int i = 0; i < strlen(message); ++i) {
+                for (size_t i = 0; i < strlen(message); ++i) {
                     char c = message[i];
                     if (c == '\n') {
                         msgbox_text += '\r';

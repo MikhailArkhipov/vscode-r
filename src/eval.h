@@ -49,7 +49,7 @@ namespace rhost {
             protected_sexp sexp_parsed(R_ParseVector(sexp_expr.get(), -1, &parse_status, R_NilValue));
             if (parse_status == PARSE_OK) {
                 results.resize(Rf_length(sexp_parsed.get()));
-                for (int i = 0; i < results.size(); ++i) {
+                for (size_t i = 0; i < results.size(); ++i) {
                     auto& result = results[i];
 
                     struct eval_data_t {

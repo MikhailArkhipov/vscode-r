@@ -488,14 +488,14 @@ namespace rhost {
             } 
             
             // Read at position and count
-            size_t size = pos;
-            size += count;
+            size_t size = static_cast<size_t>(pos);
+            size += static_cast<size_t>(count);
             if (count == -1 || size > it->second.size()) {
                 count = it->second.size() - pos;
             }
 
-            blobs::blob::const_iterator begin = it->second.begin() + pos;
-            blobs::blob::const_iterator end = begin + count;
+            blobs::blob::const_iterator begin = it->second.begin() + static_cast<size_t>(pos);
+            blobs::blob::const_iterator end = begin + static_cast<size_t>(count);
 
             blobs::blob part(begin, end);
             respond_to_message(msg, part);
@@ -528,13 +528,13 @@ namespace rhost {
             } else {
                 // write/over-write at position
                 auto blob = msg.blob();
-                size_t size = pos;
+                size_t size = static_cast<size_t>(pos);
                 size += blob.size();
                 if (it->second.size() < size) {
                     it->second.resize(size);
                 }
 
-                std::copy(blob.begin(), blob.end(), it->second.begin() + pos);
+                std::copy(blob.begin(), blob.end(), it->second.begin() + static_cast<size_t>(pos));
             }
             
             respond_to_message(msg, ensure_fits_double(it->second.size()));
@@ -997,7 +997,7 @@ namespace rhost {
                     }
 
                     auto s = from_utf8(arg.get<std::string>());
-                    if (s.size() >= len) {
+                    if (s.size() >= static_cast<size_t>(len)) {
                         retry_reason = "BUFFER_OVERFLOW";
                         continue;
                     }

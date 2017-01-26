@@ -89,6 +89,7 @@ namespace rhost {
             };
 
             static double string_width(const char *str, double ps, int fontface) {
+#ifdef WIN32
                 SIZE size;
                 HDC dc = GetDC(NULL);
                 // https://msdn.microsoft.com/en-us/library/windows/desktop/dd183499(v=vs.85).aspx
@@ -112,6 +113,7 @@ namespace rhost {
                 else {
                     return 0;
                 }
+#endif
             }
 
             static std::string r_fontface_to_xaml_font_weight(int fontface) {
