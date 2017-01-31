@@ -39,10 +39,10 @@ using namespace rhost::log;
 using namespace rhost::util;
 namespace po = boost::program_options;
 
-// ID for the timer 
-#define IDT_RESET_TIMER 1
-
 namespace rhost {
+    // ID for the timer 
+    const UINT_PTR IDT_RESET_TIMER = 1;
+
     struct command_line_args {
         fs::path log_dir, rdata;
         std::string name;
@@ -187,10 +187,14 @@ namespace rhost {
         rp.WriteConsoleEx(mro_banner, static_cast<int>(strlen(mro_banner)), 0);
     }
 
+    bool is_repl(std::string name) {
+        return name.substr(0, 4) == "REPL";
+    }
+
     int run(command_line_args& args) {
         init_log(args.name, args.log_dir, args.log_level, args.suppress_ui);
         transport::initialize();
-
+        
         R_setStartTime();
         structRstart rp = {};
         R_DefParams(&rp);
@@ -199,14 +203,14 @@ namespace rhost {
         rp.home = getRUser();
         rp.CharacterMode = RGui;
         rp.R_Quiet = R_FALSE;
-        rp.R_Interactive = R_TRUE;
+        rp.R_Interactive = is_repl(args.name) ? R_TRUE : R_FALSE;
         rp.RestoreAction = SA_NORESTORE;
         rp.SaveAction = SA_NOSAVE;
 
         rhost::host::initialize(rp, args.rdata, args.idle_timeout);
 
         // suppress UI is set only in the remote case, for now can be used to
-        // as equivalent of isRemote.
+        // as equivalent of is_remote.
         rhost::detours::init_ui_detours(args.suppress_ui);
 
         R_set_command_line_arguments(args.argc, args.argv.data());
@@ -243,7 +247,7 @@ namespace rhost {
         }
 
         UINT_PTR timer = SetTimer(NULL, IDT_RESET_TIMER, 5000, [](HWND hWnd, UINT msg, UINT_PTR idEVent, DWORD dwTime) {
-            rhost::host::shutdown_if_requested();
+            rhost::host::do_r_callback(false);
         });
 
         SCOPE_WARDEN(destroy_timer, {
