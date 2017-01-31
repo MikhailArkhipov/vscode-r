@@ -70,6 +70,7 @@
 #include <fcntl.h>
 #include <process.h>
 #include "windows.h"
+#include <strsafe.h>
 #else
 #include <unistd.h>
 #endif

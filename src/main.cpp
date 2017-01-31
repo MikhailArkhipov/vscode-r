@@ -39,6 +39,9 @@ using namespace rhost::log;
 using namespace rhost::util;
 namespace po = boost::program_options;
 
+// ID for the timer 
+#define IDT_RESET_TIMER 1
+
 namespace rhost {
     struct command_line_args {
         fs::path log_dir, rdata;
@@ -201,7 +204,10 @@ namespace rhost {
         rp.SaveAction = SA_NOSAVE;
 
         rhost::host::initialize(rp, args.rdata, args.idle_timeout);
-        rhost::detours::init_ui_detours();
+
+        // suppress UI is set only in the remote case, for now can be used to
+        // as equivalent of isRemote.
+        rhost::detours::init_ui_detours(args.suppress_ui);
 
         R_set_command_line_arguments(args.argc, args.argv.data());
         R_common_command_line(&args.argc, args.argv.data(), &rp);
@@ -235,6 +241,14 @@ namespace rhost {
 
             log::logf(log_verbosity::minimal, ok ? "Workspace loaded successfully.\n" : "Failed to load workspace.\n");
         }
+
+        UINT_PTR timer = SetTimer(NULL, IDT_RESET_TIMER, 5000, [](HWND hWnd, UINT msg, UINT_PTR idEVent, DWORD dwTime) {
+            rhost::host::shutdown_if_requested();
+        });
+
+        SCOPE_WARDEN(destroy_timer, {
+            KillTimer(NULL, timer);
+        });
 
         run_Rmainloop();
 
