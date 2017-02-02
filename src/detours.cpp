@@ -74,10 +74,19 @@ namespace rhost {
             size_t len = 0;
             if (hWnd != nullptr && hWndParent == nullptr && 
                 hWndTitleMap.find(hWnd) == hWndTitleMap.end() && 
-                SUCCEEDED(StringCchLengthA(lpWindowName, STRSAFE_MAX_CCH, &len)) && len > 0) {
+                SUCCEEDED(StringCbLengthA(lpWindowName, STRSAFE_MAX_CCH, &len)) && len > 0) {
 
-                std::string windowTitle = std::string(lpWindowName);
-                std::wstring_convert<std::codecvt_utf8<char>, char> strConverter;
+                size_t size = MultiByteToWideChar(CP_ACP, 0, lpWindowName, len, NULL, 0);
+                if (size == 0) {
+                    return hWnd;
+                }
+
+                std::unique_ptr<wchar_t[]> wstr(new wchar_t[size + 1]);
+                MultiByteToWideChar(CP_ACP, 0, lpWindowName, len, wstr.get(), size);
+                wstr[size] = '\0';
+
+                std::wstring windowTitle = std::wstring(wstr.get());
+                std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> strConverter;
 
                 hWndTitleMap[hWnd] = strConverter.to_bytes(windowTitle);
                 std::string text = "Created window - " + hWndTitleMap[hWnd];

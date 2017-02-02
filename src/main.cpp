@@ -50,6 +50,7 @@ namespace rhost {
         std::chrono::seconds idle_timeout;
         std::vector<std::string> unrecognized;
         bool suppress_ui;
+        bool is_interactive;
         int argc;
         std::vector<char*> argv;
     };
@@ -72,8 +73,10 @@ namespace rhost {
                 "Shut down the host if it is idle for the specified duration in seconds. "
                 "If " + rdata.long_name() + " was specified, save workspace before exiting."
                 ).c_str()),
-            suppress_ui("suppress-ui", new po::untyped_value(true),
-                "Suppress any UI (e.g., Message Box) from this host instance.");
+            suppress_ui("rhost-suppress-ui", new po::untyped_value(true),
+                "Suppress any UI (e.g., Message Box) from this host instance."),
+            is_interactive("rhost-interactive", new po::untyped_value(true),
+                "This R is configured to start in interactive mode.");
 
         po::options_description desc;
         for (auto&& opt : { help, name, log_level, log_dir, rdata, idle_timeout, suppress_ui }) {
@@ -129,6 +132,7 @@ namespace rhost {
         }
 
         args.suppress_ui = vm.count(suppress_ui.long_name()) != 0;
+        args.is_interactive = vm.count(is_interactive.long_name()) != 0;
 
         args.argv.push_back(argv[0]);
         for (auto& s : args.unrecognized) {
@@ -187,10 +191,6 @@ namespace rhost {
         rp.WriteConsoleEx(mro_banner, static_cast<int>(strlen(mro_banner)), 0);
     }
 
-    bool is_repl(std::string name) {
-        return name.substr(0, 4) == "REPL";
-    }
-
     int run(command_line_args& args) {
         init_log(args.name, args.log_dir, args.log_level, args.suppress_ui);
         transport::initialize();
@@ -203,7 +203,7 @@ namespace rhost {
         rp.home = getRUser();
         rp.CharacterMode = RGui;
         rp.R_Quiet = R_FALSE;
-        rp.R_Interactive = is_repl(args.name) ? R_TRUE : R_FALSE;
+        rp.R_Interactive = args.is_interactive ? R_TRUE : R_FALSE;
         rp.RestoreAction = SA_NORESTORE;
         rp.SaveAction = SA_NOSAVE;
 
