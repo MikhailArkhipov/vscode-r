@@ -52,7 +52,7 @@ namespace rhost {
         }
 
         // MessageBoxW
-        decltype(MessageBoxW) *pMessageBoxW = NULL;
+        decltype(MessageBoxW) *pMessageBoxW = nullptr;
         int WINAPI DetourMessageBoxW(HWND hWnd, LPCWSTR lpText, LPCWSTR lpCaption, UINT uType) {
             char ch[1000];
             wcstombs(ch, lpText, _countof(ch));
@@ -60,23 +60,95 @@ namespace rhost {
         }
 
         // MessageBoxA
-        decltype(MessageBoxW) *pMessageBoxA = NULL;
+        decltype(MessageBoxA) *pMessageBoxA = nullptr;
         int WINAPI DetourMessageBoxA(HWND hWnd, LPCSTR lpText, LPCSTR lpCaption, UINT uType) {
             return HostMessageBox(lpText, uType);
         }
 
-        void init_ui_detours() {
+        std::unordered_map<HWND, std::string> hWndTitleMap;
+        decltype(CreateWindowExA) *pCreateWindowExA = nullptr;
+        HWND WINAPI DetourCreateWindowExA(DWORD dwExStyle, LPCSTR lpClassName, LPCSTR lpWindowName, DWORD dwStyle, int X, int Y, int nWidth, int nHeight, HWND hWndParent, HMENU hMenu, HINSTANCE hInstance, LPVOID lpParam) {
+            HWND hWnd = pCreateWindowExA(dwExStyle, lpClassName, lpWindowName, dwStyle, X, Y, nWidth, nHeight, hWndParent, hMenu, hInstance, lpParam);
+
+            // A window without parent or a window created to show message
+            size_t len = 0;
+            if (hWnd != nullptr && hWndParent == nullptr && 
+                hWndTitleMap.find(hWnd) == hWndTitleMap.end() && 
+                SUCCEEDED(StringCbLengthA(lpWindowName, STRSAFE_MAX_CCH, &len)) && len > 0) {
+
+                size_t size = MultiByteToWideChar(CP_ACP, 0, lpWindowName, len, NULL, 0);
+                if (size == 0) {
+                    return hWnd;
+                }
+
+                std::unique_ptr<wchar_t[]> wstr(new wchar_t[size + 1]);
+                MultiByteToWideChar(CP_ACP, 0, lpWindowName, len, wstr.get(), size);
+                wstr[size] = '\0';
+
+                std::wstring windowTitle = std::wstring(wstr.get());
+                std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> strConverter;
+
+                hWndTitleMap[hWnd] = strConverter.to_bytes(windowTitle);
+                std::string text = "Created window - " + hWndTitleMap[hWnd];
+
+                rhost::host::send_notification("!!", text);
+            }
+
+            return hWnd;
+        }
+
+        decltype(CreateWindowExW) *pCreateWindowExW = nullptr;
+        HWND WINAPI DetourCreateWindowExW(DWORD dwExStyle, LPCWSTR lpClassName, LPCWSTR lpWindowName, DWORD dwStyle, int X, int Y, int nWidth, int nHeight, HWND hWndParent, HMENU hMenu, HINSTANCE hInstance, LPVOID lpParam) {
+            HWND hWnd = pCreateWindowExW(dwExStyle, lpClassName, lpWindowName, dwStyle, X, Y, nWidth, nHeight, hWndParent, hMenu, hInstance, lpParam);
+            
+            // A window without parent or a window created to show message
+            size_t len = 0;
+            if (hWnd != nullptr && hWndParent == nullptr && 
+                hWndTitleMap.find(hWnd) == hWndTitleMap.end() && 
+                SUCCEEDED(StringCchLengthW(lpWindowName, STRSAFE_MAX_CCH, &len) && len > 0)) {
+
+                std::wstring windowTitle = std::wstring(lpWindowName);
+                std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> strConverter;
+
+                hWndTitleMap[hWnd] = strConverter.to_bytes(windowTitle);
+                std::string text = "Created window - " + hWndTitleMap[hWnd];
+
+                rhost::host::send_notification("!!", text);
+            }
+
+            return hWnd;
+        }
+
+        decltype(DestroyWindow) *pDestroyWindow = nullptr;
+        BOOL WINAPI DetourDestroyWindow(HWND hWnd) {
+            BOOL stat = pDestroyWindow(hWnd);
+            std::unordered_map<HWND, std::string>::iterator iter = hWndTitleMap.find(hWnd);
+            if (iter != hWndTitleMap.end()) {
+                std::string text = "Closing window - "  + iter->second;
+                hWndTitleMap.erase(iter);
+                rhost::host::send_notification("!!", text);
+            }
+
+            return stat;
+        }
+
+        void init_ui_detours(bool is_remote) {
             MH_Initialize();
             MH_CreateHook(&MessageBoxW, &DetourMessageBoxW, reinterpret_cast<LPVOID*>(&pMessageBoxW));
             MH_CreateHook(&MessageBoxA, &DetourMessageBoxA, reinterpret_cast<LPVOID*>(&pMessageBoxA));
 
-            MH_EnableHook(&MessageBoxW);
-            MH_EnableHook(&MessageBoxA);
+            if (is_remote) {
+                // Apply hooks for Remote REPL or any other session irrespective of local or remote case.
+                MH_CreateHookApi(L"User32.dll", "CreateWindowExW", &DetourCreateWindowExW, reinterpret_cast<LPVOID*>(&pCreateWindowExW));
+                MH_CreateHookApi(L"User32.dll", "CreateWindowExA", &DetourCreateWindowExA, reinterpret_cast<LPVOID*>(&pCreateWindowExA));
+                MH_CreateHookApi(L"User32.dll", "DestroyWindow", &DetourDestroyWindow, reinterpret_cast<LPVOID*>(&pDestroyWindow));
+            }
+
+            MH_EnableHook(MH_ALL_HOOKS);
         }
 
         void terminate_ui_detours() {
-            MH_DisableHook(&MessageBoxW);
-            MH_DisableHook(&MessageBoxA);
+            MH_DisableHook(MH_ALL_HOOKS);
             MH_Uninitialize();
         }
     }

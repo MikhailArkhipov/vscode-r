@@ -40,6 +40,9 @@ using namespace rhost::util;
 namespace po = boost::program_options;
 
 namespace rhost {
+    // ID for the timer 
+    const UINT_PTR IDT_RESET_TIMER = 1;
+
     struct command_line_args {
         fs::path log_dir, rdata;
         std::string name;
@@ -47,6 +50,7 @@ namespace rhost {
         std::chrono::seconds idle_timeout;
         std::vector<std::string> unrecognized;
         bool suppress_ui;
+        bool is_interactive;
         int argc;
         std::vector<char*> argv;
     };
@@ -69,8 +73,10 @@ namespace rhost {
                 "Shut down the host if it is idle for the specified duration in seconds. "
                 "If " + rdata.long_name() + " was specified, save workspace before exiting."
                 ).c_str()),
-            suppress_ui("suppress-ui", new po::untyped_value(true),
-                "Suppress any UI (e.g., Message Box) from this host instance.");
+            suppress_ui("rhost-suppress-ui", new po::untyped_value(true),
+                "Suppress any UI (e.g., Message Box) from this host instance."),
+            is_interactive("rhost-interactive", new po::untyped_value(true),
+                "This R is configured to start in interactive mode.");
 
         po::options_description desc;
         for (auto&& opt : { help, name, log_level, log_dir, rdata, idle_timeout, suppress_ui }) {
@@ -126,6 +132,7 @@ namespace rhost {
         }
 
         args.suppress_ui = vm.count(suppress_ui.long_name()) != 0;
+        args.is_interactive = vm.count(is_interactive.long_name()) != 0;
 
         args.argv.push_back(argv[0]);
         for (auto& s : args.unrecognized) {
@@ -187,7 +194,7 @@ namespace rhost {
     int run(command_line_args& args) {
         init_log(args.name, args.log_dir, args.log_level, args.suppress_ui);
         transport::initialize();
-
+        
         R_setStartTime();
         structRstart rp = {};
         R_DefParams(&rp);
@@ -196,12 +203,15 @@ namespace rhost {
         rp.home = getRUser();
         rp.CharacterMode = RGui;
         rp.R_Quiet = R_FALSE;
-        rp.R_Interactive = R_TRUE;
+        rp.R_Interactive = args.is_interactive ? R_TRUE : R_FALSE;
         rp.RestoreAction = SA_NORESTORE;
         rp.SaveAction = SA_NOSAVE;
 
         rhost::host::initialize(rp, args.rdata, args.idle_timeout);
-        rhost::detours::init_ui_detours();
+
+        // suppress UI is set only in the remote case, for now can be used to
+        // as equivalent of is_remote.
+        rhost::detours::init_ui_detours(args.suppress_ui);
 
         R_set_command_line_arguments(args.argc, args.argv.data());
         R_common_command_line(&args.argc, args.argv.data(), &rp);
@@ -235,6 +245,14 @@ namespace rhost {
 
             log::logf(log_verbosity::minimal, ok ? "Workspace loaded successfully.\n" : "Failed to load workspace.\n");
         }
+
+        UINT_PTR timer = SetTimer(NULL, IDT_RESET_TIMER, 5000, [](HWND hWnd, UINT msg, UINT_PTR idEVent, DWORD dwTime) {
+            rhost::host::do_r_callback(false);
+        });
+
+        SCOPE_WARDEN(destroy_timer, {
+            KillTimer(NULL, timer);
+        });
 
         run_Rmainloop();
 

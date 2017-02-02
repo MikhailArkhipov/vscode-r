@@ -23,7 +23,7 @@
 #pragma once
 namespace rhost {
     namespace detours {
-        void init_ui_detours();
+        void init_ui_detours(bool is_remote);
         void terminate_ui_detours();
     }
 }

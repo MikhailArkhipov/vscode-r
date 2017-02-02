@@ -35,6 +35,7 @@ namespace rhost {
 
         void initialize(structRstart& rp, const fs::path& rdata, std::chrono::seconds idle_timeout);
         void shutdown_if_requested();
+        void do_r_callback(bool allow_eval_interrupt);
 
         extern "C" void ShowMessage(const char* s);
         extern "C" int YesNoCancel(const char* s);

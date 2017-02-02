@@ -868,7 +868,7 @@ namespace rhost {
             return context;
         }
 
-        extern "C" void CallBack() {
+        void do_r_callback(bool allow_eval_interrupt) {
             shutdown_if_requested();
 
             reset_idle_timer();
@@ -884,7 +884,7 @@ namespace rhost {
                 return;
             }
 
-            if (query_interrupt()) {
+            if (allow_eval_interrupt && query_interrupt()) {
                 allow_intr_in_CallBack = false;
                 interrupt_eval();
                 // Note that allow_intr_in_CallBack is not reset to false here. This is because Rf_onintr
@@ -899,6 +899,10 @@ namespace rhost {
             if (allow_callbacks) {
                 handle_pending_evals();
             }
+        }
+
+        extern "C" void CallBack() {
+            do_r_callback(true);
         }
 
         extern "C" int R_ReadConsole(const char* prompt, char* buf, int len, int addToHistory) {
