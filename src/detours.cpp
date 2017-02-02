@@ -76,13 +76,13 @@ namespace rhost {
                 hWndTitleMap.find(hWnd) == hWndTitleMap.end() && 
                 SUCCEEDED(StringCbLengthA(lpWindowName, STRSAFE_MAX_CCH, &len)) && len > 0) {
 
-                size_t size = MultiByteToWideChar(CP_ACP, 0, lpWindowName, len, NULL, 0);
+                int size = MultiByteToWideChar(CP_ACP, 0, lpWindowName, static_cast<int>(len), NULL, 0);
                 if (size == 0) {
                     return hWnd;
                 }
 
                 std::unique_ptr<wchar_t[]> wstr(new wchar_t[size + 1]);
-                MultiByteToWideChar(CP_ACP, 0, lpWindowName, len, wstr.get(), size);
+                MultiByteToWideChar(CP_ACP, 0, lpWindowName, static_cast<int>(len), wstr.get(), size);
                 wstr[size] = '\0';
 
                 std::wstring windowTitle = std::wstring(wstr.get());
