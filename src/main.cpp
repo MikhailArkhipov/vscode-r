@@ -79,7 +79,7 @@ namespace rhost {
                 "This R is configured to start in interactive mode.");
 
         po::options_description desc;
-        for (auto&& opt : { help, name, log_level, log_dir, rdata, idle_timeout, suppress_ui }) {
+        for (auto&& opt : { help, name, log_level, log_dir, rdata, idle_timeout, suppress_ui, is_interactive }) {
             boost::shared_ptr<po::option_description> popt(new po::option_description(opt));
             desc.add(popt);
         }
