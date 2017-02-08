@@ -297,11 +297,26 @@ namespace rhost {
                 auto response = host::send_request_and_get_response(name, args);
 
                 args = response.json();
-                protected_sexp response_args(Rf_allocVector3(STRSXP, args.size(), nullptr));
+                protected_sexp response_args(Rf_allocVector(VECSXP, args.size()));
+
                 for (size_t i = 0; i < args.size(); ++i) {
-                    auto s = args[i].serialize();
-                    SET_STRING_ELT(response_args.get(), i, Rf_mkChar(from_utf8(s).c_str()));
+                    SEXP arg;
+
+                    if (args[i].is<picojson::null>()) {
+                        arg = R_NilValue;
+                    } else if (args[i].is<bool>()) {
+                        arg = args[i].get<bool>() ? R_TrueValue : R_FalseValue;
+                    } else if (args[i].is<double>()) {
+                        arg = Rf_ScalarReal(args[i].get<double>());
+                    } else if (args[i].is<std::string>()) {
+                        arg = Rf_ScalarString(Rf_mkCharCE(args[i].get<std::string>().data(), CE_UTF8));
+                    } else {
+                        arg = Rf_ScalarString(Rf_mkCharCE(args[i].serialize().data(), CE_UTF8));
+                    }
+
+                    SET_VECTOR_ELT(response_args.get(), i, arg);
                 }
+
                 return response_args.release();
             });
         }
