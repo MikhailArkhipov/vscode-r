@@ -29,7 +29,7 @@ namespace rhost {
     namespace transport {
         namespace {
             const char devNull[] =
-#ifdef WIN32
+#ifdef _WIN32
                 "NUL";
 #else
                 "/dev/null";

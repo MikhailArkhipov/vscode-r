@@ -24,6 +24,7 @@
 #include "stdafx.h"
 
 namespace rhost {
+#ifdef _WIN32
     namespace msvcrt {
         extern void* (*calloc)(size_t num, size_t size);
         extern void* (*malloc)(size_t size);
@@ -34,4 +35,5 @@ namespace rhost {
         extern int (*wctomb)(char*, wchar_t);
         extern int (*mbtowc)(wchar_t*, const char*, size_t);
     }
+#endif
 }

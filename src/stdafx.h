@@ -69,20 +69,41 @@
 #include <io.h>
 #include <fcntl.h>
 #include <process.h>
-#include "windows.h"
+#include <windows.h>
 #include <strsafe.h>
-#else
-#include <unistd.h>
-#endif
-
 
 #pragma warning(push)
 #pragma warning(disable:4091)
-#include "dbghelp.h"
+#include <dbghelp.h>
 #pragma warning(pop)
 
 #include "minhook.h"
 
 #include "zip.h"
 
+#else
+
+//#include <unistd.h>
+
+#endif
+
 namespace fs = std::tr2::sys;
+
+#if defined(_MSC_VER)
+#define RHOST_EXPORT __declspec(dllexport)
+#define RHOST_IMPORT __declspec(dllimport)
+#elif defined(__GNUC__)
+#define RHOST_EXPORT __attribute__((visibility("default")))
+#define RHOST_IMPORT
+#else
+#define RHOST_EXPORT
+#define RHOST_IMPORT
+#pragma warning Unknown DLL import/export.
+#endif
+
+#ifdef _WIN32
+#define RHOST_MAX_PATH MAX_PATH
+#else
+#define RHOST_MAX_PATH PATH_MAX
+#endif
+

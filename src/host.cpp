@@ -180,7 +180,9 @@ namespace rhost {
             // pumping events and return to PeekMessage.
             auto delay = 10ms;
             for (; is_waiting_for_wm; std::this_thread::sleep_for(delay)) {
+#ifdef _WIN32
                 PostThreadMessage(main_thread_id, WM_NULL, 0, 0);
+#endif
 
                 // Further guard against overflowing the queue by posting to it too aggressively.
                 // If previous wait didn't help, give it a little more time to process next message,
@@ -314,6 +316,7 @@ namespace rhost {
             return id;
         }
 
+#ifdef _WIN32
         void compress_data(blob& compressed_blob, void* data, size_t length) {
             fs::path temp_archive = std::tmpnam(nullptr);
 
@@ -350,8 +353,10 @@ namespace rhost {
             append_from_file(compressed_blob, temp_archive.make_preferred().string().c_str());
             fs::remove(temp_archive);
         }
+#endif
 
         blobs::blob_id create_compressed_blob(blobs::blob&& blob) {
+#ifdef _WIN32
             blobs::blob compressed_blob;
             compress_data(compressed_blob, blob.data(), blob.size());
             
@@ -365,6 +370,10 @@ namespace rhost {
 
             blobs[id] = std::move(compressed_blob);
             return id;
+#else
+            // TODO: implement compressed blob for linux
+            return create_blob(blob);
+#endif
         }
 
         bool get_blob(blobs::blob_id id, blobs::blob& blob) {
@@ -1076,6 +1085,7 @@ namespace rhost {
             transport::message_received.connect(message_received);
             transport::disconnected.connect(unblock_message_loop);
 
+#ifdef _WIN32
             rp.ReadConsole = R_ReadConsole;
             rp.WriteConsoleEx = WriteConsoleEx;
             rp.CallBack = CallBack;
@@ -1083,7 +1093,11 @@ namespace rhost {
             rp.YesNoCancel = YesNoCancel;
             rp.Busy = Busy;
 
-            send_notification("!Microsoft.R.Host", 1.0, getDLLVersion());
+            char* dllVersion = getDLLVersion();
+#else
+            char* dllVersion = "";
+#endif
+            send_notification("!Microsoft.R.Host", 1.0, dllVersion);
 
             if (idle_timeout > 0s) {
                 logf(log_verbosity::minimal, "Host process will shut down after %lld seconds of inactivity.\n", idle_timeout.count());

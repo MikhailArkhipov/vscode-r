@@ -29,7 +29,7 @@ using namespace std::literals;
 namespace rhost {
     namespace log {
         namespace {
-#ifdef WIN32
+#ifdef _WIN32
             const MINIDUMP_TYPE fulldump_type = MINIDUMP_TYPE(
                 MiniDumpWithFullMemory |
                 MiniDumpWithDataSegs |
@@ -58,7 +58,7 @@ namespace rhost {
             }
         }
 
-#ifdef WIN32
+#ifdef _WIN32
         void create_minidump(_EXCEPTION_POINTERS* ei) {
             // Don't let another thread interrupt us by terminating while we're doing this.
             std::lock_guard<std::mutex> terminate_lock(terminate_mutex);
@@ -126,7 +126,7 @@ namespace rhost {
                 localtime_s(&tm, &t);
 
                 size_t len = filename.size();
-                filename.resize(len + 1 + MAX_PATH);
+                filename.resize(len + 1 + RHOST_MAX_PATH);
                 auto it = filename.begin() + len;
                 strftime(&*it, filename.end() - it, "%Y%m%d_%H%M%S", &tm);
                 filename.resize(strlen(filename.c_str()));
@@ -153,13 +153,13 @@ namespace rhost {
                 fputs(error.c_str(), stderr);
                 
                 if (!suppress_ui) {
-#ifdef WIN32
+#ifdef _WIN32
                     MessageBoxA(HWND_DESKTOP, error.c_str(), "Microsoft R Host", MB_OK | MB_ICONWARNING);
 #endif
                 }
             }
 
-#ifdef WIN32
+#ifdef _WIN32
             SetUnhandledExceptionFilter(unhandled_exception_filter);
 #endif
         }
@@ -235,6 +235,7 @@ namespace rhost {
                     msgbox_text += c;
                 }
                 
+#ifdef _WIN32
                 // Raise and catch an exception so that minidump with a stacktrace can be produced from it.
                 [&] {
                     terminate_mutex.unlock();
@@ -244,6 +245,7 @@ namespace rhost {
                     }
                     terminate_mutex.lock();
                 }();
+#endif
             }
             
             R_CleanUp(SA_NOSAVE, (unexpected ? EXIT_FAILURE : EXIT_SUCCESS), 0);

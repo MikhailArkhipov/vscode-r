@@ -40,8 +40,10 @@ using namespace rhost::util;
 namespace po = boost::program_options;
 
 namespace rhost {
+#ifdef _WIN32
     // ID for the timer 
     const UINT_PTR IDT_RESET_TIMER = 1;
+#endif
 
     struct command_line_args {
         fs::path log_dir, rdata;
@@ -145,7 +147,7 @@ namespace rhost {
     }
 
     void set_memory_limit() {
-#ifdef WIN32
+#ifdef _WIN32
         MEMORYSTATUSEX ms = {};
         ms.dwLength = sizeof ms;
         if (!GlobalMemoryStatusEx(&ms)) {
@@ -187,8 +189,10 @@ namespace rhost {
             return;
         }
 
+#ifdef _WIN32
         static const char mro_banner[] = "Check out Microsoft's enhanced R distribution at https://aka.ms/mrclient. \n\n";
         rp.WriteConsoleEx(mro_banner, static_cast<int>(strlen(mro_banner)), 0);
+#endif
     }
 
     int run(command_line_args& args) {
@@ -199,9 +203,11 @@ namespace rhost {
         structRstart rp = {};
         R_DefParams(&rp);
 
+#ifdef _WIN32
         rp.rhome = get_R_HOME();
         rp.home = getRUser();
         rp.CharacterMode = RGui;
+#endif
         rp.R_Quiet = R_FALSE;
         rp.R_Interactive = args.is_interactive ? R_TRUE : R_FALSE;
         rp.RestoreAction = SA_NORESTORE;
@@ -217,8 +223,10 @@ namespace rhost {
         R_common_command_line(&args.argc, args.argv.data(), &rp);
         R_SetParams(&rp);
 
+#ifdef _WIN32
         GA_initapp(0, 0);
         readconsolecfg();
+#endif
 
         DllInfo *dll = R_getEmbeddingDllInfo();
         rhost::r_util::init(dll);
@@ -246,6 +254,7 @@ namespace rhost {
             log::logf(log_verbosity::minimal, ok ? "Workspace loaded successfully.\n" : "Failed to load workspace.\n");
         }
 
+#ifdef _WIN32
         UINT_PTR timer = SetTimer(NULL, IDT_RESET_TIMER, 5000, [](HWND hWnd, UINT msg, UINT_PTR idEVent, DWORD dwTime) {
             rhost::host::do_r_callback(false);
         });
@@ -253,6 +262,7 @@ namespace rhost {
         SCOPE_WARDEN(destroy_timer, {
             KillTimer(NULL, timer);
         });
+#endif
 
         run_Rmainloop();
 

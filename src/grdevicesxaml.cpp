@@ -89,7 +89,7 @@ namespace rhost {
             };
 
             static double string_width(const char *str, double ps, int fontface) {
-#ifdef WIN32
+#ifdef _WIN32
                 SIZE size;
                 HDC dc = GetDC(NULL);
                 // https://msdn.microsoft.com/en-us/library/windows/desktop/dd183499(v=vs.85).aspx
@@ -202,6 +202,7 @@ namespace rhost {
             }
 
             static void write_bitmap(std::ofstream& f, unsigned int *raster, int w, int h) {
+#ifdef _WIN32
                 BITMAPV4HEADER infoHeader;
                 memset(&infoHeader, 0, sizeof(infoHeader));
                 infoHeader.bV4Size = sizeof(infoHeader);
@@ -230,6 +231,7 @@ namespace rhost {
                 f.write((char*)&bmp, sizeof(bmp));
                 f.write((char*)&infoHeader, sizeof(infoHeader));
                 f.write((char*)raster, 4 * w * h);
+#endif
             }
 
             std::unique_ptr<xaml_device> xaml_device::create(std::string filename, double width, double height) {
@@ -466,6 +468,7 @@ namespace rhost {
             }
 
             std::string xaml_device::get_raster_file_path() {
+#ifdef _WIN32
                 // TODO: change this to use same folder/name as _filename
                 // but with an incrementing integer suffix, and a .bmp extension
                 char folderpath[1024];
@@ -474,6 +477,10 @@ namespace rhost {
                 GetTempFileNameA(folderpath, "rt", 0, filepath);
 
                 return std::string(filepath);
+#else
+                // return std::string(mktemp("bmp.rt.XXXXXXXX"));
+                return std::string();
+#endif
             }
 
             ///////////////////////////////////////////////////////////////////////

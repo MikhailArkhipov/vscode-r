@@ -21,6 +21,8 @@
  * ***************************************************************************/
 
 #include "stdafx.h"
+
+#ifdef _WIN32
 #include "msvcrt.h"
 
 #define MSVCRT_EXPORT(name) \
@@ -45,3 +47,5 @@ namespace rhost {
         MSVCRT_EXPORT(mbtowc);
     }
 }
+
+#endif

@@ -227,22 +227,20 @@ extern "C" {
 
     typedef RConn* Rconnection;
 
-#ifdef _WIN32
-    __declspec(dllimport) extern UImode CharacterMode;
-    __declspec(dllimport) extern RCNTXT* R_GlobalContext;
-    __declspec(dllimport) extern SEXP
+    RHOST_IMPORT extern UImode CharacterMode;
+    RHOST_IMPORT extern RCNTXT* R_GlobalContext;
+    RHOST_IMPORT extern SEXP
         R_GlobalEnv, R_EmptyEnv, R_BaseEnv, R_BaseNamespace, R_Srcref, R_NilValue,
         R_TrueValue, R_FalseValue, R_UnboundValue, R_MissingArg, R_LogicalNAValue,
         R_NaString, R_BlankString, R_BlankScalarString, R_NamesSymbol;
-    __declspec(dllimport) extern int R_DirtyImage;
-    __declspec(dllimport) extern char *R_TempDir;
-    __declspec(dllimport) extern int UserBreak;
-    __declspec(dllimport) extern double R_NaN;
-    __declspec(dllimport) extern double R_PosInf;
-    __declspec(dllimport) extern double R_NegInf;
-    __declspec(dllimport) extern double R_NaReal;
-    __declspec(dllimport) extern int R_NaInt;
-#endif
+    RHOST_IMPORT extern int R_DirtyImage;
+    RHOST_IMPORT extern char *R_TempDir;
+    RHOST_IMPORT extern int UserBreak;
+    RHOST_IMPORT extern double R_NaN;
+    RHOST_IMPORT extern double R_PosInf;
+    RHOST_IMPORT extern double R_NegInf;
+    RHOST_IMPORT extern double R_NaReal;
+    RHOST_IMPORT extern int R_NaInt;
 
     extern void R_DefParams(Rstart);
     extern void R_SetParams(Rstart);

@@ -28,6 +28,7 @@ namespace rhost {
     namespace rproj {
         namespace {
             void extract_project(fs::path& zip_file, fs::path& dest_dir, fs::path& temp_dir) {
+#ifdef _WIN32
                 // Open ZIP archive file
                 int zip_err = ZIP_ER_OK;
                 zip_t* archive = zip_open(zip_file.make_preferred().string().c_str(), ZIP_RDONLY, &zip_err);
@@ -112,6 +113,7 @@ namespace rhost {
 
                 // Delete all temp files created during decompression phase
                 fs::remove_all(temp_dir);
+#endif
             }
         }
 
