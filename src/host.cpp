@@ -783,6 +783,10 @@ namespace rhost {
         inline message send_request_and_get_response(const std::string& name, const picojson::array& args) {
             assert(name[0] == '?');
 
+            if (!transport::is_connected()) {
+                Rf_error("send_request_and_get_response not available: host already disconnected from client");
+            }
+
             response_state_t old_response_state;
             {
                 std::lock_guard<std::mutex> lock(response_mutex);
@@ -817,6 +821,12 @@ namespace rhost {
                         }
                     }
 
+                    // Set the flag to indicate that unblocking via WM_NULL is necessary (see unblock_message_loop).
+                    // This must be done before the shutdown/terminate check below to ensure that any pending 
+                    // shutdown request either terminates the flag before the flag is set, or else the message is
+                    // going to be posted for R_WaitEvent below.
+                    is_waiting_for_wm = true;
+
                     shutdown_if_requested();
 
                     // R_ProcessEvents may invoke CallBack. If there is a pending cancellation request, we do
@@ -828,7 +838,6 @@ namespace rhost {
                     R_ToplevelExec([](void*) {
                         // Errors can happen during event processing (from GUI windows such as graphs), and
                         // we don't want them to bubble up here, so run these in a fresh execution context.
-                        is_waiting_for_wm = true;
                         R_WaitEvent();
                         is_waiting_for_wm = false;
                         R_ProcessEvents();
