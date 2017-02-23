@@ -276,6 +276,10 @@ namespace rhost {
 
                 remove_snapshot_render_file();
 
+                if (path.empty()) {
+                    return;
+                }
+
                 _snapshot_render_filename = path;
                 _snapshot_render_width = xdd->width();
                 _snapshot_render_height = xdd->height();
@@ -868,6 +872,10 @@ namespace rhost {
             }
 
             void ide_device::sync_file_device() {
+                if (_file_device == nullptr) {
+                    return;
+                }
+
                 try {
                     rhost::util::errors_to_exceptions([&] {
                         int file_device_num = Rf_ndevNumber(_file_device);
