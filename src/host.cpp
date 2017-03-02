@@ -45,7 +45,7 @@ namespace rhost {
         boost::signals2::signal<void()> disconnected;
 
         fs::path rdata;
-        std::atomic<bool> shutdown_requested = false;
+        std::atomic<bool> shutdown_requested(false);
 
         bool is_r_ready = false;
         std::mutex is_r_ready_lock;
@@ -54,8 +54,8 @@ namespace rhost {
         std::mutex idle_timer_lock;
         std::chrono::steady_clock::time_point idling_since;
 
-        DWORD main_thread_id;
-        std::atomic<bool> is_waiting_for_wm = false;
+        threadid_t main_thread_id;
+        std::atomic<bool> is_waiting_for_wm(false);
         bool allow_callbacks = true, allow_intr_in_CallBack = true;
 
         // Specifies whether the host is currently expecting a response message to some earlier request that it had sent.
@@ -378,7 +378,7 @@ namespace rhost {
 
         bool get_blob(blobs::blob_id id, blobs::blob& blob) {
             std::lock_guard<std::mutex> lock(blobs_mutex);
-            auto& it = blobs.find(id);
+            auto it = blobs.find(id);
 
             if (it == blobs.end()) {
                 return false;
@@ -419,7 +419,7 @@ namespace rhost {
             auto id = static_cast<blobs::blob_id>(json[0].get<double>());
 
             std::lock_guard<std::mutex> lock(blobs_mutex);
-            auto& it = blobs.find(id);
+            auto it = blobs.find(id);
             if (it == blobs.end()) {
                 fatal_error("GetBlobSize: no blob with ID %llu", id);
             }
@@ -442,7 +442,7 @@ namespace rhost {
             auto size = static_cast<size_t>(json[1].get<double>());
 
             std::lock_guard<std::mutex> lock(blobs_mutex);
-            auto& it = blobs.find(id);
+            auto it = blobs.find(id);
             if (it == blobs.end()) {
                 fatal_error("SetBlobSize: no blob with ID %llu", id);
             }
@@ -478,7 +478,7 @@ namespace rhost {
             }
 
             std::lock_guard<std::mutex> lock(blobs_mutex);
-            auto& it = blobs.find(id);
+            auto it = blobs.find(id);
             if (it == blobs.end()) {
                 fatal_error("ReadBlob: no blob with ID %llu", id);
             }
@@ -525,7 +525,7 @@ namespace rhost {
             long long pos = static_cast<long long>(json[1].get<double>());
 
             std::lock_guard<std::mutex> lock(blobs_mutex);
-            auto& it = blobs.find(id);
+            auto it = blobs.find(id);
             if (it == blobs.end()) {
                 fatal_error("WriteBlob: no blob with ID %llu", id);
             }
@@ -1011,7 +1011,11 @@ namespace rhost {
                         continue;
                     }
 
+#ifdef _WIN32
                     strcpy_s(buf, len, s.c_str());
+#else
+                    strcpy(buf, s.c_str());
+#endif
                     return 1;
                 }
             });
@@ -1080,7 +1084,7 @@ namespace rhost {
         void initialize(structRstart& rp, const fs::path& rdata, std::chrono::seconds idle_timeout) {
             host::rdata = rdata;
 
-            main_thread_id = GetCurrentThreadId();
+            main_thread_id = RhostGetCurrentThreadId();
 
             transport::message_received.connect(message_received);
             transport::disconnected.connect(unblock_message_loop);

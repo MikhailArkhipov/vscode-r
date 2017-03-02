@@ -33,7 +33,6 @@
 #include <csetjmp>
 #include <cstdio>
 #include <cstdlib>
-#include <filesystem>
 #include <fstream>
 #include <future>
 #include <iostream>
@@ -46,6 +45,7 @@
 #include <utility>
 #include <unordered_map>
 #include <vector>
+#include <stdexcept>
 
 #include "boost/algorithm/string.hpp"
 #include "boost/date_time/posix_time/posix_time.hpp"
@@ -66,6 +66,7 @@
 #include "picojson.h"
 
 #ifdef _WIN32
+#include <filesystem>
 #include <io.h>
 #include <fcntl.h>
 #include <process.h>
@@ -81,29 +82,62 @@
 
 #include "zip.h"
 
+namespace fs = std::tr2::sys;
 #else
+#include "boost/filesystem.hpp"
+#include <stdarg.h>
+#include <unistd.h>
+namespace fs = boost::filesystem;
 
-//#include <unistd.h>
+#include <sys/syscall.h>
 
+#ifdef SYS_gettid
+pid_t gettid() { return syscall(SYS_gettid); }
+#else
+#error "SYS_gettid unavailable on this system"
 #endif
 
-namespace fs = std::tr2::sys;
+#endif
 
 #if defined(_MSC_VER)
 #define RHOST_EXPORT __declspec(dllexport)
 #define RHOST_IMPORT __declspec(dllimport)
+#define RHOST_NORETURN __declspec(noreturn)
+#define RHOST_NOTHROW __declspec(nothrow)
 #elif defined(__GNUC__)
 #define RHOST_EXPORT __attribute__((visibility("default")))
 #define RHOST_IMPORT
+#define RHOST_NORETURN
+#define RHOST_NOTHROW
 #else
 #define RHOST_EXPORT
 #define RHOST_IMPORT
+#define RHOST_NORETURN
+#define RHOST_NOTHROW
 #pragma warning Unknown DLL import/export.
 #endif
 
 #ifdef _WIN32
 #define RHOST_MAX_PATH MAX_PATH
+typedef DWORD threadid_t;
+#define RhostGetCurrentThreadId GetCurrentThreadId
+#define RHOST_TRY __try
+#define RHOST_FINALLY_START __finally {
+#define RHOST_FINALLY_END }
+#define RHOST_mbstowcs msvcrt::mbstowcs
+#define RHOST_wctomb msvcrt::wctomb
+#define RHOST_mbtowc msvcrt::mbtowc
 #else
+
 #define RHOST_MAX_PATH PATH_MAX
+typedef pid_t threadid_t;
+#define RhostGetCurrentThreadId gettid
+#define RHOST_TRY try
+#define RHOST_FINALLY_START catch(...) {
+#define RHOST_FINALLY_END throw;}
+#define RHOST_mbstowcs std::mbstowcs
+#define RHOST_wctomb std::wctomb
+#define RHOST_mbtowc std::mbtowc
 #endif
+
 

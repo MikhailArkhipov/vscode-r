@@ -56,7 +56,7 @@ namespace rhost {
             static memory_connection* of_connection_sexp(SEXP conn_sexp) {
                 auto it = _instances.find(conn_sexp);
                 if (it == _instances.end()) {
-                    throw std::exception("Connection is not a memory_connection");
+                    throw std::runtime_error("Connection is not a memory_connection");
                 }
                 return it->second;
             }
@@ -78,7 +78,11 @@ namespace rhost {
                 va_copy(va2, va);
                 char buf[0x1000], *pbuf = buf;
                 size_t bufsize = sizeof buf;
+#ifdef _WIN32
                 count = msvcrt::vsnprintf(buf, bufsize, format, va2);
+#else
+                count = vsnprintf(buf, bufsize, format, va2);
+#endif
                 va_end(va2);
 
                 std::unique_ptr<char[]> buf_deleter;
@@ -86,7 +90,7 @@ namespace rhost {
                     // If it didn't fit in the buffer, heap-allocate a larger buffer.
                     bufsize *= 2;
                     if (bufsize >= 100 * 1024 * 1024) {
-                        throw std::exception("Output is too long");
+                        throw std::runtime_error("Output is too long");
                     }
 
                     // If we run out of memory, new will throw std::bad_alloc, which will
@@ -94,7 +98,11 @@ namespace rhost {
                     buf_deleter.reset(pbuf = new char[bufsize *= 2]);
 
                     va_copy(va2, va);
+#ifdef _WIN32
                     count = msvcrt::vsnprintf(pbuf, bufsize, format, va2);
+#else
+                    count = vsnprintf(pbuf, bufsize, format, va2);
+#endif
                     va_end(va2);
                 }
 
@@ -110,11 +118,11 @@ namespace rhost {
                     _data.resize(_max_size - _overflow_suffix.size());
                     _data += _overflow_suffix;
                     _overflown = true;
-                    throw std::exception("Connection size limit exceeded");
+                    throw std::runtime_error("Connection size limit exceeded");
                 }
 
                 if (_seen_eof) {
-                    throw std::exception("EOF marker encountered");
+                    throw std::runtime_error("EOF marker encountered");
                 }
 
                 return count;
@@ -373,7 +381,7 @@ namespace rhost {
                     FUNTAB* funtab = R_FunTab;
                     for (;;) {
                         if (!funtab->name) {
-                            throw std::exception("R_FunTab does not contain an entry for 'parse'.");
+                            throw std::runtime_error("R_FunTab does not contain an entry for 'parse'.");
                         } else if (strcmp(funtab->name, "parse") == 0) {
                             break;
                         } else {
@@ -493,7 +501,11 @@ namespace rhost {
             SEXP rawVector = nullptr;
             Rf_protect(rawVector = Rf_allocVector(RAWSXP, data.size()));
             Rbyte* dest = RAW(rawVector);
+#ifdef _WIN32
             memcpy_s(dest, data.size(), data.data(), data.size());
+#else
+            memcpy(dest, data.data(), data.size());
+#endif
             Rf_unprotect(1);
             return rawVector;
         }
@@ -521,8 +533,13 @@ namespace rhost {
             const char* f_remotePath = Rf_translateCharUTF8(STRING_ELT(remotePath, 0));
             const char* f_localPath = Rf_translateCharUTF8(STRING_ELT(localPath, 0));
             return util::exceptions_to_errors([&]() {
+#ifdef _WIN32
                 fs::path file_remote_path = fs::u8path(f_remotePath);
                 fs::path file_local_path = fs::u8path(f_localPath);
+#else
+                fs::path file_remote_path(f_remotePath);
+                fs::path file_local_path(f_localPath);
+#endif
                 if (!file_remote_path.empty()) {
                     blobs::blob file_data;
                     blobs::append_from_file(file_data, file_remote_path);
@@ -542,7 +559,16 @@ namespace rhost {
             const char *d_dir = Rf_translateCharUTF8(STRING_ELT(dest_dir, 0));
 
             util::exceptions_to_errors([&]() {
-                rproj::save_to_project_folder_worker(blob_id, fs::u8path(prj_name), fs::u8path(d_dir), fs::u8path(t_dir));
+#ifdef _WIN32
+                fs::path path_prj_name = fs::u8path(prj_name);
+                fs::path path_dest_dir = fs::u8path(d_dir);
+                fs::path path_temp_dir = fs::u8path(t_dir);
+#else
+                fs::path path_prj_name(prj_name);
+                fs::path path_dest_dir(d_dir);
+                fs::path path_temp_dir(t_dir);
+#endif
+                rproj::save_to_project_folder_worker(blob_id, path_prj_name, path_dest_dir, path_temp_dir);
             });
 
             return R_NilValue;

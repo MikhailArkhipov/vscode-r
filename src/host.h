@@ -46,7 +46,7 @@ namespace rhost {
         extern boost::signals2::signal<void()> readconsole_done;
         extern boost::signals2::signal<void()> disconnected;
 
-        __declspec(noreturn) void propagate_cancellation();
+        RHOST_NORETURN void propagate_cancellation();
 
         template <class F>
         auto with_cancellation(F body) -> decltype(body()) {

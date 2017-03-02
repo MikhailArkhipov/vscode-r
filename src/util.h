@@ -38,22 +38,22 @@ namespace rhost {
         template<typename F>
         class scope_warden {
         public:
-            explicit __declspec(nothrow) scope_warden(F& f)
+            explicit RHOST_NOTHROW scope_warden(F& f)
                 : _p(std::addressof(f)) {
             }
 
-            void __declspec(nothrow) dismiss() {
+            void RHOST_NOTHROW dismiss() {
                 _p = nullptr;
             }
 
-            void __declspec(nothrow) run() {
+            void RHOST_NOTHROW run() {
                 if (_p) {
                     (*_p)();
                 }
                 dismiss();
             }
 
-            __declspec(nothrow) ~scope_warden() {
+            RHOST_NOTHROW ~scope_warden() {
                 if (_p) {
                     try {
                         (*_p)();
@@ -103,7 +103,8 @@ namespace rhost {
             using unique_ptr::operator=;
 
             protected_sexp& operator= (SEXP other) {
-                swap(protected_sexp(other));
+                protected_sexp o(other);
+                swap(o);
                 return *this;
             }
 

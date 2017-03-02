@@ -235,8 +235,11 @@ namespace rhost {
             }
 
             std::unique_ptr<xaml_device> xaml_device::create(std::string filename, double width, double height) {
+#ifdef _WIN32
                 pDevDesc dd = static_cast<pDevDesc>(rhost::msvcrt::calloc(1, sizeof(DevDesc)));
-
+#else
+                pDevDesc dd = static_cast<pDevDesc>(calloc(1, sizeof(DevDesc)));
+#endif
                 int startfill = R_RGB(255, 255, 255);
 
                 auto xdd = std::make_unique<xaml_device>(dd, filename, width, height, r_color_to_xaml(startfill), DEFAULT_FONT_NAME);
