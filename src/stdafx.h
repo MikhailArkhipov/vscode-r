@@ -66,6 +66,7 @@
 #include "boost/filesystem.hpp"
 
 #include "picojson.h"
+#include "zip.h"
 
 #ifdef _WIN32
 #include <io.h>
@@ -80,8 +81,6 @@
 #pragma warning(pop)
 
 #include "minhook.h"
-
-#include "zip.h"
 #else
 #include <unistd.h>
 #endif

@@ -118,7 +118,6 @@ namespace rhost {
             
 
             void extract_project(fs::path& zip_file, fs::path& dest_dir, fs::path& temp_dir) {
-#ifdef _WIN32
                 // Open ZIP archive file
                 int zip_err = ZIP_ER_OK;
                 zip_t* archive = zip_open(zip_file.make_preferred().string().c_str(), ZIP_RDONLY, &zip_err);
@@ -129,7 +128,7 @@ namespace rhost {
                 });
 
                 if (zip_err != ZIP_ER_OK) {
-                    throw std::exception("Error while opening compressed project file.");
+                    throw std::runtime_error("Error while opening compressed project file.");
                 }
 
                 // Get the number of entries in the archive
@@ -157,7 +156,7 @@ namespace rhost {
                     if (!zf) {
                         std::string errmsg("Error while reading compressed project file: ");
                         errmsg.append(file_name.string());
-                        throw std::exception(errmsg.c_str());
+                        throw std::runtime_error(errmsg.c_str());
                     }
 
                     // Create a temp file path to extract above file to.
@@ -181,7 +180,7 @@ namespace rhost {
                         if (bytes_read < 0) {
                             std::string errmsg("Error while reading compressed project file: ");
                             errmsg.append(file_name.string());
-                            throw std::exception(errmsg.c_str());
+                            throw std::runtime_error(errmsg.c_str());
                         }
 
                         if (bytes_read > 0) {
@@ -189,7 +188,7 @@ namespace rhost {
                             if ((elements != 1) || (std::fflush(f) != 0)) {
                                 std::string errmsg("Error while writing de-compressed project file: ");
                                 errmsg.append(file_name.string());
-                                throw std::exception(errmsg.c_str());
+                                throw std::runtime_error(errmsg.c_str());
                             }
                         }
                     } while (bytes_read == buff_size);
@@ -204,7 +203,6 @@ namespace rhost {
 
                 // Delete all temp files created during decompression phase
                 fs::remove_all(temp_dir);
-#endif
             }
         }
 
