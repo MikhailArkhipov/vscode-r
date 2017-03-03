@@ -54,7 +54,9 @@ namespace rhost {
         std::mutex idle_timer_lock;
         std::chrono::steady_clock::time_point idling_since;
 
-        threadid_t main_thread_id;
+#ifdef _WIN32
+        DWORD main_thread_id;
+#endif
         std::atomic<bool> is_waiting_for_wm(false);
         bool allow_callbacks = true, allow_intr_in_CallBack = true;
 
@@ -1011,11 +1013,7 @@ namespace rhost {
                         continue;
                     }
 
-#ifdef _WIN32
                     strcpy_s(buf, len, s.c_str());
-#else
-                    strcpy(buf, s.c_str());
-#endif
                     return 1;
                 }
             });
@@ -1083,9 +1081,9 @@ namespace rhost {
 
         void initialize(structRstart& rp, const fs::path& rdata, std::chrono::seconds idle_timeout) {
             host::rdata = rdata;
-
-            main_thread_id = RhostGetCurrentThreadId();
-
+#ifdef _WIN32
+            main_thread_id = GetCurrentThreadId();
+#endif
             transport::message_received.connect(message_received);
             transport::disconnected.connect(unblock_message_loop);
 

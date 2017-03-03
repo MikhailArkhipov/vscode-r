@@ -78,11 +78,8 @@ namespace rhost {
                 va_copy(va2, va);
                 char buf[0x1000], *pbuf = buf;
                 size_t bufsize = sizeof buf;
-#ifdef _WIN32
-                count = msvcrt::vsnprintf(buf, bufsize, format, va2);
-#else
-                count = vsnprintf(buf, bufsize, format, va2);
-#endif
+
+                count = RHOST_vsnprintf(buf, bufsize, format, va2);
                 va_end(va2);
 
                 std::unique_ptr<char[]> buf_deleter;
@@ -501,11 +498,9 @@ namespace rhost {
             SEXP rawVector = nullptr;
             Rf_protect(rawVector = Rf_allocVector(RAWSXP, data.size()));
             Rbyte* dest = RAW(rawVector);
-#ifdef _WIN32
+
             memcpy_s(dest, data.size(), data.data(), data.size());
-#else
-            memcpy(dest, data.data(), data.size());
-#endif
+
             Rf_unprotect(1);
             return rawVector;
         }
@@ -533,13 +528,10 @@ namespace rhost {
             const char* f_remotePath = Rf_translateCharUTF8(STRING_ELT(remotePath, 0));
             const char* f_localPath = Rf_translateCharUTF8(STRING_ELT(localPath, 0));
             return util::exceptions_to_errors([&]() {
-#ifdef _WIN32
-                fs::path file_remote_path = fs::u8path(f_remotePath);
-                fs::path file_local_path = fs::u8path(f_localPath);
-#else
-                fs::path file_remote_path(f_remotePath);
-                fs::path file_local_path(f_localPath);
-#endif
+                std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> cvt;
+                fs::path file_remote_path(cvt.from_bytes(f_remotePath));
+                fs::path file_local_path(cvt.from_bytes(f_localPath));
+
                 if (!file_remote_path.empty()) {
                     blobs::blob file_data;
                     blobs::append_from_file(file_data, file_remote_path);
@@ -559,15 +551,11 @@ namespace rhost {
             const char *d_dir = Rf_translateCharUTF8(STRING_ELT(dest_dir, 0));
 
             util::exceptions_to_errors([&]() {
-#ifdef _WIN32
-                fs::path path_prj_name = fs::u8path(prj_name);
-                fs::path path_dest_dir = fs::u8path(d_dir);
-                fs::path path_temp_dir = fs::u8path(t_dir);
-#else
-                fs::path path_prj_name(prj_name);
-                fs::path path_dest_dir(d_dir);
-                fs::path path_temp_dir(t_dir);
-#endif
+                std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> cvt;
+                fs::path path_prj_name(cvt.from_bytes(prj_name));
+                fs::path path_dest_dir(cvt.from_bytes(d_dir));
+                fs::path path_temp_dir(cvt.from_bytes(t_dir));
+
                 rproj::save_to_project_folder_worker(blob_id, path_prj_name, path_dest_dir, path_temp_dir);
             });
 

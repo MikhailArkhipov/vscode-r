@@ -468,11 +468,8 @@ namespace rhost {
             ///////////////////////////////////////////////////////////////////////
 
             std::unique_ptr<ide_device> ide_device::create(const boost::uuids::uuid& device_id, std::string device_type, double width, double height, double resolution) {
-#ifdef _WIN32
-                pDevDesc dd = static_cast<pDevDesc>(rhost::msvcrt::calloc(1, sizeof(DevDesc)));
-#else
-                pDevDesc dd = static_cast<pDevDesc>(calloc(1, sizeof(DevDesc)));
-#endif
+                pDevDesc dd = static_cast<pDevDesc>(RHOST_calloc(1, sizeof(DevDesc)));
+
                 auto xdd = std::make_unique<ide_device>(dd, device_id, device_type, width, height, resolution);
 
                 pDevDesc file_dd = xdd->create_file_device();

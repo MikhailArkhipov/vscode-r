@@ -38,22 +38,22 @@ namespace rhost {
         template<typename F>
         class scope_warden {
         public:
-            explicit RHOST_NOTHROW scope_warden(F& f)
-                : _p(std::addressof(f)) {
+            scope_warden(F& f) noexcept
+                : _p(std::addressof(f))  {
             }
 
-            void RHOST_NOTHROW dismiss() {
+            void dismiss() noexcept {
                 _p = nullptr;
             }
 
-            void RHOST_NOTHROW run() {
+            void run() noexcept {
                 if (_p) {
                     (*_p)();
                 }
                 dismiss();
             }
 
-            RHOST_NOTHROW ~scope_warden() {
+            ~scope_warden() noexcept {
                 if (_p) {
                     try {
                         (*_p)();
@@ -66,7 +66,7 @@ namespace rhost {
         private:
             F* _p;
 
-            explicit scope_warden(F&&) = delete;
+            scope_warden(F&&) = delete;
             scope_warden(const scope_warden&) = delete;
             scope_warden& operator=(const scope_warden&) = delete;
         };

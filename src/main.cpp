@@ -277,12 +277,12 @@ namespace rhost {
 }
 
 int main(int argc, char** argv) {
-    //MessageBox(0, 0, 0, 0);
     setlocale(LC_NUMERIC, "C");
-    RHOST_TRY {
-        return rhost::run(argc, argv);
-    } RHOST_FINALLY_START
+
+    SCOPE_WARDEN(_main_exit, {
         flush_log();
         rhost::detours::terminate_ui_detours();
-    RHOST_FINALLY_END
+    });
+
+    return rhost::run(argc, argv);
 }

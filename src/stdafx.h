@@ -26,6 +26,7 @@
 #define NOMINMAX
 
 #include <atomic>
+#include <cstdarg>
 #include <cinttypes>
 #include <codecvt>
 #include <chrono>
@@ -62,11 +63,11 @@
 #include "boost/uuid/uuid.hpp"
 #include "boost/uuid/uuid_io.hpp"
 #include "boost/uuid/uuid_generators.hpp"
+#include "boost/filesystem.hpp"
 
 #include "picojson.h"
 
 #ifdef _WIN32
-#include <filesystem>
 #include <io.h>
 #include <fcntl.h>
 #include <process.h>
@@ -81,63 +82,59 @@
 #include "minhook.h"
 
 #include "zip.h"
-
-namespace fs = std::tr2::sys;
 #else
-#include "boost/filesystem.hpp"
-#include <stdarg.h>
 #include <unistd.h>
-namespace fs = boost::filesystem;
-
-#include <sys/syscall.h>
-
-#ifdef SYS_gettid
-pid_t gettid() { return syscall(SYS_gettid); }
-#else
-#error "SYS_gettid unavailable on this system"
-#endif
-
 #endif
 
 #if defined(_MSC_VER)
 #define RHOST_EXPORT __declspec(dllexport)
 #define RHOST_IMPORT __declspec(dllimport)
 #define RHOST_NORETURN __declspec(noreturn)
-#define RHOST_NOTHROW __declspec(nothrow)
 #elif defined(__GNUC__)
 #define RHOST_EXPORT __attribute__((visibility("default")))
 #define RHOST_IMPORT
 #define RHOST_NORETURN
-#define RHOST_NOTHROW
 #else
 #define RHOST_EXPORT
 #define RHOST_IMPORT
 #define RHOST_NORETURN
-#define RHOST_NOTHROW
 #pragma warning Unknown DLL import/export.
 #endif
 
 #ifdef _WIN32
 #define RHOST_MAX_PATH MAX_PATH
-typedef DWORD threadid_t;
-#define RhostGetCurrentThreadId GetCurrentThreadId
-#define RHOST_TRY __try
-#define RHOST_FINALLY_START __finally {
-#define RHOST_FINALLY_END }
 #define RHOST_mbstowcs msvcrt::mbstowcs
 #define RHOST_wctomb msvcrt::wctomb
 #define RHOST_mbtowc msvcrt::mbtowc
+#define RHOST_calloc msvcrt::calloc
+#define RHOST_vsnprintf msvcrt::vsnprintf
 #else
 
 #define RHOST_MAX_PATH PATH_MAX
-typedef pid_t threadid_t;
-#define RhostGetCurrentThreadId gettid
-#define RHOST_TRY try
-#define RHOST_FINALLY_START catch(...) {
-#define RHOST_FINALLY_END throw;}
 #define RHOST_mbstowcs std::mbstowcs
 #define RHOST_wctomb std::wctomb
 #define RHOST_mbtowc std::mbtowc
+#define RHOST_calloc calloc
+#define RHOST_vsnprintf vsnprintf
+
+#define vsprintf_s vsprintf
+void strcpy_s(char* dest, size_t n, char const* source) {
+    strcpy(dest, source);
+}
+
+void memcpy_s(void* const dest, size_t const destSize, void const* const source, size_t const sourceSize) {
+    memcpy(dest, source, sourceSize);
+}
+
 #endif
 
+namespace fs = boost::filesystem;
 
+#define RHOST_BITMASK_OPS(Ty) \
+inline Ty& operator&=(Ty& _Left, Ty _Right) { _Left = (Ty)((int)_Left & (int)_Right); return (_Left); } \
+inline Ty& operator|=(Ty& _Left, Ty _Right) { _Left = (Ty)((int)_Left | (int)_Right); return (_Left); } \
+inline Ty& operator^=(Ty& _Left, Ty _Right) { _Left = (Ty)((int)_Left ^ (int)_Right); return (_Left); } \
+inline constexpr Ty operator&(Ty _Left, Ty _Right) { return ((Ty)((int)_Left & (int)_Right)); } \
+inline constexpr Ty operator|(Ty _Left, Ty _Right) { return ((Ty)((int)_Left | (int)_Right)); } \
+inline constexpr Ty operator^(Ty _Left, Ty _Right) { return ((Ty)((int)_Left ^ (int)_Right)); } \
+inline constexpr Ty operator~(Ty _Left) { return ((Ty)~(int)_Left); }

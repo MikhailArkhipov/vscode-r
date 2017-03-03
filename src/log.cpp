@@ -146,7 +146,7 @@ namespace rhost {
 #ifdef _WIN32
             logfile = _fsopen(log_filename.make_preferred().string().c_str(), "wc", _SH_DENYWR);
 #else
-            logfile = fopen(log_filename.make_preferred().string().c_str(), "wc");
+            logfile = fopen(log_filename.make_preferred().string().c_str(), "w");
 #endif
             if (logfile) {
                 // Logging happens often, so use a large buffer to avoid hitting the disk all the time.
@@ -224,11 +224,7 @@ namespace rhost {
             std::lock_guard<std::mutex> terminate_lock(terminate_mutex);
 
             char message[0xFFFF];
-#ifdef _WIN32
             vsprintf_s(message, format, va);
-#else
-            vsprintf(message, format, va);
-#endif
             if (unexpected) {
                 logf(log_verbosity::minimal, "Fatal error: ");
             }
