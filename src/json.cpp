@@ -54,7 +54,7 @@ namespace rhost {
                 va_list va;
                 va_start(va, format);
                 vsnprintf(buf + len, sizeof buf - len, format, va);
-                va_end(format);
+                va_end(va);
 
                 Rf_error("%s", buf);
             }

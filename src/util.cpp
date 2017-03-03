@@ -69,7 +69,8 @@ namespace rhost {
 
             if ((pb = strchr(s, UTF8in[0])) && *(pb + 1) == UTF8in[1] && *(pb + 2) == UTF8in[2]) {
                 *pb = '\0';
-                nc += msvcrt::mbstowcs(wc, s, n);
+
+                nc += RHOST_mbstowcs(wc, s, n);
                 pb += 3; pe = pb;
 
                 while (*pe &&
@@ -87,7 +88,7 @@ namespace rhost {
                 pe += 3;
                 nc += RString2Unicode(wc + nc, pe, n - nc);
             } else {
-                nc = msvcrt::mbstowcs(wc, s, n);
+                nc = RHOST_mbstowcs(wc, s, n);
             }
             return nc;
         }
@@ -125,7 +126,7 @@ namespace rhost {
             for (size_t i = 0; i < ws.length(); i++)
             {
                 char mbcharbuf[8];
-                int mbcch = msvcrt::wctomb(mbcharbuf, ws[i]);
+                int mbcch = RHOST_wctomb(mbcharbuf, ws[i]);
 
                 bool escape;
                 if (mbcch == -1) {
@@ -137,7 +138,7 @@ namespace rhost {
                     // do "\u..." escaping instead, to preserve the original letter exactly. To detect
                     // that, convert the result back, and see if it matches the original. 
                     wchar_t wc;
-                    escape = msvcrt::mbtowc(&wc, mbcharbuf, mbcch) == -1 || wc != ws[i];
+                    escape = RHOST_mbtowc(&wc, mbcharbuf, mbcch) == -1 || wc != ws[i];
                 }
 
                 if (escape) {

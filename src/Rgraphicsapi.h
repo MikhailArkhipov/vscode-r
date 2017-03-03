@@ -33,7 +33,7 @@
 // - R_ext/GraphicsEngine.h
 
 #pragma once
-
+#include "stdafx.h"
 #include <stdio.h>
 #include <stdarg.h>
 
@@ -177,10 +177,10 @@ extern "C" {
     if (R_interrupts_pending && ! R_interrupts_suspended) \
         Rf_onintr(); \
 } while(0)
-    extern __declspec(dllimport) Rboolean R_interrupts_suspended;
-    extern __declspec(dllimport) int R_interrupts_pending;
+    extern RHOST_IMPORT Rboolean R_interrupts_suspended;
+    extern RHOST_IMPORT int R_interrupts_pending;
     extern void Rf_onintr(void);
-    extern __declspec(dllimport) Rboolean mbcslocale;
+    extern RHOST_IMPORT Rboolean mbcslocale;
 #endif
 
 #define MAX_GRAPHICS_SYSTEMS 24

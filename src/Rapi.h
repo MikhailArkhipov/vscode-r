@@ -44,11 +44,13 @@ extern "C" {
     // Renamed to R_FALSE and R_TRUE to avoid conflicts with Win32 FALSE and TRUE.
     typedef enum { R_FALSE = 0, R_TRUE } Rboolean;
 
+#ifdef _WIN32
     typedef struct {
         jmp_buf buf;
         int sigmask;
         int savedmask;
     } sigjmp_buf[1];
+#endif
 
     typedef struct SEXPREC *SEXP;
 
@@ -284,7 +286,7 @@ extern "C" {
     extern SEXP Rf_findVar(SEXP, SEXP);
     extern SEXP Rf_eval(SEXP, SEXP);
     extern void Rf_onintr();
-    __declspec(noreturn) extern void Rf_error(const char *, ...);
+    RHOST_NORETURN extern void Rf_error(const char *, ...);
     extern void Rf_init_con(Rconnection, const char *description, int enc, const char* const mode);
     extern SEXP Rf_deparse1(SEXP, Rboolean, int);
     extern SEXP Rf_deparse1s(SEXP);
@@ -502,7 +504,7 @@ extern "C" {
         PPinfo gram;     /* pretty-print info */
     } FUNTAB;
 
-    __declspec(dllimport) extern FUNTAB R_FunTab[];
+    RHOST_IMPORT extern FUNTAB R_FunTab[];
 
     enum {
         KEEPINTEGER = 1,

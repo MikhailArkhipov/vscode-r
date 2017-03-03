@@ -26,7 +26,7 @@
 namespace rhost {
     namespace protocol {
         namespace {
-            std::atomic<message_id> last_message_id = -1;
+            std::atomic<message_id> last_message_id(-1);
 
             void log_payload(const std::string& payload) {
                 std::ostringstream str;

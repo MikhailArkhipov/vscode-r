@@ -20,7 +20,7 @@
  *
  * ***************************************************************************/
 
-#pragma once
+#include "stdafx.h"
 #include "log.h"
 #include "Rapi.h"
 
@@ -123,8 +123,11 @@ namespace rhost {
                 time(&t);
 
                 tm tm;
+#ifdef _WIN32
                 localtime_s(&tm, &t);
-
+#else
+                localtime_r(&t, &tm);
+#endif
                 size_t len = filename.size();
                 filename.resize(len + 1 + RHOST_MAX_PATH);
                 auto it = filename.begin() + len;
@@ -139,8 +142,12 @@ namespace rhost {
                 stackdump_filename = log_dir / (filename + ".stack.dmp");
                 fulldump_filename = log_dir / (filename + ".full.dmp");
             }
-        
+
+#ifdef _WIN32
             logfile = _fsopen(log_filename.make_preferred().string().c_str(), "wc", _SH_DENYWR);
+#else
+            logfile = fopen(log_filename.make_preferred().string().c_str(), "w");
+#endif
             if (logfile) {
                 // Logging happens often, so use a large buffer to avoid hitting the disk all the time.
                 setvbuf(logfile, nullptr, _IOFBF, 0x100000);
@@ -218,7 +225,6 @@ namespace rhost {
 
             char message[0xFFFF];
             vsprintf_s(message, format, va);
-
             if (unexpected) {
                 logf(log_verbosity::minimal, "Fatal error: ");
             }
@@ -255,14 +261,14 @@ namespace rhost {
             va_list va;
             va_start(va, format);
             terminate(false, format, va);
-            va_end(format);
+            va_end(va);
         }
 
         void fatal_error(const char* format, ...) {
             va_list va;
             va_start(va, format);
             terminate(true, format, va);
-            va_end(format);
+            va_end(va);
         }
     }
 }

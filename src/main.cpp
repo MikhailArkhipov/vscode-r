@@ -271,17 +271,18 @@ namespace rhost {
     }
 
     int run(int argc, char** argv) {
-        return rhost::run(rhost::parse_command_line(argc, argv));
+        auto args = rhost::parse_command_line(argc, argv);
+        return rhost::run(args);
     }
 }
 
 int main(int argc, char** argv) {
-    //MessageBox(0, 0, 0, 0);
     setlocale(LC_NUMERIC, "C");
-    __try {
-        return rhost::run(argc, argv);
-    } __finally {
+
+    SCOPE_WARDEN(_main_exit, {
         flush_log();
         rhost::detours::terminate_ui_detours();
-    }
+    });
+
+    return rhost::run(argc, argv);
 }

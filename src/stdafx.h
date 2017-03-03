@@ -26,6 +26,7 @@
 #define NOMINMAX
 
 #include <atomic>
+#include <cstdarg>
 #include <cinttypes>
 #include <codecvt>
 #include <chrono>
@@ -33,7 +34,6 @@
 #include <csetjmp>
 #include <cstdio>
 #include <cstdlib>
-#include <filesystem>
 #include <fstream>
 #include <future>
 #include <iostream>
@@ -46,6 +46,7 @@
 #include <utility>
 #include <unordered_map>
 #include <vector>
+#include <stdexcept>
 
 #include "boost/algorithm/string.hpp"
 #include "boost/date_time/posix_time/posix_time.hpp"
@@ -62,6 +63,7 @@
 #include "boost/uuid/uuid.hpp"
 #include "boost/uuid/uuid_io.hpp"
 #include "boost/uuid/uuid_generators.hpp"
+#include "boost/filesystem.hpp"
 
 #include "picojson.h"
 
@@ -80,30 +82,59 @@
 #include "minhook.h"
 
 #include "zip.h"
-
 #else
-
-//#include <unistd.h>
-
+#include <unistd.h>
 #endif
-
-namespace fs = std::tr2::sys;
 
 #if defined(_MSC_VER)
 #define RHOST_EXPORT __declspec(dllexport)
 #define RHOST_IMPORT __declspec(dllimport)
+#define RHOST_NORETURN __declspec(noreturn)
 #elif defined(__GNUC__)
 #define RHOST_EXPORT __attribute__((visibility("default")))
 #define RHOST_IMPORT
+#define RHOST_NORETURN
 #else
 #define RHOST_EXPORT
 #define RHOST_IMPORT
+#define RHOST_NORETURN
 #pragma warning Unknown DLL import/export.
 #endif
 
 #ifdef _WIN32
 #define RHOST_MAX_PATH MAX_PATH
+#define RHOST_mbstowcs msvcrt::mbstowcs
+#define RHOST_wctomb msvcrt::wctomb
+#define RHOST_mbtowc msvcrt::mbtowc
+#define RHOST_calloc msvcrt::calloc
+#define RHOST_vsnprintf msvcrt::vsnprintf
 #else
+
 #define RHOST_MAX_PATH PATH_MAX
+#define RHOST_mbstowcs std::mbstowcs
+#define RHOST_wctomb std::wctomb
+#define RHOST_mbtowc std::mbtowc
+#define RHOST_calloc calloc
+#define RHOST_vsnprintf vsnprintf
+
+#define vsprintf_s vsprintf
+void strcpy_s(char* dest, size_t n, char const* source) {
+    strcpy(dest, source);
+}
+
+void memcpy_s(void* const dest, size_t const destSize, void const* const source, size_t const sourceSize) {
+    memcpy(dest, source, sourceSize);
+}
+
 #endif
 
+namespace fs = boost::filesystem;
+
+#define RHOST_BITMASK_OPS(Ty) \
+inline Ty& operator&=(Ty& _Left, Ty _Right) { _Left = (Ty)((int)_Left & (int)_Right); return (_Left); } \
+inline Ty& operator|=(Ty& _Left, Ty _Right) { _Left = (Ty)((int)_Left | (int)_Right); return (_Left); } \
+inline Ty& operator^=(Ty& _Left, Ty _Right) { _Left = (Ty)((int)_Left ^ (int)_Right); return (_Left); } \
+inline constexpr Ty operator&(Ty _Left, Ty _Right) { return ((Ty)((int)_Left & (int)_Right)); } \
+inline constexpr Ty operator|(Ty _Left, Ty _Right) { return ((Ty)((int)_Left | (int)_Right)); } \
+inline constexpr Ty operator^(Ty _Left, Ty _Right) { return ((Ty)((int)_Left ^ (int)_Right)); } \
+inline constexpr Ty operator~(Ty _Left) { return ((Ty)~(int)_Left); }
