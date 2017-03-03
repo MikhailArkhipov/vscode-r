@@ -318,7 +318,7 @@ namespace rhost {
             return id;
         }
 
-#ifdef _WIN32
+
         void compress_data(blob& compressed_blob, void* data, size_t length) {
             fs::path temp_archive = std::tmpnam(nullptr);
 
@@ -355,10 +355,8 @@ namespace rhost {
             append_from_file(compressed_blob, temp_archive.make_preferred().string().c_str());
             fs::remove(temp_archive);
         }
-#endif
 
         blobs::blob_id create_compressed_blob(blobs::blob&& blob) {
-#ifdef _WIN32
             blobs::blob compressed_blob;
             compress_data(compressed_blob, blob.data(), blob.size());
             
@@ -372,10 +370,6 @@ namespace rhost {
 
             blobs[id] = std::move(compressed_blob);
             return id;
-#else
-            // TODO: implement compressed blob for linux
-            return create_blob(blob);
-#endif
         }
 
         bool get_blob(blobs::blob_id id, blobs::blob& blob) {
