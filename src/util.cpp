@@ -28,35 +28,6 @@ namespace po = boost::program_options;
 
 namespace rhost {
     namespace util {
-#ifdef USE_BOOST_LOCALE
-        const std::locale& single_byte_locale() {
-            static auto locale = [] {
-                boost::locale::generator gen;
-                return gen.generate("");
-            } ();
-            return locale;
-        }
-
-        std::string to_utf8(const char* buf, size_t len) {
-            std::locale loc = single_byte_locale();
-            auto& codecvt_wchar = std::use_facet<std::codecvt<wchar_t, char, std::mbstate_t>>(loc);
-            std::wstring_convert<std::codecvt<wchar_t, char, std::mbstate_t>> convert(&codecvt_wchar);
-            auto ws = convert.from_bytes(buf, buf + len);
-
-            std::wstring_convert<std::codecvt_utf8<wchar_t>> codecvt_utf8;
-            return codecvt_utf8.to_bytes(ws);
-        }
-
-        std::string from_utf8(const std::string& u8s) {
-            std::wstring_convert<std::codecvt_utf8<wchar_t>> codecvt_utf8;
-            auto ws = codecvt_utf8.from_bytes(u8s);
-
-            std::locale loc = single_byte_locale();
-            auto& codecvt_wchar = std::use_facet<std::codecvt<wchar_t, char, std::mbstate_t>>(loc);
-            std::wstring_convert<std::codecvt<wchar_t, char, std::mbstate_t>> convert(&codecvt_wchar);
-            return convert.to_bytes(ws);
-        }
-#endif
         // Taken from R gnuwin32\console.c. Converts string that is partially
         // ANSI and partially UTF-8 to Unicode. UTF-8 fragment is bounded by
         // 02 FF FE at the start and by 03 FF FE at the end.
@@ -106,14 +77,12 @@ namespace rhost {
                 RString2Unicode(&ws[0], (char*)buf, len);
             }
             // Now convert Unicode to UTF-8 for passing over to the host.
-            std::wstring_convert<std::codecvt_utf8<wchar_t>> codecvt_utf8;
-            return codecvt_utf8.to_bytes(ws.c_str());
+            return boost::locale::conv::utf_to_utf<char>(ws);
         }
 
         std::string from_utf8(const std::string& u8s) {
             // Convert UTF-8 string that is coming from the host to Unicode.
-            std::wstring_convert<std::codecvt_utf8<wchar_t>> codecvt_utf8;
-            auto ws = codecvt_utf8.from_bytes(u8s);
+            auto ws = boost::locale::conv::utf_to_utf<wchar_t>(u8s);
 
             // Now convert to MBCS. Do it manually since WideCharToMultiByte
             // requires specific code page and fails if character

@@ -29,7 +29,7 @@ using namespace std::literals;
 namespace rhost {
     namespace log {
         namespace {
-#ifdef _WIN32
+#ifdef _MSC_VER
             const MINIDUMP_TYPE fulldump_type = MINIDUMP_TYPE(
                 MiniDumpWithFullMemory |
                 MiniDumpWithDataSegs |
@@ -58,7 +58,7 @@ namespace rhost {
             }
         }
 
-#ifdef _WIN32
+#ifdef _MSC_VER
         void create_minidump(_EXCEPTION_POINTERS* ei) {
             // Don't let another thread interrupt us by terminating while we're doing this.
             std::lock_guard<std::mutex> terminate_lock(terminate_mutex);
@@ -143,7 +143,7 @@ namespace rhost {
                 fulldump_filename = log_dir / (filename + ".full.dmp");
             }
 
-#ifdef _WIN32
+#ifdef _MSC_VER
             logfile = _fsopen(log_filename.make_preferred().string().c_str(), "wc", _SH_DENYWR);
 #else
             logfile = fopen(log_filename.make_preferred().string().c_str(), "w");
@@ -166,7 +166,7 @@ namespace rhost {
                 }
             }
 
-#ifdef _WIN32
+#ifdef _MSC_VER
             SetUnhandledExceptionFilter(unhandled_exception_filter);
 #endif
         }
@@ -241,7 +241,7 @@ namespace rhost {
                     msgbox_text += c;
                 }
                 
-#ifdef _WIN32
+#ifdef _MSC_VER
                 // Raise and catch an exception so that minidump with a stacktrace can be produced from it.
                 [&] {
                     terminate_mutex.unlock();

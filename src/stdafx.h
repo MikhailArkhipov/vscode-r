@@ -73,6 +73,8 @@
 #include <fcntl.h>
 #include <process.h>
 #include <windows.h>
+
+#define STRSAFE_NO_DEPRECATE
 #include <strsafe.h>
 
 #pragma warning(push)
