@@ -229,7 +229,9 @@ extern "C" {
 
     typedef RConn* Rconnection;
 
+#ifdef _WIN32
     RHOST_IMPORT extern UImode CharacterMode;
+#endif
     RHOST_IMPORT extern RCNTXT* R_GlobalContext;
     RHOST_IMPORT extern SEXP
         R_GlobalEnv, R_EmptyEnv, R_BaseEnv, R_BaseNamespace, R_Srcref, R_NilValue,
@@ -434,7 +436,10 @@ extern "C" {
 
     DllInfo *R_getEmbeddingDllInfo(void);
 
+#ifdef _WIN32
     void R_WaitEvent();
+#endif
+
     void R_ProcessEvents();
     void R_Suicide(const char *);
     void R_CleanUp(SA_TYPE saveact, int status, int runLast);

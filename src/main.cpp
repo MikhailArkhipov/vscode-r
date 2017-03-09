@@ -234,9 +234,13 @@ namespace rhost {
         rhost::grdevices::ide::init(dll);
         rhost::exports::register_all(dll);
 
+#ifdef _WIN32
         CharacterMode = LinkDLL;
+#endif
         setup_Rmainloop();
+#ifdef _WIN32
         CharacterMode = RGui;
+#endif
 
         set_memory_limit();
 

@@ -843,7 +843,9 @@ namespace rhost {
                     R_ToplevelExec([](void*) {
                         // Errors can happen during event processing (from GUI windows such as graphs), and
                         // we don't want them to bubble up here, so run these in a fresh execution context.
+#ifdef _WIN32
                         R_WaitEvent();
+#endif
                         is_waiting_for_wm = false;
                         R_ProcessEvents();
                     }, nullptr);

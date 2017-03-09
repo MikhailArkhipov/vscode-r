@@ -516,8 +516,9 @@ namespace rhost {
             std::vector<std::wstring> files;
             r_top_level_exec([&]() {
                 for (R_len_t i = 0; i < len; ++i) {
-                    const wchar_t* file_path = Rf_wtransChar(STRING_ELT(paths, i));
-                    files.emplace_back(file_path);
+                    const char* file_path_str = Rf_translateCharUTF8(STRING_ELT(paths, i));
+                    fs::path file_path(file_path_str);
+                    files.emplace_back(file_path.make_preferred().wstring());
                 }
             }, __FUNCTION__);
             file_lock_state lock_state = lock_state_by_file(files);
