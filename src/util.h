@@ -131,6 +131,8 @@ namespace rhost {
         std::string from_utf8(const std::string& u8s);
         const std::locale& single_byte_locale();
 
+        fs::path path_from_string_elt(SEXP string_elt);
+
         inline void append(picojson::array& msg) {
         }
 
