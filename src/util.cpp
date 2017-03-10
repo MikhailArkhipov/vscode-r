@@ -154,5 +154,13 @@ namespace rhost {
             converted.resize(j);
             return converted;
         }
+
+        fs::path path_from_string_elt(SEXP string_elt) {
+#ifdef _WIN32
+            return fs::path(Rf_wtransChar(string_elt));
+#else
+            return fs::path(Rf_translateCharUTF8(string_elt));
+#endif
+        }
     }
 }

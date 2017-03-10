@@ -516,8 +516,7 @@ namespace rhost {
             std::vector<std::wstring> files;
             r_top_level_exec([&]() {
                 for (R_len_t i = 0; i < len; ++i) {
-                    const char* file_path_str = Rf_translateCharUTF8(STRING_ELT(paths, i));
-                    fs::path file_path(file_path_str);
+                    fs::path file_path = rhost::util::path_from_string_elt(STRING_ELT(paths, i));
                     files.emplace_back(file_path.make_preferred().wstring());
                 }
             }, __FUNCTION__);
@@ -526,12 +525,9 @@ namespace rhost {
         }
 
         extern "C" SEXP fetch_file(SEXP remotePath, SEXP localPath, SEXP silent) {
-            const char* f_remotePath = Rf_translateCharUTF8(STRING_ELT(remotePath, 0));
-            const char* f_localPath = Rf_translateCharUTF8(STRING_ELT(localPath, 0));
             return util::exceptions_to_errors([&]() {
-                std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> cvt;
-                fs::path file_remote_path(cvt.from_bytes(f_remotePath));
-                fs::path file_local_path(cvt.from_bytes(f_localPath));
+                fs::path file_remote_path = rhost::util::path_from_string_elt(STRING_ELT(remotePath, 0));
+                fs::path file_local_path = rhost::util::path_from_string_elt(STRING_ELT(localPath, 0));;
 
                 if (!file_remote_path.empty()) {
                     blobs::blob file_data;
@@ -547,15 +543,10 @@ namespace rhost {
 
         extern "C" SEXP save_to_project_folder(SEXP id, SEXP project_name, SEXP dest_dir, SEXP temp_dir) {
             auto blob_id = static_cast<blobs::blob_id>(Rf_asReal(id));
-            const char *prj_name = Rf_translateCharUTF8(STRING_ELT(project_name, 0));
-            const char *t_dir = Rf_translateCharUTF8(STRING_ELT(temp_dir, 0));
-            const char *d_dir = Rf_translateCharUTF8(STRING_ELT(dest_dir, 0));
-
             util::exceptions_to_errors([&]() {
-                std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> cvt;
-                fs::path path_prj_name(cvt.from_bytes(prj_name));
-                fs::path path_dest_dir(cvt.from_bytes(d_dir));
-                fs::path path_temp_dir(cvt.from_bytes(t_dir));
+                fs::path path_prj_name = rhost::util::path_from_string_elt(STRING_ELT(project_name, 0));
+                fs::path path_dest_dir = rhost::util::path_from_string_elt(STRING_ELT(dest_dir, 0));
+                fs::path path_temp_dir = rhost::util::path_from_string_elt(STRING_ELT(temp_dir, 0)); 
 
                 rproj::save_to_project_folder_worker(blob_id, path_prj_name, path_dest_dir, path_temp_dir);
             });
