@@ -35,7 +35,18 @@ if(WIN32)
     
     set(WIN32_LIBRARIES "rstrmgr")
 
-    GET_FILENAME_COMPONENT(R_PATH "[HKEY_LOCAL_MACHINE\\SOFTWARE\\R-core\\R64\\3.3.3;InstallPath]" ABSOLUTE CACHE)
+    set(R_PATH "/registry")
+    foreach(i RANGE 20 1 -1)
+        if("${R_PATH}" STREQUAL "/registry")
+            GET_FILENAME_COMPONENT(R_PATH "[HKEY_LOCAL_MACHINE\\SOFTWARE\\R-core\\R64\\3.3.${i};InstallPath]" ABSOLUTE)
+        endif()
+    endforeach()
+
+    if("${R_PATH}" STREQUAL "/registry")
+        message(FATAL_ERROR "R 3.3.x not found")
+    endif()
+
+    message(STATUS "Using R at ${R_PATH}")
 
     set(R_INCLUDE "${R_PATH}/include")
     set(R_LIBRARIES "${R_PATH}/bin/x64/R.dll" "${R_PATH}/bin/x64/Rgraphapp.dll")
