@@ -67,7 +67,8 @@ namespace rhost {
                     result.has_error = !rhost::util::r_top_level_exec([&] {
                         eval_data.before();
                         was_eval_canceled = false;
-                        eval_data.result.value.reset(Rf_eval(eval_data.expr, eval_data.env));
+                        SEXP eval_result = Rf_eval(eval_data.expr, eval_data.env);
+                        eval_data.result.value.reset(eval_result);
                         eval_data.after();
                     });
                     result.is_canceled = was_eval_canceled;

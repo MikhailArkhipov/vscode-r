@@ -19,7 +19,7 @@
  * along with Microsoft R Host.  If not, see <http://www.gnu.org/licenses/>.
  *
  * ***************************************************************************/
-
+#include "stdafx.h"
 #include "host.h"
 #include "log.h"
 #include "msvcrt.h"
@@ -878,7 +878,7 @@ namespace rhost {
 
         picojson::array get_context() {
             picojson::array context;
-            for (RCNTXT* ctxt = R_GlobalContext; ctxt != nullptr; ctxt = ctxt->nextcontext) {
+            for (RCNTXT* ctxt = reinterpret_cast<RCNTXT*>(R_GlobalContext); ctxt != nullptr; ctxt = ctxt->nextcontext) {
                 context.push_back(picojson::value(double(ctxt->callflag)));
             }
             return context;
@@ -921,7 +921,7 @@ namespace rhost {
             do_r_callback(true);
         }
 
-        extern "C" int R_ReadConsole(const char* prompt, char* buf, int len, int addToHistory) {
+        extern "C" int R_ReadConsole(const char* prompt, unsigned char * buf, int len, int addToHistory) {
             return with_cancellation([&] {
                 // The moment we get the first ReadConsole from R is when it's ready to process our requests.
                 // Until then, attempts to do things (especially to eval arbitrary code) can fail because
@@ -948,7 +948,7 @@ namespace rhost {
                 }
 
                 bool is_browser = false;
-                for (RCNTXT* ctxt = R_GlobalContext; ctxt != nullptr; ctxt = ctxt->nextcontext) {
+                for (RCNTXT* ctxt = reinterpret_cast<RCNTXT*>(R_GlobalContext); ctxt != nullptr; ctxt = ctxt->nextcontext) {
                     if (ctxt->callflag & CTXT_BROWSER) {
                         is_browser = true;
                         break;
@@ -1075,6 +1075,25 @@ namespace rhost {
             }
         }
 
+        void setCallbacksWindows(structRstart& rp) {
+#ifdef _WIN32
+            rp.ReadConsole = R_ReadConsole;
+            rp.WriteConsoleEx = WriteConsoleEx;
+            rp.CallBack = CallBack;
+            rp.ShowMessage = ShowMessage;
+            rp.YesNoCancel = YesNoCancel;
+            rp.Busy = Busy;
+#endif
+        }
+
+        void setCallbacksPOSIX() {
+            ptr_R_ReadConsole = R_ReadConsole;
+            ptr_R_WriteConsole = nullptr;
+            ptr_R_WriteConsoleEx = WriteConsoleEx;
+            ptr_R_ShowMessage = ShowMessage;
+            ptr_R_Busy = Busy;
+        }
+
         void initialize(structRstart& rp, const fs::path& rdata, std::chrono::seconds idle_timeout) {
             host::rdata = rdata;
 #ifdef _WIN32
@@ -1084,18 +1103,12 @@ namespace rhost {
             transport::disconnected.connect(unblock_message_loop);
 
 #ifdef _WIN32
-            rp.ReadConsole = R_ReadConsole;
-            rp.WriteConsoleEx = WriteConsoleEx;
-            rp.CallBack = CallBack;
-            rp.ShowMessage = ShowMessage;
-            rp.YesNoCancel = YesNoCancel;
-            rp.Busy = Busy;
-
+            setCallbacksWindows(rp);
             char* dllVersion = getDLLVersion();
-#else
-            char* dllVersion = "";
-#endif
             send_notification("!Microsoft.R.Host", 1.0, dllVersion);
+#else
+            setCallbacksPOSIX();
+#endif
 
             if (idle_timeout > 0s) {
                 logf(log_verbosity::minimal, "Host process will shut down after %lld seconds of inactivity.\n", idle_timeout.count());

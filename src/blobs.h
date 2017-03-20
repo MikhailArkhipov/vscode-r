@@ -23,7 +23,10 @@
 #pragma once
 #include "stdafx.h"
 #include "util.h"
+
+#ifdef _WIN32
 #include "Rapi.h"
+#endif
 
 namespace rhost {
     namespace blobs {

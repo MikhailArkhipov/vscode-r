@@ -23,7 +23,9 @@
 #include "stdafx.h"
 #include "log.h"
 #include "xamlbuilder.h"
+#ifdef _WIN32
 #include "Rgraphicsapi.h"
+#endif
 #include "host.h"
 #include "msvcrt.h"
 #include "eval.h"
@@ -814,7 +816,7 @@ namespace rhost {
                     std::string file_path = path_copy.make_preferred().string();
                     blobs::blob plot_image_data;
 
-                    if (file_path.length() > 0) {
+                    if (!file_path.empty()) {
                         blobs::append_from_file(plot_image_data, file_path);
                     }
 

@@ -22,7 +22,11 @@
 
 #pragma once
 #include "stdafx.h"
+
+#ifdef _WIN32
 #include "Rapi.h"
+#endif
+
 #include "util.h"
 #include "blobs.h"
 #include "message.h"
@@ -34,6 +38,8 @@ namespace rhost {
         };
 
         void initialize(structRstart& rp, const fs::path& rdata, std::chrono::seconds idle_timeout);
+        void setCallbacksWindows(structRstart& rp);
+        void setCallbacksPOSIX();
         void shutdown_if_requested();
         void do_r_callback(bool allow_eval_interrupt);
 

@@ -23,7 +23,9 @@
 #pragma once
 
 #include "stdafx.h"
+#ifdef _WIN32
 #include "Rgraphicsapi.h"
+#endif
 #include "util.h"
 #include "grdevices.h"
 

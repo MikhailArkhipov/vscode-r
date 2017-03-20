@@ -22,8 +22,11 @@
 
 #pragma once
 #include "stdafx.h"
-#include "Rapi.h"
 #include "log.h"
+
+#ifdef _WIN32
+#include "Rapi.h"
+#endif
 
 #define SCOPE_WARDEN(NAME, ...)                \
     auto xx##NAME##xx = [&]() { __VA_ARGS__ }; \
@@ -118,17 +121,31 @@ namespace rhost {
             }
         };
 
+#ifdef _WIN32
         std::string Rchar_to_utf8(const char* buf, size_t len);
 
         inline std::string Rchar_to_utf8(const std::string& s) {
             return Rchar_to_utf8(s.data(), s.size());
         }
+        std::string from_utf8(const std::string& u8s);
+#else
+        inline std::string Rchar_to_utf8(const char* buf, size_t len) {
+            return std::string(buf, len);
+        }
+
+        inline std::string Rchar_to_utf8(const std::string& s){
+            return s;
+        }
+
+        inline std::string from_utf8(const std::string& u8s){
+            return u8s;
+        }
+#endif
 
         inline picojson::value to_utf8_json(const char* buf) {
             return buf ? picojson::value(Rchar_to_utf8(buf)) : picojson::value();
         }
-
-        std::string from_utf8(const std::string& u8s);
+        
         const std::locale& single_byte_locale();
 
         fs::path path_from_string_elt(SEXP string_elt);

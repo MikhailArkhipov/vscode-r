@@ -21,10 +21,10 @@
 * ***************************************************************************/
 
 #include "rstrtmgr.h"
-#include "Rapi.h"
 #include "util.h"
 
 #ifdef _WIN32
+#include "Rapi.h"
 #include <RestartManager.h>
 #endif
 

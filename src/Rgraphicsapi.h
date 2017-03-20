@@ -37,7 +37,9 @@
 #include <stdio.h>
 #include <stdarg.h>
 
+#ifdef _WIN32
 #include "Rapi.h"
+#endif
 
 #define R_GE_version 10
 

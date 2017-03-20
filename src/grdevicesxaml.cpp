@@ -22,7 +22,11 @@
 
 #include "stdafx.h"
 #include "xamlbuilder.h"
+
+#ifdef _WIN32
 #include "Rgraphicsapi.h"
+#endif
+
 #include "msvcrt.h"
 #include "grdevices.h"
 #include "exports.h"

@@ -21,7 +21,11 @@
  * ***************************************************************************/
 
 #include "stdafx.h"
+
+#ifdef _WIN32
 #include "Rapi.h"
+#endif
+
 #include "msvcrt.h"
 #include "log.h"
 #include "util.h"
@@ -416,7 +420,7 @@ namespace rhost {
             }
 
             // Skip the requisite number of top-level contexts first.
-            auto ctx = R_GlobalContext;
+            RCNTXT* ctx = reinterpret_cast<RCNTXT*>(R_GlobalContext);
             while (ctx && skip_toplevel) {
                 if (ctx->callflag == CTXT_TOPLEVEL) {
                     --skip_toplevel;
