@@ -138,14 +138,14 @@ namespace rhost {
 #ifdef _WIN32
             MH_Initialize();
 
-            MH_CreateHook((void*)&MessageBoxW, (void*)&DetourMessageBoxW, reinterpret_cast<LPVOID*>(&pMessageBoxW));
-            MH_CreateHook((void*)&MessageBoxA, (void*)&DetourMessageBoxA, reinterpret_cast<LPVOID*>(&pMessageBoxA));
+            MH_CreateHook(reinterpret_cast<void*>(&MessageBoxW), reinterpret_cast<void*>(&DetourMessageBoxW), reinterpret_cast<LPVOID*>(&pMessageBoxW));
+            MH_CreateHook(reinterpret_cast<void*>(&MessageBoxA), reinterpret_cast<void*>(&DetourMessageBoxA), reinterpret_cast<LPVOID*>(&pMessageBoxA));
 
             if (is_remote) {
                 // Apply hooks for Remote REPL or any other session irrespective of local or remote case.
-                MH_CreateHookApi(L"User32.dll", "CreateWindowExW", (void*)&DetourCreateWindowExW, reinterpret_cast<LPVOID*>(&pCreateWindowExW));
-                MH_CreateHookApi(L"User32.dll", "CreateWindowExA", (void*)&DetourCreateWindowExA, reinterpret_cast<LPVOID*>(&pCreateWindowExA));
-                MH_CreateHookApi(L"User32.dll", "DestroyWindow",(void*) &DetourDestroyWindow, reinterpret_cast<LPVOID*>(&pDestroyWindow));
+                MH_CreateHookApi(L"User32.dll", "CreateWindowExW", reinterpret_cast<void*>(&DetourCreateWindowExW), reinterpret_cast<LPVOID*>(&pCreateWindowExW));
+                MH_CreateHookApi(L"User32.dll", "CreateWindowExA", reinterpret_cast<void*>(&DetourCreateWindowExA), reinterpret_cast<LPVOID*>(&pCreateWindowExA));
+                MH_CreateHookApi(L"User32.dll", "DestroyWindow", reinterpret_cast<void*>(&DetourDestroyWindow), reinterpret_cast<LPVOID*>(&pDestroyWindow));
             }
 
             MH_EnableHook(MH_ALL_HOOKS);
