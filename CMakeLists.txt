@@ -2,13 +2,11 @@ cmake_minimum_required(VERSION 2.7)
 project(R-Host)
 
 if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
-    message(FATAL_ERROR "In-source builds are not allowed. Please invoke CMake from ./build, or use ./build.sh helper script.")
+    message(FATAL_ERROR "In-source builds are not allowed. Please use the ./build.sh helper script.")
 endif()
 
-if(CMAKE_BUILD_TYPE MATCHES DEBUG)
-    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_HOME_DIRECTORY}/bin/Release)
-else()
-    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_HOME_DIRECTORY}/bin/Debug)
+if(NOT CMAKE_RUNTIME_OUTPUT_DIRECTORY)
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_HOME_DIRECTORY}/bin/${CMAKE_BUILD_TYPE})
 endif()
 
 include_directories("${CMAKE_SOURCE_DIR}/lib/picojson" "${CMAKE_SOURCE_DIR}/lib/picojson")
@@ -57,3 +55,7 @@ file(GLOB src "src/*.h" "src/*.cpp")
 add_executable(Microsoft.R.Host ${src})
 
 target_link_libraries(Microsoft.R.Host ${R_LIBRARIES} ${Boost_LIBRARIES} ${libzip_LIBRARY} ${MinHook_LIBRARY} ${WIN32_LIBRARIES})
+
+if("${TARGET_ARCH}" STREQUAL "x86")
+    set_target_properties(Microsoft.R.Host PROPERTIES COMPILE_FLAGS "-m32" LINK_FLAGS "-m32")
+endif()

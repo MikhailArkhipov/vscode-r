@@ -5,30 +5,64 @@ usage()
     cat << EOF
 Usage: $0 [options]
  OPTIONS:
-    -h        Print this message.
-    -d        Build debug binaries.
+    -h          Print this message.
+    -t type     Set build type (Debug or Release).
+    -a arch     Set target architecture (x86 or x64).
+    -o dir      Use the specified directory for build output.
+    -i dir      Use the specified directory for build artifacts.
+    -m          Don't colorize build output.
 EOF
 }
 
+ROOT_DIR=$(dirname "$0")
 BUILD_TYPE=Release
+COLORIZE=yes
+
+# Detect 32-bit MinGW. On other platforms x86 builds have to be specifically requested.
+if [ "$MSYSTEM" = "MINGW32" ]; then
+    TARGET_ARCH=x86
+else   
+    TARGET_ARCH=x64
+fi
 
 OPTIND=1
 
-while getopts "h?d" opt; do
+while getopts "h?t:a:o:i:m" opt; do
     case "$opt" in
     h|\?)
         usage
         exit 0
         ;;
-    d)  BUILD_TYPE=Debug
+    t)  
+        BUILD_TYPE=$OPTARG
+        ;;
+    a)  
+        TARGET_ARCH=$OPTARG
+        ;;
+    o)  
+        OUT_DIR=$OPTARG
+        ;;
+    i)  
+        INT_DIR=$OPTARG
+        ;;
+    m)  
+        COLORIZE=no
         ;;
     esac
 done
 
 shift $((OPTIND-1))
-
 [ "$1" = "--" ] && shift
-mkdir -p build && \
-cd build && \
-cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=$BUILD_TYPE .. && \
-make
+
+if [ "$INT_DIR" = "" ]; then
+    INT_DIR=$(dirname "$0")/obj/$BUILD_TYPE/$TARGET_ARCH
+fi
+
+pushd . >/dev/null
+
+mkdir -p "$INT_DIR" && \
+    cd "$INT_DIR" && \
+    cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DTARGET_ARCH=$TARGET_ARCH -DCMAKE_COLOR_MAKEFILE=$COLORIZE "-DCMAKE_RUNTIME_OUTPUT_DIRECTORY=$OUT_DIR" "$ROOT_DIR" && \
+    make
+
+popd >/dev/null
