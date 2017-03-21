@@ -71,11 +71,11 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Platform)'=='Win32'">
     <MSystem>MINGW32</MSystem>
-    <NMakeIncludeSearchPath>$(MSYSPath)\mingw32\i686-w64-mingw32\include;$(MSYSPath)\mingw32\include;$(NMakeIncludeSearchPath)</NMakeIncludeSearchPath>
+    <IncludePath>$(MSYSPath)\mingw32\i686-w64-mingw32\include;$(MSYSPath)\mingw32\include;$(MSYSPath)\mingw32\include\c++\6.3.0</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Platform)'=='x64'">
     <MSystem>MINGW64</MSystem>
-    <NMakeIncludeSearchPath>$(MSYSPath)\mingw64\x86_64-w64-mingw32\include;$(MSYSPath)\mingw64\include;$(NMakeIncludeSearchPath)</NMakeIncludeSearchPath>
+    <IncludePath>$(MSYSPath)\mingw64\x86_64-w64-mingw32\include;$(MSYSPath)\mingw64\include;$(MSYSPath)\mingw64\include\c++\6.3.0</IncludePath>
   </PropertyGroup>
   <PropertyGroup>
     <NMakeOutput>Microsoft.R.Host.exe</NMakeOutput>
