@@ -173,24 +173,6 @@ namespace rhost {
 #endif
     }
 
-    void suggest_mro(structRstart& rp) {
-        ParseStatus ps;
-        auto res = r_try_eval_str("if (exists('Revo.version')) 'REVO' else 'CRAN'", R_BaseEnv, ps);
-
-        assert(res.has_value);
-        if (!res.has_value) {
-            return;
-        }
-
-        if (res.value == "REVO") {
-            // This is Revolution R or Microsoft R.
-            return;
-        }
-
-        static const char mro_banner[] = "Check out Microsoft's enhanced R distribution at https://aka.ms/mrclient. \n\n";
-        rp.WriteConsoleEx(mro_banner, static_cast<int>(strlen(mro_banner)), 0);
-    }
-
     int run(command_line_args& args) {
         init_log(args.name, args.log_dir, args.log_level, args.suppress_ui);
         transport::initialize();
@@ -231,9 +213,6 @@ namespace rhost {
         CharacterMode = RGui;
 
         set_memory_limit();
-
-        // setup_Rmainloop above prints out the license banner, so this will follow that.
-        suggest_mro(rp);
 
         if (!args.rdata.empty()) {
             std::string s = args.rdata.string();
