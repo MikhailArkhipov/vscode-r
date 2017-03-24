@@ -1108,6 +1108,7 @@ namespace rhost {
             send_notification("!Microsoft.R.Host", 1.0, dllVersion);
 #else
             setCallbacksPOSIX();
+            send_notification("!Microsoft.R.Host", 1.0, "3.2.3");
 #endif
 
             if (idle_timeout > 0s) {
