@@ -921,7 +921,11 @@ namespace rhost {
             do_r_callback(true);
         }
 
-        extern "C" int R_ReadConsole(const char* prompt, unsigned char * buf, int len, int addToHistory) {
+#ifdef _WIN32
+        extern "C" int R_ReadConsole(const char* prompt, char * buf, int len, int addToHistory) {
+#else  
+		extern "C" int R_ReadConsole(const char* prompt, unsigned char * buf, int len, int addToHistory) {
+#endif
             return with_cancellation([&] {
                 // The moment we get the first ReadConsole from R is when it's ready to process our requests.
                 // Until then, attempts to do things (especially to eval arbitrary code) can fail because
@@ -1087,11 +1091,13 @@ namespace rhost {
         }
 
         void setCallbacksPOSIX() {
+#ifndef _WIN32
             ptr_R_ReadConsole = R_ReadConsole;
             ptr_R_WriteConsole = nullptr;
             ptr_R_WriteConsoleEx = WriteConsoleEx;
             ptr_R_ShowMessage = ShowMessage;
             ptr_R_Busy = Busy;
+#endif
         }
 
         void initialize(structRstart& rp, const fs::path& rdata, std::chrono::seconds idle_timeout) {

@@ -24,6 +24,7 @@ UpgradeLog*.htm
 *.sdf
 *.opensdf
 *.VC*db
+*.ipch
 
 # Packages
 NugetPackages/
