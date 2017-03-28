@@ -39,9 +39,9 @@ using namespace rhost::blobs;
 using namespace rhost::protocol;
 
 #ifdef _WIN32
-typedef char rhost_buf;
+typedef char ReadConsole_buf_t;
 #else
-typedef unsigned char rhost_buf;
+typedef unsigned char ReadConsole_buf_t;
 #endif
 
 namespace rhost {
@@ -928,7 +928,7 @@ namespace rhost {
         }
 
 
-        extern "C" int R_ReadConsole(const char* prompt, rhost_buf* buf, int len, int addToHistory) {
+        extern "C" int R_ReadConsole(const char* prompt, ReadConsole_buf_t* buf, int len, int addToHistory) {
             return with_cancellation([&] {
                 // The moment we get the first ReadConsole from R is when it's ready to process our requests.
                 // Until then, attempts to do things (especially to eval arbitrary code) can fail because
@@ -1083,7 +1083,7 @@ namespace rhost {
         }
 
 #ifdef _WIN32
-        void setCallbacksWindows(structRstart& rp) {
+        void set_callbacks_windows(structRstart& rp) {
             rp.ReadConsole = R_ReadConsole;
             rp.WriteConsoleEx = WriteConsoleEx;
             rp.CallBack = CallBack;
@@ -1092,7 +1092,7 @@ namespace rhost {
             rp.Busy = Busy;
         }
 #else
-        void setCallbacksPOSIX() {
+        void set_callbacks_posix() {
             ptr_R_ReadConsole = R_ReadConsole;
             ptr_R_WriteConsole = nullptr;
             ptr_R_WriteConsoleEx = WriteConsoleEx;
@@ -1110,10 +1110,10 @@ namespace rhost {
             transport::disconnected.connect(unblock_message_loop);
 
 #ifdef _WIN32
-            setCallbacksWindows(rp);
+            set_callbacks_windows(rp);
             char* dllVersion = getDLLVersion();
 #else
-            setCallbacksPOSIX();
+            set_callbacks_posix();
             char dllVersion[25] = {};
             snprintf(dllVersion, 25, "%s.%s" ,R_MAJOR, R_MINOR)
 #endif
