@@ -26,9 +26,20 @@
 
 namespace po = boost::program_options;
 
+#ifndef _WIN32
+void strcpy_s(char* dest, size_t n, char const* source) {
+    strcpy(dest, source);
+}
+
+void memcpy_s(void* const dest, size_t const destSize, void const* const source, size_t const sourceSize) {
+    memcpy(dest, source, sourceSize);
+}
+#endif
+
 namespace rhost {
     namespace util {
-        // Taken from R gnuwin32\console.c. Converts string that is partially
+#ifdef _WIN32
+		// Taken from R gnuwin32\console.c. Converts string that is partially
         // ANSI and partially UTF-8 to Unicode. UTF-8 fragment is bounded by
         // 02 FF FE at the start and by 03 FF FE at the end.
         size_t RString2Unicode(wchar_t *wc, char *s, size_t n) {
@@ -123,6 +134,7 @@ namespace rhost {
             converted.resize(j);
             return converted;
         }
+#endif
 
         fs::path path_from_string_elt(SEXP string_elt) {
 #ifdef _WIN32

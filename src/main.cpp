@@ -39,6 +39,8 @@ using namespace rhost::log;
 using namespace rhost::util;
 namespace po = boost::program_options;
 
+typedef void (*ptr_RHOST_WriteConsoleEx)(const char *, int, int);
+
 namespace rhost {
 #ifdef _WIN32
     // ID for the timer 
@@ -175,7 +177,7 @@ namespace rhost {
 #endif
     }
 
-    void suggest_mro(structRstart& rp) {
+    void suggest_mro(ptr_RHOST_WriteConsoleEx write_console_ex) {
         ParseStatus ps;
         auto res = r_try_eval_str("if (exists('Revo.version')) 'REVO' else 'CRAN'", R_BaseEnv, ps);
 
@@ -189,13 +191,12 @@ namespace rhost {
             return;
         }
 
-#ifdef _WIN32
         static const char mro_banner[] = "Check out Microsoft's enhanced R distribution at https://aka.ms/mrclient. \n\n";
-        rp.WriteConsoleEx(mro_banner, static_cast<int>(strlen(mro_banner)), 0);
-#endif
+        write_console_ex(mro_banner, static_cast<int>(strlen(mro_banner)), 0);
     }
 
-    int run(command_line_args& args) {
+#ifdef _WIN32
+    int run_r_windows(command_line_args& args) {
         init_log(args.name, args.log_dir, args.log_level, args.suppress_ui);
         transport::initialize();
         
@@ -203,11 +204,9 @@ namespace rhost {
         structRstart rp = {};
         R_DefParams(&rp);
 
-#ifdef _WIN32
         rp.rhome = get_R_HOME();
         rp.home = getRUser();
         rp.CharacterMode = RGui;
-#endif
         rp.R_Quiet = R_FALSE;
         rp.R_Interactive = args.is_interactive ? R_TRUE : R_FALSE;
         rp.RestoreAction = SA_NORESTORE;
@@ -223,10 +222,8 @@ namespace rhost {
         R_common_command_line(&args.argc, args.argv.data(), &rp);
         R_SetParams(&rp);
 
-#ifdef _WIN32
         GA_initapp(0, 0);
         readconsolecfg();
-#endif
 
         DllInfo *dll = R_getEmbeddingDllInfo();
         rhost::r_util::init(dll);
@@ -234,18 +231,14 @@ namespace rhost {
         rhost::grdevices::ide::init(dll);
         rhost::exports::register_all(dll);
 
-#ifdef _WIN32
         CharacterMode = LinkDLL;
-#endif
         setup_Rmainloop();
-#ifdef _WIN32
         CharacterMode = RGui;
-#endif
 
         set_memory_limit();
 
         // setup_Rmainloop above prints out the license banner, so this will follow that.
-        suggest_mro(rp);
+        suggest_mro(rp.WriteConsoleEx);
 
         if (!args.rdata.empty()) {
             std::string s = args.rdata.string();
@@ -258,7 +251,6 @@ namespace rhost {
             log::logf(log_verbosity::minimal, ok ? "Workspace loaded successfully.\n" : "Failed to load workspace.\n");
         }
 
-#ifdef _WIN32
         UINT_PTR timer = SetTimer(NULL, IDT_RESET_TIMER, 5000, [](HWND hWnd, UINT msg, UINT_PTR idEVent, DWORD dwTime) {
             rhost::host::do_r_callback(false);
         });
@@ -266,17 +258,75 @@ namespace rhost {
         SCOPE_WARDEN(destroy_timer, {
             KillTimer(NULL, timer);
         });
-#endif
 
         run_Rmainloop();
 
-        Rf_endEmbeddedR(0);
         return EXIT_SUCCESS;
     }
 
+#else // POSIX
+    int run_r_posix(command_line_args& args) {
+        init_log(args.name, args.log_dir, args.log_level, args.suppress_ui);
+        transport::initialize();
+        
+        R_running_as_main_program = 1;
+        
+        ptr_R_ShowMessage = rhost::host::ShowMessage;
+
+         char *argv[] = {"Microsoft.R.Host", "--interactive"};
+        int argc = sizeof(argv)/sizeof(argv[0]);
+        int res = Rf_initialize_R(argc, argv);
+
+        structRstart rp = {};
+        R_DefParams(&rp);
+        rp.R_Quiet = R_FALSE;
+        rp.R_Interactive = args.is_interactive ? R_TRUE : R_FALSE;
+        rp.RestoreAction = SA_NORESTORE;
+        rp.SaveAction = SA_NOSAVE;
+
+        rhost::host::initialize(rp, args.rdata, args.idle_timeout);
+
+        R_set_command_line_arguments(args.argc, args.argv.data());
+        R_common_command_line(&args.argc, args.argv.data(), &rp);
+        R_SetParams(&rp);
+        
+        // This is a exported static library member Rf_initialize_R sets it to TRUE
+        R_Interactive = args.is_interactive ? R_TRUE : R_FALSE;
+        R_Consolefile = nullptr;
+        R_Outputfile = nullptr;
+
+        DllInfo *dll = R_getEmbeddingDllInfo();
+        rhost::r_util::init(dll);
+        rhost::grdevices::xaml::init(dll);
+        rhost::grdevices::ide::init(dll);
+        rhost::exports::register_all(dll);
+
+        rhost::host::setCallbacksPOSIX();
+
+        if (!args.rdata.empty()) {
+            std::string s = args.rdata.string();
+            log::logf(log_verbosity::minimal, "Loading workspace from file %s\n", s.c_str());
+
+            bool ok = r_top_level_exec([&] {
+                R_RestoreGlobalEnvFromFile(s.c_str(), R_FALSE);
+            });
+
+            log::logf(log_verbosity::minimal, ok ? "Workspace loaded successfully.\n" : "Failed to load workspace.\n");
+        }
+
+        Rf_mainloop();
+
+        return 0;
+    }
+#endif
+
     int run(int argc, char** argv) {
         auto args = rhost::parse_command_line(argc, argv);
-        return rhost::run(args);
+#ifdef _WIN32
+        return rhost::run_r_windows(args);
+#else
+        return rhost::run_r_posix(args);
+#endif 
     }
 }
 

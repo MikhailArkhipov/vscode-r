@@ -416,7 +416,7 @@ namespace rhost {
             }
 
             // Skip the requisite number of top-level contexts first.
-            auto ctx = R_GlobalContext;
+            RCNTXT* ctx = reinterpret_cast<RCNTXT*>(R_GlobalContext);
             while (ctx && skip_toplevel) {
                 if (ctx->callflag == CTXT_TOPLEVEL) {
                     --skip_toplevel;

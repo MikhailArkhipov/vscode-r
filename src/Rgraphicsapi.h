@@ -36,9 +36,9 @@
 #include "stdafx.h"
 #include <stdio.h>
 #include <stdarg.h>
-
 #include "Rapi.h"
 
+#ifdef _WIN32
 #define R_GE_version 10
 
 #define R_32_GE_version 10
@@ -249,3 +249,5 @@ extern "C" {
     extern int Rf_NumDevices(void);
     extern pGEDevDesc Rf_desc2GEDesc(pDevDesc dd);
 }
+
+#endif // _WIN32

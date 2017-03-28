@@ -23,6 +23,9 @@
 #pragma once
 
 #include "Rapi.h"
+#ifndef _WIN32
+#include "R_ext/Rdynload.h"
+#endif
 
 namespace rhost {
     namespace exports {

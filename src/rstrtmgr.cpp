@@ -21,8 +21,8 @@
 * ***************************************************************************/
 
 #include "rstrtmgr.h"
-#include "Rapi.h"
 #include "util.h"
+#include "Rapi.h"
 
 #ifdef _WIN32
 #include <RestartManager.h>

@@ -814,7 +814,7 @@ namespace rhost {
                     std::string file_path = path_copy.make_preferred().string();
                     blobs::blob plot_image_data;
 
-                    if (file_path.length() > 0) {
+                    if (!file_path.empty()) {
                         blobs::append_from_file(plot_image_data, file_path);
                     }
 
