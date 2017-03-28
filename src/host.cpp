@@ -1115,7 +1115,7 @@ namespace rhost {
 #else
             set_callbacks_posix();
             char dllVersion[25] = {};
-            snprintf(dllVersion, 25, "%s.%s" ,R_MAJOR, R_MINOR)
+            snprintf(dllVersion, 25, "%s.%s", R_MAJOR, R_MINOR);
 #endif
             send_notification("!Microsoft.R.Host", 1.0, dllVersion);
 
