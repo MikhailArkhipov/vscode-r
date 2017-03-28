@@ -22,9 +22,7 @@
 
 #pragma once
 
-#ifdef _WIN32
 #include "Rapi.h"
-#endif
 
 namespace rhost {
     namespace grdevices {

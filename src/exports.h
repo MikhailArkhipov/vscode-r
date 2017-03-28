@@ -22,9 +22,8 @@
 
 #pragma once
 
-#ifdef _WIN32
 #include "Rapi.h"
-#else
+#ifndef _WIN32
 #include "R_ext/Rdynload.h"
 #endif
 

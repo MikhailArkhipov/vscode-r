@@ -22,9 +22,9 @@
 
 #include "rstrtmgr.h"
 #include "util.h"
+#include "Rapi.h"
 
 #ifdef _WIN32
-#include "Rapi.h"
 #include <RestartManager.h>
 #endif
 

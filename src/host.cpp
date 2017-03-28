@@ -38,6 +38,12 @@ using namespace rhost::json;
 using namespace rhost::blobs;
 using namespace rhost::protocol;
 
+#ifdef _WIN32
+typedef char rhost_buf;
+#else
+typedef unsigned char rhost_buf;
+#endif
+
 namespace rhost {
     namespace host {
         boost::signals2::signal<void()> callback_started;
@@ -921,11 +927,8 @@ namespace rhost {
             do_r_callback(true);
         }
 
-#ifdef _WIN32
-        extern "C" int R_ReadConsole(const char* prompt, char * buf, int len, int addToHistory) {
-#else  
-		extern "C" int R_ReadConsole(const char* prompt, unsigned char * buf, int len, int addToHistory) {
-#endif
+
+        extern "C" int R_ReadConsole(const char* prompt, rhost_buf* buf, int len, int addToHistory) {
             return with_cancellation([&] {
                 // The moment we get the first ReadConsole from R is when it's ready to process our requests.
                 // Until then, attempts to do things (especially to eval arbitrary code) can fail because
@@ -1079,26 +1082,24 @@ namespace rhost {
             }
         }
 
-        void setCallbacksWindows(structRstart& rp) {
 #ifdef _WIN32
+        void setCallbacksWindows(structRstart& rp) {
             rp.ReadConsole = R_ReadConsole;
             rp.WriteConsoleEx = WriteConsoleEx;
             rp.CallBack = CallBack;
             rp.ShowMessage = ShowMessage;
             rp.YesNoCancel = YesNoCancel;
             rp.Busy = Busy;
-#endif
         }
-
+#else
         void setCallbacksPOSIX() {
-#ifndef _WIN32
             ptr_R_ReadConsole = R_ReadConsole;
             ptr_R_WriteConsole = nullptr;
             ptr_R_WriteConsoleEx = WriteConsoleEx;
             ptr_R_ShowMessage = ShowMessage;
             ptr_R_Busy = Busy;
-#endif
         }
+#endif
 
         void initialize(structRstart& rp, const fs::path& rdata, std::chrono::seconds idle_timeout) {
             host::rdata = rdata;
@@ -1111,11 +1112,12 @@ namespace rhost {
 #ifdef _WIN32
             setCallbacksWindows(rp);
             char* dllVersion = getDLLVersion();
-            send_notification("!Microsoft.R.Host", 1.0, dllVersion);
 #else
             setCallbacksPOSIX();
-            send_notification("!Microsoft.R.Host", 1.0, "3.2.3");
+            char dllVersion[25] = {};
+            snprintf(dllVersion, 25, "%s.%s" ,R_MAJOR, R_MINOR)
 #endif
+            send_notification("!Microsoft.R.Host", 1.0, dllVersion);
 
             if (idle_timeout > 0s) {
                 logf(log_verbosity::minimal, "Host process will shut down after %lld seconds of inactivity.\n", idle_timeout.count());

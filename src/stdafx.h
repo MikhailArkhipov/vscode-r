@@ -105,6 +105,7 @@
 #include "Rinternals.h"
 #include "Rinterface.h"
 #include "Rembedded.h"
+#include "Rversion.h"
 
 #define class class_
 #define private private_

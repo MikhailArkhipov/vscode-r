@@ -25,11 +25,7 @@
 #include "log.h"
 #include "r_util.h"
 #include "host.h"
-
-#ifdef _WIN32
 #include "Rapi.h"
-#endif
-
 #include "util.h"
 #include "eval.h"
 #include "detours.h"

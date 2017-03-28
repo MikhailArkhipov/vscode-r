@@ -37,6 +37,7 @@
 #pragma once
 #include "stdafx.h"
 
+#ifdef _WIN32
 extern "C" {
     typedef int R_len_t;
     typedef ptrdiff_t R_xlen_t;
@@ -44,13 +45,12 @@ extern "C" {
     // Renamed to R_FALSE and R_TRUE to avoid conflicts with Win32 FALSE and TRUE.
     typedef enum { R_FALSE = 0, R_TRUE } Rboolean;
 
-#ifdef _WIN32
+    // windows only
     typedef struct {
         jmp_buf buf;
         int sigmask;
         int savedmask;
     } sigjmp_buf[1];
-#endif
 
     typedef struct SEXPREC *SEXP;
 
@@ -181,7 +181,7 @@ extern "C" {
         size_t ppsize;
         int NoRenviron;
 
-#ifdef _WIN32
+        // windows only
         char *rhome;
         char *home;
         blah1 ReadConsole;
@@ -192,7 +192,6 @@ extern "C" {
         blah6 Busy;
         UImode CharacterMode;
         blah7 WriteConsoleEx;
-#endif
     } structRstart, *Rstart;
 
     typedef struct Rconn {
@@ -229,9 +228,9 @@ extern "C" {
 
     typedef RConn* Rconnection;
 
-#ifdef _WIN32
+    // windows only
     RHOST_IMPORT extern UImode CharacterMode;
-#endif
+
     RHOST_IMPORT extern RCNTXT* R_GlobalContext;
     RHOST_IMPORT extern SEXP
         R_GlobalEnv, R_EmptyEnv, R_BaseEnv, R_BaseNamespace, R_Srcref, R_NilValue,
@@ -392,7 +391,7 @@ extern "C" {
     extern void* vmaxget(void);
     extern void vmaxset(const void*);
 
-#ifdef _WIN32
+    // windows only
     extern char *getDLLVersion(void), *getRUser(void), *get_R_HOME(void);
     extern void setup_term_ui(void);
     extern Rboolean AllDevicesKilled;
@@ -401,7 +400,6 @@ extern "C" {
     extern void GA_appcleanup(void);
     extern void readconsolecfg(void);
     SEXP in_memsize(SEXP ssize);
-#endif
 
     typedef void * (*DL_FUNC)();
     typedef unsigned int R_NativePrimitiveArgType;
@@ -436,9 +434,7 @@ extern "C" {
 
     DllInfo *R_getEmbeddingDllInfo(void);
 
-#ifdef _WIN32
     void R_WaitEvent();
-#endif
 
     void R_ProcessEvents();
     void R_Suicide(const char *);
@@ -530,3 +526,5 @@ extern "C" {
     extern size_t Rf_utf8towcs(wchar_t *wc, const char *s, size_t n);
     extern const wchar_t* Rf_wtransChar(SEXP s);
 }
+
+#endif // _WIN32

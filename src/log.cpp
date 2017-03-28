@@ -22,10 +22,7 @@
 
 #include "stdafx.h"
 #include "log.h"
-
-#ifdef _WIN32
 #include "Rapi.h"
-#endif
 
 using namespace std::literals;
 

@@ -23,10 +23,7 @@
 #pragma once
 #include "stdafx.h"
 #include "log.h"
-
-#ifdef _WIN32
 #include "Rapi.h"
-#endif
 
 #define SCOPE_WARDEN(NAME, ...)                \
     auto xx##NAME##xx = [&]() { __VA_ARGS__ }; \

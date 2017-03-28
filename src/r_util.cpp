@@ -21,11 +21,7 @@
  * ***************************************************************************/
 
 #include "stdafx.h"
-
-#ifdef _WIN32
 #include "Rapi.h"
-#endif
-
 #include "msvcrt.h"
 #include "log.h"
 #include "util.h"

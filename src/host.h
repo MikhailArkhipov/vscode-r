@@ -22,11 +22,7 @@
 
 #pragma once
 #include "stdafx.h"
-
-#ifdef _WIN32
 #include "Rapi.h"
-#endif
-
 #include "util.h"
 #include "blobs.h"
 #include "message.h"
