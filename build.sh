@@ -58,7 +58,8 @@ if [ "$INT_DIR" = "" ]; then
     INT_DIR=$(dirname "$0")/obj/$BUILD_TYPE/$TARGET_ARCH
 fi
 
-pushd . >/dev/null
+pushd $ROOT_DIR >/dev/null
+ROOT_DIR=$(pwd)
 
 mkdir -p "$INT_DIR" && \
     cd "$INT_DIR" && \
