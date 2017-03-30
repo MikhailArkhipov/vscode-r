@@ -22,7 +22,7 @@
     <BinDirectory Condition="'$(BinDirectory)' == ''">$(SolutionDir)..\bin\</BinDirectory>
     <ObjDirectory Condition="'$(ObjDirectory)' == ''">$(SolutionDir)..\obj\</ObjDirectory>
     <OutDir>$(BinDirectory)$(Configuration)</OutDir>
-    <IntDir>$(ObjDirectory)$(Configuration)\$(TargetName)\$(Platform)</IntDir>
+    <IntDir>$(ObjDirectory)$(Configuration)\$(TargetName)\$(Platform)\Microsoft.R.Host</IntDir>
   </PropertyGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
@@ -78,7 +78,7 @@
     <IncludePath>$(MSYSPath)\mingw64\x86_64-w64-mingw32\include;$(MSYSPath)\mingw64\include;$(MSYSPath)\mingw64\include\c++\6.3.0</IncludePath>
   </PropertyGroup>
   <PropertyGroup>
-    <NMakeOutput>Microsoft.R.Host.exe</NMakeOutput>
+    <NMakeOutput>$(OutDir)\Microsoft.R.Host.exe</NMakeOutput>
     <NMakeBuildCommandLine>set "MSYSTEM=$(MSystem)" &amp; $(MSYSPath)\usr\bin\bash.exe --login '$(MSBuildProjectDirectory)\..\build.sh' -m -t $(Configuration) -i $(IntDir) -o $(OutDir)</NMakeBuildCommandLine>
     <NMakeCleanCommandLine>rmdir /s /q "$(OutDir)" "$(IntDir)"</NMakeCleanCommandLine>
     <NMakeReBuildCommandLine>$(NMakeCleanCommandLine) &amp; $(NMakeBuildCommandLine)</NMakeReBuildCommandLine>
@@ -139,4 +139,5 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
+  <Import Project="$(SolutionDir)\R.Build.Version.targets" />
 </Project>
