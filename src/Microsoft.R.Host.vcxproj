@@ -140,4 +140,5 @@
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
   <Import Project="$(SolutionDir)\R.Build.Version.targets" />
+  <Target Name="CreateManifestResourceNames"/>
 </Project>
