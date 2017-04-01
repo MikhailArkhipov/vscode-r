@@ -14,7 +14,7 @@ pacman -S base-devel make cmake mingw-w64-i686-toolchain mingw-w64-x86_64-toolch
 
 Install library dependencies from repo:
 ```sh
-pacman -S mingw-w64-x86_64-libzip mingw-w64-x86_64-boost mingw-w64-x86_64-MinZip
+pacman -S mingw-w64-x86_64-libzip mingw-w64-x86_64-boost mingw-w64-x86_64-MinHook
 ```
 
 Fix missing libzip `zipconf.h` header:
