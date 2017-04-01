@@ -23,7 +23,6 @@
 #pragma once
 
 #include "stdafx.h"
-#include "Rgraphicsapi.h"
 #include "util.h"
 #include "grdevices.h"
 

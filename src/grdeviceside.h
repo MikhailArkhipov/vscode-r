@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include "Rapi.h"
+#include "R_ext/Rdynload.h"
 
 namespace rhost {
     namespace grdevices {

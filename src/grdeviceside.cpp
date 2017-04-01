@@ -23,7 +23,6 @@
 #include "stdafx.h"
 #include "log.h"
 #include "xamlbuilder.h"
-#include "Rgraphicsapi.h"
 #include "host.h"
 #include "msvcrt.h"
 #include "eval.h"

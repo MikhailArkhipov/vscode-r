@@ -114,14 +114,13 @@
     <ClInclude Include="grdevices.h" />
     <ClInclude Include="grdeviceside.h" />
     <ClInclude Include="grdevicesxaml.h" />
+    <ClInclude Include="internal_rapi.h" />
     <ClInclude Include="message.h" />
     <ClInclude Include="msvcrt.h" />
     <ClInclude Include="eval.h" />
     <ClInclude Include="log.h" />
     <ClInclude Include="project.h" />
-    <ClInclude Include="Rapi.h" />
     <ClInclude Include="resource.h" />
-    <ClInclude Include="Rgraphicsapi.h" />
     <ClInclude Include="json.h" />
     <ClInclude Include="rstrtmgr.h" />
     <ClInclude Include="r_util.h" />
@@ -140,5 +139,5 @@
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
   <Import Project="$(SolutionDir)\R.Build.Version.targets" />
-  <Target Name="CreateManifestResourceNames"/>
+  <Target Name="CreateManifestResourceNames" />
 </Project>

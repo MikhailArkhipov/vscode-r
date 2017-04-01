@@ -22,7 +22,6 @@
 
 #pragma once
 #include "stdafx.h"
-#include "Rapi.h"
 #include "util.h"
 #include "blobs.h"
 #include "message.h"

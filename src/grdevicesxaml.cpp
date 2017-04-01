@@ -22,7 +22,6 @@
 
 #include "stdafx.h"
 #include "xamlbuilder.h"
-#include "Rgraphicsapi.h"
 #include "msvcrt.h"
 #include "grdevices.h"
 #include "exports.h"

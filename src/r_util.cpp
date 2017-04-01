@@ -21,7 +21,6 @@
  * ***************************************************************************/
 
 #include "stdafx.h"
-#include "Rapi.h"
 #include "msvcrt.h"
 #include "log.h"
 #include "util.h"
