@@ -54,6 +54,8 @@ file(GLOB src "src/*.h" "src/*.cpp" "src/*.rc")
 
 add_executable(Microsoft.R.Host ${src})
 
+include_directories("${R_INCLUDE}")
+
 target_link_libraries(Microsoft.R.Host ${R_LIBRARIES} ${Boost_LIBRARIES} ${zlib_LIBRARY} ${libzip_LIBRARY} ${MinHook_LIBRARY} ${WIN32_LIBRARIES})
 
 if("${TARGET_ARCH}" STREQUAL "x86")
