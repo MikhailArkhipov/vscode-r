@@ -22,7 +22,6 @@
 
 #include "stdafx.h"
 #include "log.h"
-#include "Rapi.h"
 
 using namespace std::literals;
 

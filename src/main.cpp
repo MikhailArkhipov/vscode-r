@@ -25,7 +25,6 @@
 #include "log.h"
 #include "r_util.h"
 #include "host.h"
-#include "Rapi.h"
 #include "util.h"
 #include "eval.h"
 #include "detours.h"

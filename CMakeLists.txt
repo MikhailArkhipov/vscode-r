@@ -42,6 +42,7 @@ if(WIN32)
 
     set(R_INCLUDE "${R_PATH}/include")
     set(R_LIBRARIES "${R_PATH}/bin/x64/R.dll" "${R_PATH}/bin/x64/Rgraphapp.dll")
+    set(CMAKE_CXX_FLAGS "-I\"${R_INCLUDE}\"")
 
     find_library(MinHook_LIBRARY NAMES libMinHook.a)
     if(NOT MinHook_LIBRARY)
