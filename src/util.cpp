@@ -22,7 +22,6 @@
 
 #include "stdafx.h"
 #include "util.h"
-#include "msvcrt.h"
 
 namespace po = boost::program_options;
 
@@ -39,7 +38,7 @@ void memcpy_s(void* const dest, size_t const destSize, void const* const source,
 namespace rhost {
     namespace util {
 #ifdef _WIN32
-		// Taken from R gnuwin32\console.c. Converts string that is partially
+        // Taken from R gnuwin32\console.c. Converts string that is partially
         // ANSI and partially UTF-8 to Unicode. UTF-8 fragment is bounded by
         // 02 FF FE at the start and by 03 FF FE at the end.
         size_t RString2Unicode(wchar_t *wc, char *s, size_t n) {
@@ -52,7 +51,7 @@ namespace rhost {
             if ((pb = strchr(s, UTF8in[0])) && *(pb + 1) == UTF8in[1] && *(pb + 2) == UTF8in[2]) {
                 *pb = '\0';
 
-                nc += RHOST_mbstowcs(wc, s, n);
+                nc += mbstowcs(wc, s, n);
                 pb += 3; pe = pb;
 
                 while (*pe &&
@@ -70,7 +69,7 @@ namespace rhost {
                 pe += 3;
                 nc += RString2Unicode(wc + nc, pe, n - nc);
             } else {
-                nc = RHOST_mbstowcs(wc, s, n);
+                nc = mbstowcs(wc, s, n);
             }
             return nc;
         }
@@ -106,7 +105,7 @@ namespace rhost {
             for (size_t i = 0; i < ws.length(); i++)
             {
                 char mbcharbuf[8];
-                int mbcch = RHOST_wctomb(mbcharbuf, ws[i]);
+                int mbcch = wctomb(mbcharbuf, ws[i]);
 
                 bool escape;
                 if (mbcch == -1) {
@@ -118,7 +117,7 @@ namespace rhost {
                     // do "\u..." escaping instead, to preserve the original letter exactly. To detect
                     // that, convert the result back, and see if it matches the original. 
                     wchar_t wc;
-                    escape = RHOST_mbtowc(&wc, mbcharbuf, mbcch) == -1 || wc != ws[i];
+                    escape = mbtowc(&wc, mbcharbuf, mbcch) == -1 || wc != ws[i];
                 }
 
                 if (escape) {

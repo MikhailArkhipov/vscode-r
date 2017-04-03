@@ -22,7 +22,6 @@
 #include "stdafx.h"
 #include "host.h"
 #include "log.h"
-#include "msvcrt.h"
 #include "eval.h"
 #include "util.h"
 #include "json.h"

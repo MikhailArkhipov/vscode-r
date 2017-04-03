@@ -21,7 +21,6 @@
  * ***************************************************************************/
 
 #include "stdafx.h"
-#include "msvcrt.h"
 #include "log.h"
 #include "util.h"
 #include "host.h"
@@ -72,13 +71,12 @@ namespace rhost {
                 int count;
 
                 // Try with a reasonably large stack allocated buffer first.
-                // Use vsnprintf from msvcrt, since that is what R normally uses, and there are differences.
                 va_list va2;
                 va_copy(va2, va);
                 char buf[0x1000], *pbuf = buf;
                 size_t bufsize = sizeof buf;
 
-                count = RHOST_vsnprintf(buf, bufsize, format, va2);
+                count = vsnprintf(buf, bufsize, format, va2);
                 va_end(va2);
 
                 std::unique_ptr<char[]> buf_deleter;
@@ -94,11 +92,7 @@ namespace rhost {
                     buf_deleter.reset(pbuf = new char[bufsize *= 2]);
 
                     va_copy(va2, va);
-#ifdef _WIN32
-                    count = msvcrt::vsnprintf(pbuf, bufsize, format, va2);
-#else
                     count = vsnprintf(pbuf, bufsize, format, va2);
-#endif
                     va_end(va2);
                 }
 

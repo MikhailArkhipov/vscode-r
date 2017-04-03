@@ -21,7 +21,6 @@
  * ***************************************************************************/
 
 #include "stdafx.h"
-#include "msvcrt.h"
 #include "log.h"
 #include "r_util.h"
 #include "host.h"
