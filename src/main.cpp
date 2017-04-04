@@ -159,7 +159,7 @@ namespace rhost {
 
         double old_limit = 0;
         r_top_level_exec([&] {
-            old_limit = *REAL(in_memsize(R_LogicalNAValue));
+            old_limit = *REAL(in_memsize(Rf_ScalarLogical(NA_LOGICAL)));
         });
         if (old_limit >= new_limit) {
             return;

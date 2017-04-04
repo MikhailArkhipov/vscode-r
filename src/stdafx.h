@@ -101,7 +101,7 @@
 #include <unistd.h>
 #endif
 
-#include "internal_rapi.h"
+#include "r_api.h"
 
 #ifdef _WIN32
 #define RHOST_MAX_PATH MAX_PATH

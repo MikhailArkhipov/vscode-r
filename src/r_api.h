@@ -21,12 +21,15 @@
 * ***************************************************************************/
 
 #pragma once
+
 #ifdef _WIN32
 #define Win32
 #endif // _WIN32
 
 #define R_INTERFACE_PTRS
 #define R_NO_REMAP
+#undef ERROR
+
 #include "R.h"
 #include "Rinternals.h"
 
@@ -43,6 +46,7 @@
 #undef class
 #undef private
 
+#include "R_ext/Rdynload.h"
 #include "R_ext/RStartup.h"
 #include "R_ext/Parse.h"
 #include "R_ext/GraphicsEngine.h"
@@ -51,9 +55,7 @@
 #define R_FALSE Rboolean::FALSE
 #define R_TRUE Rboolean::TRUE
 
-#ifdef __cplusplus
 extern "C" {
-#endif //__cplusplus
     extern SEXP Rf_deparse1line(SEXP, Rboolean);
     extern SEXP Rf_NewEnvironment(SEXP, SEXP, SEXP);
     extern void R_CleanUp(SA_TYPE, int, int);
@@ -77,7 +79,7 @@ extern "C" {
     };
 
 #ifdef _WIN32
-    typedef struct {
+    typedef struct _sigjmp_buf {
         jmp_buf buf;
         int sigmask;
         int savedmask;
@@ -170,17 +172,7 @@ extern "C" {
         PPinfo gram;     /* pretty-print info */
     } FUNTAB;
 
-    RHOST_IMPORT extern SEXP
-        R_GlobalEnv, R_EmptyEnv, R_BaseEnv, R_BaseNamespace, R_Srcref, R_NilValue,
-        R_TrueValue, R_FalseValue, R_UnboundValue, R_MissingArg, R_LogicalNAValue,
-        R_NaString, R_BlankString, R_BlankScalarString, R_NamesSymbol;
-    RHOST_IMPORT extern double R_NaN;
-    RHOST_IMPORT extern double R_PosInf;
-    RHOST_IMPORT extern double R_NegInf;
-    RHOST_IMPORT extern double R_NaReal;
-    RHOST_IMPORT extern int R_NaInt;
     RHOST_IMPORT extern FUNTAB R_FunTab[];
-
     RHOST_IMPORT extern int R_running_as_main_program;
 
 #ifdef _WIN32
@@ -199,6 +191,4 @@ extern "C" {
 #undef Win32
 #endif // _WIN32
 
-#ifdef __cplusplus
 }
-#endif // __cplusplus

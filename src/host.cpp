@@ -19,6 +19,7 @@
  * along with Microsoft R Host.  If not, see <http://www.gnu.org/licenses/>.
  *
  * ***************************************************************************/
+
 #include "stdafx.h"
 #include "host.h"
 #include "log.h"
