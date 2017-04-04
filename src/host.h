@@ -33,8 +33,8 @@ namespace rhost {
         };
 
         void initialize(structRstart& rp, const fs::path& rdata, std::chrono::seconds idle_timeout);
-        void setCallbacksWindows(structRstart& rp);
-        void setCallbacksPOSIX();
+        void set_callbacks_windows(structRstart& rp);
+        void set_callbacks_posix();
         void shutdown_if_requested();
         void do_r_callback(bool allow_eval_interrupt);
 
