@@ -9,6 +9,8 @@ if(NOT CMAKE_RUNTIME_OUTPUT_DIRECTORY)
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_HOME_DIRECTORY}/bin/${CMAKE_BUILD_TYPE})
 endif()
 
+add_definitions(-std=c++14)
+
 file(GLOB src "src/*.h" "src/*.cpp" "src/*.rc")
 
 add_executable(Microsoft.R.Host ${src})
