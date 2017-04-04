@@ -25,12 +25,7 @@ find_package(Boost 1.58.0 REQUIRED COMPONENTS date_time filesystem locale progra
 include_directories(${Boost_INCLUDE_DIRS})
 target_link_libraries(Microsoft.R.Host ${Boost_LIBRARIES})
 
-if(WIN32)
-    find_library(libzip_LIBRARY NAMES zip)
-else()
-    find_library(libzip_LIBRARY NAMES libzip.a)
-endif()    
-
+find_library(libzip_LIBRARY NAMES zip)
 if(NOT libzip_LIBRARY)
     message(FATAL_ERROR "libzip not found")
 endif()
