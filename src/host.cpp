@@ -19,10 +19,10 @@
  * along with Microsoft R Host.  If not, see <http://www.gnu.org/licenses/>.
  *
  * ***************************************************************************/
+
 #include "stdafx.h"
 #include "host.h"
 #include "log.h"
-#include "msvcrt.h"
 #include "eval.h"
 #include "util.h"
 #include "json.h"
@@ -1016,7 +1016,7 @@ namespace rhost {
                         continue;
                     }
 
-                    strcpy_s(buf, len, s.c_str());
+                    strcpy_s(reinterpret_cast<char*>(buf), len, s.c_str());
                     return 1;
                 }
             });

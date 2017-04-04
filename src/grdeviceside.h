@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include "R_ext/Rdynload.h"
+#include "stdafx.h"
 
 namespace rhost {
     namespace grdevices {

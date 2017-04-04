@@ -22,7 +22,6 @@
 
 #include "stdafx.h"
 #include "xamlbuilder.h"
-#include "msvcrt.h"
 #include "grdevices.h"
 #include "exports.h"
 
@@ -234,7 +233,7 @@ namespace rhost {
             }
 
             std::unique_ptr<xaml_device> xaml_device::create(std::string filename, double width, double height) {
-                pDevDesc dd = static_cast<pDevDesc>(RHOST_calloc(1, sizeof(DevDesc)));
+                pDevDesc dd = static_cast<pDevDesc>(calloc(1, sizeof(DevDesc)));
 
                 int startfill = R_RGB(255, 255, 255);
 

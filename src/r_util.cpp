@@ -21,7 +21,6 @@
  * ***************************************************************************/
 
 #include "stdafx.h"
-#include "msvcrt.h"
 #include "log.h"
 #include "util.h"
 #include "host.h"
@@ -72,13 +71,12 @@ namespace rhost {
                 int count;
 
                 // Try with a reasonably large stack allocated buffer first.
-                // Use vsnprintf from msvcrt, since that is what R normally uses, and there are differences.
                 va_list va2;
                 va_copy(va2, va);
                 char buf[0x1000], *pbuf = buf;
                 size_t bufsize = sizeof buf;
 
-                count = RHOST_vsnprintf(buf, bufsize, format, va2);
+                count = vsnprintf(buf, bufsize, format, va2);
                 va_end(va2);
 
                 std::unique_ptr<char[]> buf_deleter;
@@ -94,11 +92,7 @@ namespace rhost {
                     buf_deleter.reset(pbuf = new char[bufsize *= 2]);
 
                     va_copy(va2, va);
-#ifdef _WIN32
-                    count = msvcrt::vsnprintf(pbuf, bufsize, format, va2);
-#else
                     count = vsnprintf(pbuf, bufsize, format, va2);
-#endif
                     va_end(va2);
                 }
 
@@ -174,7 +168,7 @@ namespace rhost {
             }
 
             SEXP overflown_sexp() const {
-                return _overflown ? R_TrueValue : R_FalseValue;
+                return _overflown ? Rf_ScalarLogical(R_TRUE) : Rf_ScalarLogical(R_FALSE);
             }
 
         private:
@@ -309,7 +303,7 @@ namespace rhost {
                     if (args[i].is<picojson::null>()) {
                         arg = R_NilValue;
                     } else if (args[i].is<bool>()) {
-                        arg = args[i].get<bool>() ? R_TrueValue : R_FalseValue;
+                        arg = args[i].get<bool>() ? Rf_ScalarLogical(R_TRUE) : Rf_ScalarLogical(R_FALSE);
                     } else if (args[i].is<double>()) {
                         arg = Rf_ScalarReal(args[i].get<double>());
                     } else if (args[i].is<std::string>()) {
@@ -395,7 +389,7 @@ namespace rhost {
         }
 
         extern "C" SEXP is_rdebug(SEXP obj) {
-            return RDEBUG(obj) ? R_TrueValue : R_FalseValue;
+            return RDEBUG(obj) ? Rf_ScalarLogical(R_TRUE) : Rf_ScalarLogical(R_FALSE);
         }
 
         extern "C" SEXP set_rdebug(SEXP obj, SEXP debug) {
@@ -534,9 +528,9 @@ namespace rhost {
                     auto blob_id = rhost::host::create_compressed_blob(blobs::blob(file_data.data(), file_data.data() + file_data.size()));
                     auto file_remote_name = file_remote_path.filename().string();
                     host::send_notification("!FetchFile", file_remote_name, (double)blob_id, file_local_path.string(), Rf_asLogical(silent) != 0);
-                    return R_TrueValue;
+                    return Rf_ScalarLogical(R_TRUE);
                 }
-                return R_FalseValue;
+                return Rf_ScalarLogical(R_FALSE);
             });
         }
 

@@ -101,23 +101,12 @@
 #include <unistd.h>
 #endif
 
-#include "internal_rapi.h"
+#include "r_api.h"
 
 #ifdef _WIN32
 #define RHOST_MAX_PATH MAX_PATH
-#define RHOST_mbstowcs msvcrt::mbstowcs
-#define RHOST_wctomb msvcrt::wctomb
-#define RHOST_mbtowc msvcrt::mbtowc
-#define RHOST_calloc msvcrt::calloc
-#define RHOST_vsnprintf msvcrt::vsnprintf
 #else
-
 #define RHOST_MAX_PATH PATH_MAX
-#define RHOST_mbstowcs std::mbstowcs
-#define RHOST_wctomb std::wctomb
-#define RHOST_mbtowc std::mbtowc
-#define RHOST_calloc calloc
-#define RHOST_vsnprintf vsnprintf
 
 #define vsprintf_s vsprintf
 void strcpy_s(char* dest, size_t n, char const* source) ;

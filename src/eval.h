@@ -55,7 +55,7 @@ namespace rhost {
                     struct eval_data_t {
                         SEXP expr;
                         SEXP env;
-                        decltype(result)& result;
+                        decltype(result)& result_ref;
                         FBefore& before;
                         FAfter& after;
                     } eval_data = { VECTOR_ELT(sexp_parsed.get(), i), env, result, before, after };
@@ -67,7 +67,7 @@ namespace rhost {
                     result.has_error = !rhost::util::r_top_level_exec([&] {
                         eval_data.before();
                         was_eval_canceled = false;
-                        eval_data.result.value.reset(Rf_eval(eval_data.expr, eval_data.env));
+                        eval_data.result_ref.value.reset(Rf_eval(eval_data.expr, eval_data.env));
                         eval_data.after();
                     });
                     result.is_canceled = was_eval_canceled;

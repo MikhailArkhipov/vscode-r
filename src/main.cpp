@@ -21,7 +21,6 @@
  * ***************************************************************************/
 
 #include "stdafx.h"
-#include "msvcrt.h"
 #include "log.h"
 #include "r_util.h"
 #include "host.h"
@@ -160,7 +159,7 @@ namespace rhost {
 
         double old_limit = 0;
         r_top_level_exec([&] {
-            old_limit = *REAL(in_memsize(R_LogicalNAValue));
+            old_limit = *REAL(in_memsize(Rf_ScalarLogical(NA_LOGICAL)));
         });
         if (old_limit >= new_limit) {
             return;
@@ -272,7 +271,9 @@ namespace rhost {
         
         ptr_R_ShowMessage = rhost::host::ShowMessage;
 
-         char *argv[] = {"Microsoft.R.Host", "--interactive"};
+        char argv0[] = "Microsoft.R.Host";
+        char argv1[] = "--interactive";
+        char *argv[] = { argv0, argv1 };
         int argc = sizeof(argv)/sizeof(argv[0]);
         int res = Rf_initialize_R(argc, argv);
 
