@@ -219,7 +219,7 @@ namespace rhost {
         }
 
 
-        void terminate(bool unexpected, const char* format, va_list va) {
+        RHOST_NORETURN void terminate(bool unexpected, const char* format, va_list va) {
             std::lock_guard<std::mutex> terminate_lock(terminate_mutex);
 
             char message[0xFFFF];
@@ -254,6 +254,9 @@ namespace rhost {
             }
             
             R_CleanUp(SA_NOSAVE, (unexpected ? EXIT_FAILURE : EXIT_SUCCESS), 0);
+
+            // We should never get here, but R_CleanUp is not marked as noreturn, so make compiler happy.
+            std::terminate();
         }
 
         void terminate(const char* format, ...) {

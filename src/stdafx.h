@@ -75,7 +75,7 @@
 #elif defined(__GNUC__)
 #define RHOST_EXPORT __attribute__((visibility("default")))
 #define RHOST_IMPORT
-#define RHOST_NORETURN
+#define RHOST_NORETURN __attribute__((noreturn))
 #else
 #define RHOST_EXPORT
 #define RHOST_IMPORT

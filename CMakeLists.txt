@@ -9,6 +9,8 @@ if(NOT CMAKE_RUNTIME_OUTPUT_DIRECTORY)
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_HOME_DIRECTORY}/bin/${CMAKE_BUILD_TYPE})
 endif()
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
+
 file(GLOB src "src/*.h" "src/*.cpp" "src/*.rc")
 
 add_executable(Microsoft.R.Host ${src})
@@ -59,7 +61,7 @@ if(WIN32)
 
     message(STATUS "Using R at ${R_PATH}")
 
-    set(CMAKE_CXX_FLAGS "-I\"${R_PATH}/include\"")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -I\"${R_PATH}/include\"")
     target_link_libraries(Microsoft.R.Host "${R_PATH}/bin/x64/R.dll" "${R_PATH}/bin/x64/Rgraphapp.dll")
 
     # Copy MinGW dependencies to output directory alongside .exe.
