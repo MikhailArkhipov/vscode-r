@@ -271,7 +271,9 @@ namespace rhost {
         
         ptr_R_ShowMessage = rhost::host::ShowMessage;
 
-         char *argv[] = {"Microsoft.R.Host", "--interactive"};
+        char argv0[] = "Microsoft.R.Host";
+        char argv1[] = "--interactive";
+        char *argv[] = { argv0, argv1 };
         int argc = sizeof(argv)/sizeof(argv[0]);
         int res = Rf_initialize_R(argc, argv);
 
