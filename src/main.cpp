@@ -301,7 +301,7 @@ namespace rhost {
         rhost::grdevices::ide::init(dll);
         rhost::exports::register_all(dll);
 
-        rhost::host::setCallbacksPOSIX();
+        rhost::host::set_callbacks_posix();
 
         if (!args.rdata.empty()) {
             std::string s = args.rdata.string();
