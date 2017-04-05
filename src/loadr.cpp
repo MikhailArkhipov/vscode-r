@@ -23,42 +23,42 @@
 #define RHOST_NO_API_REDIRECT
 #include "stdafx.h"
 
-HMODULE r_module = nullptr;
-HMODULE rgraphapp_module = nullptr;
-
-#define _GET_PROC(m, api) _RAPI_PTR(api) = get_proc<decltype(api)>(m, _RAPI_STR(api));
-#define _RAPI_GET_PROC(api) _GET_PROC(r_module, api)
-#define _RAPI_UNLOAD(api) _RAPI_PTR(api) = nullptr;
+#define RHOST_GET_PROC(m, api) RHOST_RAPI_PTR(api) = get_proc<decltype(api)>(m, RHOST_RAPI_STR(api));
+#define RHOST_RAPI_GET_PROC(api) RHOST_GET_PROC(r_module, api)
+#define RHOST_RAPI_UNLOAD(api) RHOST_RAPI_PTR(api) = nullptr;
 
 #ifdef _WIN32
-#define _RGRAPHAPPAPI_GET_PROC(api) _GET_PROC(rgraphapp_module, api)
+#define RHOST_RGRAPHAPPAPI_GET_PROC(api) RHOST_GET_PROC(rgraphapp_module, api)
 #endif
 
 namespace rhost {
     namespace rapi {
-        _RAPI_SET(_RAPI_DEFINE_NULLPTR);
-        _RGRAPHAPPAPI_SET(_RAPI_DEFINE_NULLPTR);
+        RHOST_RAPI_SET(RHOST_RAPI_DEFINE_NULLPTR);
+        RHOST_RGRAPHAPPAPI_SET(RHOST_RAPI_DEFINE_NULLPTR);
 
         namespace {
+            HMODULE r_module = nullptr;
+            HMODULE rgraphapp_module = nullptr;
+
             template<typename T>
-            T* get_proc(HMODULE module, std::string proc) {
+            T* get_proc(HMODULE module, const char* proc_name) {
                 T* ptr = nullptr;
 #ifdef _WIN32
-                ptr = (T*)GetProcAddress(module, proc.c_str());
+                ptr = reinterpret_cast<T*>(GetProcAddress(module, proc_name));
 #endif
                 return ptr;
             }
 
             void internal_load_r_apis() {
-                _RAPI_SET(_RAPI_GET_PROC);
+                RHOST_RAPI_SET(RHOST_RAPI_GET_PROC);
             }
 
             void internal_load_rgraphapp_apis() {
-                _RGRAPHAPPAPI_SET(_RGRAPHAPPAPI_GET_PROC);
+                RHOST_RGRAPHAPPAPI_SET(RHOST_RGRAPHAPPAPI_GET_PROC);
             }
 
             void internal_unload_r_apis() {
-                _RAPI_SET(_RAPI_UNLOAD);
+                RHOST_RAPI_SET(RHOST_RAPI_UNLOAD);
             }
         }
         

@@ -40,6 +40,7 @@ namespace po = boost::program_options;
 typedef void (*ptr_RHOST_WriteConsoleEx)(const char *, int, int);
 
 namespace rhost {
+    using namespace rapi;
 #ifdef _WIN32
     // ID for the timer 
     const UINT_PTR IDT_RESET_TIMER = 1;
@@ -220,6 +221,7 @@ namespace rhost {
         (*rhost::rapi::_RAPI_PTR(CharacterMode)) = LinkDLL;
         setup_Rmainloop();
         (*rhost::rapi::_RAPI_PTR(CharacterMode)) = RGui;
+
         DllInfo *dll = R_getEmbeddingDllInfo();
         rhost::r_util::init(dll);
         rhost::grdevices::xaml::init(dll);
