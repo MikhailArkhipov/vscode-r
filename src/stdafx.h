@@ -101,7 +101,10 @@
 #include <unistd.h>
 #endif
 
+namespace fs = boost::filesystem;
+
 #include "r_api.h"
+#include "loadr.h"
 
 #ifdef _WIN32
 #define RHOST_MAX_PATH MAX_PATH
@@ -113,7 +116,7 @@ void strcpy_s(char* dest, size_t n, char const* source) ;
 void memcpy_s(void* const dest, size_t const destSize, void const* const source, size_t const sourceSize);
 #endif
 
-namespace fs = boost::filesystem;
+
 
 #define RHOST_BITMASK_OPS(Ty) \
 inline Ty& operator&=(Ty& _Left, Ty _Right) { _Left = (Ty)((int)_Left & (int)_Right); return (_Left); } \
