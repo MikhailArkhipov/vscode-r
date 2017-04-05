@@ -95,7 +95,6 @@
     <ClCompile Include="grdevicesxaml.cpp" />
     <ClCompile Include="loadr.cpp" />
     <ClCompile Include="message.cpp" />
-    <ClCompile Include="msvcrt.cpp" />
     <ClCompile Include="eval.cpp" />
     <ClCompile Include="log.cpp" />
     <ClCompile Include="main.cpp" />
@@ -117,7 +116,6 @@
     <ClInclude Include="grdevicesxaml.h" />
     <ClInclude Include="loadr.h" />
     <ClInclude Include="message.h" />
-    <ClInclude Include="msvcrt.h" />
     <ClInclude Include="eval.h" />
     <ClInclude Include="log.h" />
     <ClInclude Include="project.h" />
