@@ -114,7 +114,6 @@
     <ClInclude Include="grdevices.h" />
     <ClInclude Include="grdeviceside.h" />
     <ClInclude Include="grdevicesxaml.h" />
-    <ClInclude Include="internal_rapi.h" />
     <ClInclude Include="message.h" />
     <ClInclude Include="msvcrt.h" />
     <ClInclude Include="eval.h" />
@@ -123,6 +122,7 @@
     <ClInclude Include="resource.h" />
     <ClInclude Include="json.h" />
     <ClInclude Include="rstrtmgr.h" />
+    <ClInclude Include="r_api.h" />
     <ClInclude Include="r_util.h" />
     <ClInclude Include="host.h" />
     <ClInclude Include="stdafx.h" />

@@ -40,7 +40,7 @@
     <ClInclude Include="transport.h" />
     <ClInclude Include="rstrtmgr.h" />
     <ClInclude Include="project.h" />
-    <ClInclude Include="internal_rapi.h" />
+    <ClInclude Include="r_api.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Resource.rc" />
