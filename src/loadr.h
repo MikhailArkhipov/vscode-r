@@ -31,10 +31,9 @@
 #define RHOST_RAPI_STR(api) #api
 #define RAPI(api) rhost::rapi::RHOST_RAPI_PTR(api)
 
-#define RHOST_RAPI_SET(macro) \
+#define RHOST_RAPI_SET_COMMON(macro) \
 macro(CAR) \
 macro(CDR) \
-macro(CharacterMode) \
 macro(GEaddDevice2) \
 macro(GEaddDevice2f) \
 macro(GEcopyDisplayList) \
@@ -44,10 +43,6 @@ macro(GEgetDevice) \
 macro(GEkillDevice) \
 macro(GEplayDisplayList) \
 macro(GEplaySnapshot) \
-macro(get_R_HOME) \
-macro(getDLLVersion) \
-macro(getRUser) \
-macro(in_memsize) \
 macro(INTEGER) \
 macro(LOGICAL) \
 macro(PRCODE) \
@@ -80,17 +75,15 @@ macro(R_ProcessEvents) \
 macro(R_registerRoutines) \
 macro(R_ReleaseObject) \
 macro(R_RestoreGlobalEnvFromFile) \
+macro(R_running_as_main_program) \
 macro(R_SaveGlobalEnvToFile) \
 macro(R_set_command_line_arguments) \
 macro(R_SetParams) \
-macro(R_setStartTime) \
 macro(R_Srcref) \
 macro(R_ToplevelExec) \
 macro(R_UnboundValue) \
-macro(R_WaitEvent) \
 macro(RAW) \
 macro(RDEBUG) \
-macro(readconsolecfg) \
 macro(REAL) \
 macro(Rf_allocList) \
 macro(Rf_allocVector) \
@@ -128,24 +121,62 @@ macro(Rf_ScalarString) \
 macro(Rf_selectDevice) \
 macro(Rf_translateCharUTF8) \
 macro(Rf_unprotect) \
-macro(Rf_utf8towcs) \
-macro(Rf_wtransChar) \
-macro(run_Rmainloop) \
 macro(SET_RDEBUG) \
 macro(SET_STRING_ELT) \
 macro(SET_TYPEOF) \
 macro(SET_VECTOR_ELT) \
 macro(SETCAR) \
-macro(setup_Rmainloop) \
 macro(STRING_ELT) \
 macro(TYPEOF) \
 macro(VECTOR_ELT) \
 macro(vmaxget) \
-macro(vmaxset) \
+macro(vmaxset)
+
 
 #ifdef _WIN32
+
+#define RHOST_RAPI_SET_WINDOWS(macro) \
+macro(CharacterMode) \
+macro(get_R_HOME) \
+macro(getDLLVersion) \
+macro(getRUser) \
+macro(in_memsize) \
+macro(R_setStartTime) \
+macro(R_WaitEvent) \
+macro(readconsolecfg) \
+macro(Rf_utf8towcs) \
+macro(Rf_wtransChar) \
+macro(run_Rmainloop) \
+macro(setup_Rmainloop)
+
 #define RHOST_RGRAPHAPPAPI_SET(macro) \
 macro(GA_initapp) 
+
+#define RHOST_RAPI_SET(macro) \
+RHOST_RAPI_SET_COMMON(macro) \
+RHOST_RAPI_SET_WINDOWS(macro)
+
+#else // POSIX
+
+#define RHOST_RAPI_SET_POSIX(macro) \
+macro(ptr_R_Busy) \
+macro(ptr_R_ReadConsole) \
+macro(ptr_R_ShowMessage) \
+macro(ptr_R_WriteConsole) \
+macro(ptr_R_WriteConsoleEx) \
+macro(R_Consolefile) \
+macro(R_FalseValue) \
+macro(R_Interactive) \
+macro(R_Outputfile) \
+macro(R_ReadConsole) \
+macro(R_TrueValue) \
+macro(Rf_initialize_R) \
+macro(Rf_mainloop)
+
+#define RHOST_RAPI_SET(macro) \
+RHOST_RAPI_SET_COMMON(macro) \
+RHOST_RAPI_SET_POSIX(macro)
+
 #endif
 
 namespace rhost {
@@ -175,10 +206,6 @@ namespace rhost {
 #define GEkillDevice rhost::rapi::RHOST_RAPI_PTR(GEkillDevice)
 #define GEplayDisplayList rhost::rapi::RHOST_RAPI_PTR(GEplayDisplayList)
 #define GEplaySnapshot rhost::rapi::RHOST_RAPI_PTR(GEplaySnapshot)
-#define get_R_HOME rhost::rapi::RHOST_RAPI_PTR(get_R_HOME)
-#define getDLLVersion rhost::rapi::RHOST_RAPI_PTR(getDLLVersion)
-#define getRUser rhost::rapi::RHOST_RAPI_PTR(getRUser)
-#define in_memsize rhost::rapi::RHOST_RAPI_PTR(in_memsize)
 #define INTEGER rhost::rapi::RHOST_RAPI_PTR(INTEGER)
 #define LOGICAL rhost::rapi::RHOST_RAPI_PTR(LOGICAL)
 #define PRCODE rhost::rapi::RHOST_RAPI_PTR(PRCODE)
@@ -211,17 +238,15 @@ namespace rhost {
 #define R_registerRoutines rhost::rapi::RHOST_RAPI_PTR(R_registerRoutines)
 #define R_ReleaseObject rhost::rapi::RHOST_RAPI_PTR(R_ReleaseObject)
 #define R_RestoreGlobalEnvFromFile rhost::rapi::RHOST_RAPI_PTR(R_RestoreGlobalEnvFromFile)
+#define R_running_as_main_program (*rhost::rapi::RHOST_RAPI_PTR(R_running_as_main_program))
 #define R_SaveGlobalEnvToFile rhost::rapi::RHOST_RAPI_PTR(R_SaveGlobalEnvToFile)
 #define R_set_command_line_arguments rhost::rapi::RHOST_RAPI_PTR(R_set_command_line_arguments)
 #define R_SetParams rhost::rapi::RHOST_RAPI_PTR(R_SetParams)
-#define R_setStartTime rhost::rapi::RHOST_RAPI_PTR(R_setStartTime)
 #define R_Srcref (*rhost::rapi::RHOST_RAPI_PTR(R_Srcref))
 #define R_ToplevelExec rhost::rapi::RHOST_RAPI_PTR(R_ToplevelExec)
 #define R_UnboundValue (*rhost::rapi::RHOST_RAPI_PTR(R_UnboundValue))
-#define R_WaitEvent rhost::rapi::RHOST_RAPI_PTR(R_WaitEvent)
 #define RAW rhost::rapi::RHOST_RAPI_PTR(RAW)
 #define RDEBUG rhost::rapi::RHOST_RAPI_PTR(RDEBUG)
-#define readconsolecfg rhost::rapi::RHOST_RAPI_PTR(readconsolecfg)
 #define REAL rhost::rapi::RHOST_RAPI_PTR(REAL)
 #define Rf_allocList rhost::rapi::RHOST_RAPI_PTR(Rf_allocList)
 #define Rf_allocVector rhost::rapi::RHOST_RAPI_PTR(Rf_allocVector)
@@ -259,20 +284,49 @@ namespace rhost {
 #define Rf_selectDevice rhost::rapi::RHOST_RAPI_PTR(Rf_selectDevice)
 #define Rf_translateCharUTF8 rhost::rapi::RHOST_RAPI_PTR(Rf_translateCharUTF8)
 #define Rf_unprotect rhost::rapi::RHOST_RAPI_PTR(Rf_unprotect)
-#define Rf_utf8towcs rhost::rapi::RHOST_RAPI_PTR(Rf_utf8towcs)
-#define Rf_wtransChar rhost::rapi::RHOST_RAPI_PTR(Rf_wtransChar)
-#define run_Rmainloop rhost::rapi::RHOST_RAPI_PTR(run_Rmainloop)
 #define SET_RDEBUG rhost::rapi::RHOST_RAPI_PTR(SET_RDEBUG)
 #define SET_STRING_ELT rhost::rapi::RHOST_RAPI_PTR(SET_STRING_ELT)
 #define SET_TYPEOF rhost::rapi::RHOST_RAPI_PTR(SET_TYPEOF)
 #define SET_VECTOR_ELT rhost::rapi::RHOST_RAPI_PTR(SET_VECTOR_ELT)
 #define SETCAR rhost::rapi::RHOST_RAPI_PTR(SETCAR)
-#define setup_Rmainloop rhost::rapi::RHOST_RAPI_PTR(setup_Rmainloop)
 #define STRING_ELT rhost::rapi::RHOST_RAPI_PTR(STRING_ELT)
 #define TYPEOF rhost::rapi::RHOST_RAPI_PTR(TYPEOF)
 #define VECTOR_ELT rhost::rapi::RHOST_RAPI_PTR(VECTOR_ELT)
 #define vmaxget rhost::rapi::RHOST_RAPI_PTR(vmaxget)
 #define vmaxset rhost::rapi::RHOST_RAPI_PTR(vmaxset)
 
+#ifdef _WIN32
+
+#define get_R_HOME rhost::rapi::RHOST_RAPI_PTR(get_R_HOME)
+#define getDLLVersion rhost::rapi::RHOST_RAPI_PTR(getDLLVersion)
+#define getRUser rhost::rapi::RHOST_RAPI_PTR(getRUser)
+#define in_memsize rhost::rapi::RHOST_RAPI_PTR(in_memsize)
+#define R_setStartTime rhost::rapi::RHOST_RAPI_PTR(R_setStartTime)
+#define R_WaitEvent rhost::rapi::RHOST_RAPI_PTR(R_WaitEvent)
+#define readconsolecfg rhost::rapi::RHOST_RAPI_PTR(readconsolecfg)
+#define Rf_utf8towcs rhost::rapi::RHOST_RAPI_PTR(Rf_utf8towcs)
+#define Rf_wtransChar rhost::rapi::RHOST_RAPI_PTR(Rf_wtransChar)
+#define run_Rmainloop rhost::rapi::RHOST_RAPI_PTR(run_Rmainloop)
+#define setup_Rmainloop rhost::rapi::RHOST_RAPI_PTR(setup_Rmainloop)
+
 #define GA_initapp rhost::rapi::RHOST_RAPI_PTR(GA_initapp)
-#endif
+
+#else // POSIX
+
+#define ptr_R_Busy (*rhost::rapi::RHOST_RAPI_PTR(ptr_R_Busy))
+#define ptr_R_ReadConsole (*rhost::rapi::RHOST_RAPI_PTR(ptr_R_ReadConsole))
+#define ptr_R_ShowMessage (*rhost::rapi::RHOST_RAPI_PTR(ptr_R_ShowMessage))
+#define ptr_R_WriteConsole (*rhost::rapi::RHOST_RAPI_PTR(ptr_R_WriteConsole))
+#define ptr_R_WriteConsoleEx (*rhost::rapi::RHOST_RAPI_PTR(ptr_R_WriteConsoleEx))
+#define R_Consolefile rhost::rapi::RHOST_RAPI_PTR(R_Consolefile)
+#define R_FalseValue (*rhost::rapi::RHOST_RAPI_PTR(R_FalseValue))
+#define R_Interactive rhost::rapi::RHOST_RAPI_PTR(R_Interactive)
+#define R_Outputfile rhost::rapi::RHOST_RAPI_PTR(R_Outputfile)
+#define R_ReadConsole rhost::rapi::RHOST_RAPI_PTR(R_ReadConsole)
+#define R_TrueValue (*rhost::rapi::RHOST_RAPI_PTR(R_TrueValue))
+#define Rf_initialize_R rhost::rapi::RHOST_RAPI_PTR(Rf_initialize_R)
+#define Rf_mainloop rhost::rapi::RHOST_RAPI_PTR(Rf_mainloop)
+
+#endif 
+
+#endif // RHOST_NO_API_REDIRECT

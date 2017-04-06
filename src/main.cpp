@@ -195,6 +195,8 @@ namespace rhost {
 
         rhost::rapi::load_r_apis(args.r_dir);
 
+        R_running_as_main_program = 1;
+
         R_setStartTime();
         structRstart rp = {};
         R_DefParams(&rp);

@@ -31,20 +31,28 @@
 #define RHOST_RGRAPHAPPAPI_GET_PROC(api) RHOST_GET_PROC(rgraphapp_module, api)
 #endif
 
+#ifdef _WIN32
+typedef HMODULE rhost_module_t;
+#else
+typedef void*   rhost_module_t;
+#endif 
+
 namespace rhost {
     namespace rapi {
         RHOST_RAPI_SET(RHOST_RAPI_DEFINE_NULLPTR);
         RHOST_RGRAPHAPPAPI_SET(RHOST_RAPI_DEFINE_NULLPTR);
 
         namespace {
-            HMODULE r_module = nullptr;
-            HMODULE rgraphapp_module = nullptr;
+            rhost_module_t r_module = nullptr;
+            rhost_module_t rgraphapp_module = nullptr;
 
             template<typename T>
             T* get_proc(HMODULE module, const char* proc_name) {
                 T* ptr = nullptr;
 #ifdef _WIN32
                 ptr = reinterpret_cast<T*>(GetProcAddress(module, proc_name));
+#else
+                ptr = reinterpret_cast<T*>(dlsym(module, proc_name));
 #endif
                 return ptr;
             }
@@ -53,13 +61,19 @@ namespace rhost {
                 RHOST_RAPI_SET(RHOST_RAPI_GET_PROC);
             }
 
+            void internal_unload_r_apis() {
+                RHOST_RAPI_SET(RHOST_RAPI_UNLOAD);
+            }
+
+#ifdef _WIN32
             void internal_load_rgraphapp_apis() {
                 RHOST_RGRAPHAPPAPI_SET(RHOST_RGRAPHAPPAPI_GET_PROC);
             }
 
-            void internal_unload_r_apis() {
-                RHOST_RAPI_SET(RHOST_RAPI_UNLOAD);
+            void internal_unload_rgraphapp_apis() {
+                RHOST_RGRAPHAPPAPI_SET(RHOST_RAPI_UNLOAD);
             }
+#endif
         }
         
 
@@ -71,12 +85,22 @@ namespace rhost {
             r_module = LoadLibraryEx(r_path.make_preferred().wstring().c_str(), nullptr, LOAD_WITH_ALTERED_SEARCH_PATH);
             rgraphapp_module = LoadLibraryEx(rgraphapp_path.make_preferred().wstring().c_str(), nullptr, LOAD_WITH_ALTERED_SEARCH_PATH);
             internal_load_rgraphapp_apis();
+#else // POSIX
+            fs::path r_path = r_dll_dir / "r.so";
+            r_module = dlopen(r_path.make_preferred().string().c_str(), RTLD_LOCAL | RTLD_LAZY)
 #endif
             internal_load_r_apis();
         }
 
         void unload_r_apis() {
             internal_unload_r_apis();
+#ifdef _WIN32
+            internal_unload_rgraphapp_apis();
+            FreeLibrary(r_module);
+            FreeLibrary(rgraphapp_module);
+#else // POSIX
+            dlclose(r_module);
+#endif
         }
     }
 }
