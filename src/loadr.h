@@ -158,7 +158,7 @@ namespace rhost {
         // Rgraphapp.dll/Rgraphapp.so APIs
         RHOST_RGRAPHAPPAPI_SET(RHOST_RAPI_DECL_END);
 #endif
-        void load_r_apis(fs::path r_dll_dir);
+        void load_r_apis(fs::path& r_dll_dir);
         void unload_r_apis();
     }
 }

@@ -63,13 +63,13 @@ namespace rhost {
         }
         
 
-        void load_r_apis(fs::path r_dll_dir) {
+        void load_r_apis(fs::path& r_dll_dir) {
 #ifdef _WIN32 
             fs::path r_path = r_dll_dir / "r.dll";
             fs::path rgraphapp_path = r_dll_dir / "rgraphapp.dll";
 
-            r_module = LoadLibraryEx(r_path.make_preferred().wstring().c_str(), nullptr, LOAD_LIBRARY_SEARCH_USER_DIRS);
-            rgraphapp_module = LoadLibraryEx(rgraphapp_path.make_preferred().wstring().c_str(), nullptr, LOAD_LIBRARY_SEARCH_USER_DIRS);
+            r_module = LoadLibraryEx(r_path.make_preferred().wstring().c_str(), nullptr, LOAD_WITH_ALTERED_SEARCH_PATH);
+            rgraphapp_module = LoadLibraryEx(rgraphapp_path.make_preferred().wstring().c_str(), nullptr, LOAD_WITH_ALTERED_SEARCH_PATH);
             internal_load_rgraphapp_apis();
 #endif
             internal_load_r_apis();

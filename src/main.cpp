@@ -193,6 +193,8 @@ namespace rhost {
             return 0;
         }
 
+        rhost::rapi::load_r_apis(args.r_dir);
+
         R_setStartTime();
         structRstart rp = {};
         R_DefParams(&rp);
