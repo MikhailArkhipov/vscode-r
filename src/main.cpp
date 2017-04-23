@@ -220,15 +220,15 @@ namespace rhost {
         GA_initapp(0, 0);
         readconsolecfg();
 
+        CharacterMode = LinkDLL;
+        setup_Rmainloop();
+        CharacterMode = RGui;
+
         DllInfo *dll = R_getEmbeddingDllInfo();
         rhost::r_util::init(dll);
         rhost::grdevices::xaml::init(dll);
         rhost::grdevices::ide::init(dll);
         rhost::exports::register_all(dll);
-
-        CharacterMode = LinkDLL;
-        setup_Rmainloop();
-        CharacterMode = RGui;
 
         set_memory_limit();
 
