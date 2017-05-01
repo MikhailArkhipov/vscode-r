@@ -175,24 +175,6 @@ namespace rhost {
 #endif
     }
 
-    void suggest_mro(ptr_RHOST_WriteConsoleEx write_console_ex) {
-        ParseStatus ps;
-        auto res = r_try_eval_str("if (exists('Revo.version')) 'REVO' else 'CRAN'", R_BaseEnv, ps);
-
-        assert(res.has_value);
-        if (!res.has_value) {
-            return;
-        }
-
-        if (res.value == "REVO") {
-            // This is Revolution R or Microsoft R.
-            return;
-        }
-
-        static const char mro_banner[] = "Check out Microsoft's enhanced R distribution at https://aka.ms/mrclient. \n\n";
-        write_console_ex(mro_banner, static_cast<int>(strlen(mro_banner)), 0);
-    }
-
 #ifdef _WIN32
     int run_r_windows(command_line_args& args) {
         init_log(args.name, args.log_dir, args.log_level, args.suppress_ui);
@@ -223,20 +205,17 @@ namespace rhost {
         GA_initapp(0, 0);
         readconsolecfg();
 
+        CharacterMode = LinkDLL;
+        setup_Rmainloop();
+        CharacterMode = RGui;
+
         DllInfo *dll = R_getEmbeddingDllInfo();
         rhost::r_util::init(dll);
         rhost::grdevices::xaml::init(dll);
         rhost::grdevices::ide::init(dll);
         rhost::exports::register_all(dll);
 
-        CharacterMode = LinkDLL;
-        setup_Rmainloop();
-        CharacterMode = RGui;
-
         set_memory_limit();
-
-        // setup_Rmainloop above prints out the license banner, so this will follow that.
-        suggest_mro(rp.WriteConsoleEx);
 
         if (!args.rdata.empty()) {
             std::string s = args.rdata.string();
