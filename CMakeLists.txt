@@ -62,10 +62,9 @@ if(WIN32)
     message(STATUS "Using R at ${R_PATH}")
 
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -I\"${R_PATH}/include\"")
-    target_link_libraries(Microsoft.R.Host "${R_PATH}/bin/x64/R.dll" "${R_PATH}/bin/x64/Rgraphapp.dll")
 
     # Copy MinGW dependencies to output directory alongside .exe.
-    set(DLL_dependencies "libwinpthread-1.dll" "libzip-5.dll")
+    set(DLL_dependencies "libwinpthread-1.dll" "libzip-5.dll" "zlib1.dll")
     foreach(dep ${DLL_dependencies})
         configure_file("$ENV{MSYSTEM_PREFIX}/bin/${dep}" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${dep}" COPYONLY)
     endforeach()

@@ -7,7 +7,6 @@
     <ClCompile Include="log.cpp" />
     <ClCompile Include="eval.cpp" />
     <ClCompile Include="host.cpp" />
-    <ClCompile Include="msvcrt.cpp" />
     <ClCompile Include="detours.cpp" />
     <ClCompile Include="exports.cpp" />
     <ClCompile Include="grdevicesxaml.cpp" />
@@ -18,6 +17,7 @@
     <ClCompile Include="transport.cpp" />
     <ClCompile Include="rstrtmgr.cpp" />
     <ClCompile Include="project.cpp" />
+    <ClCompile Include="loadr.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h" />
@@ -27,7 +27,6 @@
     <ClInclude Include="eval.h" />
     <ClInclude Include="log.h" />
     <ClInclude Include="host.h" />
-    <ClInclude Include="msvcrt.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="detours.h" />
     <ClInclude Include="exports.h" />
@@ -40,7 +39,8 @@
     <ClInclude Include="transport.h" />
     <ClInclude Include="rstrtmgr.h" />
     <ClInclude Include="project.h" />
-    <ClInclude Include="internal_rapi.h" />
+    <ClInclude Include="r_api.h" />
+    <ClInclude Include="loadr.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Resource.rc" />

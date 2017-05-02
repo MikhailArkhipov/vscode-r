@@ -40,13 +40,14 @@ namespace po = boost::program_options;
 typedef void (*ptr_RHOST_WriteConsoleEx)(const char *, int, int);
 
 namespace rhost {
+    using namespace rapi;
 #ifdef _WIN32
     // ID for the timer 
     const UINT_PTR IDT_RESET_TIMER = 1;
 #endif
 
     struct command_line_args {
-        fs::path log_dir, rdata;
+        fs::path log_dir, rdata, r_dir;
         std::string name;
         log::log_verbosity log_level;
         std::chrono::seconds idle_timeout;
@@ -78,10 +79,12 @@ namespace rhost {
             suppress_ui("rhost-suppress-ui", new po::untyped_value(true),
                 "Suppress any UI (e.g., Message Box) from this host instance."),
             is_interactive("rhost-interactive", new po::untyped_value(true),
-                "This R is configured to start in interactive mode.");
+                "This R is configured to start in interactive mode."),
+            r_dir("rhost-r-dir", po::value<std::string>(), 
+                "Directory to load R.");
 
         po::options_description desc;
-        for (auto&& opt : { help, name, log_level, log_dir, rdata, idle_timeout, suppress_ui, is_interactive }) {
+        for (auto&& opt : { help, name, log_level, log_dir, rdata, idle_timeout, suppress_ui, is_interactive, r_dir }) {
             boost::shared_ptr<po::option_description> popt(new po::option_description(opt));
             desc.add(popt);
         }
@@ -136,6 +139,11 @@ namespace rhost {
         args.suppress_ui = vm.count(suppress_ui.long_name()) != 0;
         args.is_interactive = vm.count(is_interactive.long_name()) != 0;
 
+        auto r_dir_arg = vm.find(r_dir.long_name());
+        if (r_dir_arg != vm.end()) {
+            args.r_dir = r_dir_arg->second.as<std::string>();
+        }
+
         args.argv.push_back(argv[0]);
         for (auto& s : args.unrecognized) {
             args.argv.push_back(&s[0]);
@@ -180,6 +188,15 @@ namespace rhost {
         init_log(args.name, args.log_dir, args.log_level, args.suppress_ui);
         transport::initialize();
         
+        if (args.r_dir.empty()) {
+            logf(log_verbosity::minimal, "--rhost-r-dir is a required argument");
+            return 0;
+        }
+
+        rhost::rapi::load_r_apis(args.r_dir);
+
+        R_running_as_main_program = 1;
+
         R_setStartTime();
         structRstart rp = {};
         R_DefParams(&rp);
@@ -205,9 +222,9 @@ namespace rhost {
         GA_initapp(0, 0);
         readconsolecfg();
 
-        CharacterMode = LinkDLL;
+        (*rhost::rapi::_RAPI_PTR(CharacterMode)) = LinkDLL;
         setup_Rmainloop();
-        CharacterMode = RGui;
+        (*rhost::rapi::_RAPI_PTR(CharacterMode)) = RGui;
 
         DllInfo *dll = R_getEmbeddingDllInfo();
         rhost::r_util::init(dll);
@@ -311,10 +328,11 @@ namespace rhost {
 
 int main(int argc, char** argv) {
     setlocale(LC_NUMERIC, "C");
-
+    
     SCOPE_WARDEN(_main_exit, {
         flush_log();
         rhost::detours::terminate_ui_detours();
+        rhost::rapi::unload_r_apis();
     });
 
     return rhost::run(argc, argv);
