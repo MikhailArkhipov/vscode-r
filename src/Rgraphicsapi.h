@@ -39,10 +39,9 @@
 
 #include "Rapi.h"
 
-#define R_GE_version 10
-
 #define R_32_GE_version 10
 #define R_33_GE_version 11
+#define R_34_GE_version 12
 
 #define R_RGB(r,g,b)        ((r)|((g)<<8)|((b)<<16)|0xFF000000)
 #define R_RGBA(r,g,b,a)     ((r)|((g)<<8)|((b)<<16)|((a)<<24))
@@ -98,10 +97,15 @@ extern "C" {
 
     typedef R_GE_gcontext* pGEcontext;
 
-    typedef struct _DevDesc DevDesc;
-    typedef DevDesc* pDevDesc;
+    typedef struct _DevDesc11 DevDesc10; // V11 is compatible with V10
+    typedef struct _DevDesc11 DevDesc11;
+    typedef struct _DevDesc12 DevDesc12;
+    typedef DevDesc11* pDevDesc10; // V11 is compatible with V10
+    typedef DevDesc11* pDevDesc11;
+    typedef DevDesc12* pDevDesc12;
+    typedef DevDesc12* pDevDesc;
 
-    struct _DevDesc {
+    struct _DevDesc11 {
         double left;
         double right;
         double bottom;
@@ -131,6 +135,75 @@ extern "C" {
         Rboolean canGenMouseMove;
         Rboolean canGenMouseUp;
         Rboolean canGenKeybd;
+        Rboolean gettingEvent;
+        void(*activate)(const pDevDesc);
+        void(*circle)(double x, double y, double r, const pGEcontext gc, pDevDesc dd);
+        void(*clip)(double x0, double x1, double y0, double y1, pDevDesc dd);
+        void(*close)(pDevDesc dd);
+        void(*deactivate)(pDevDesc);
+        Rboolean(*locator)(double *x, double *y, pDevDesc dd);
+        void(*line)(double x1, double y1, double x2, double y2, const pGEcontext gc, pDevDesc dd);
+        void(*metricInfo)(int c, const pGEcontext gc, double* ascent, double* descent, double* width, pDevDesc dd);
+        void(*mode)(int mode, pDevDesc dd);
+        void(*newPage)(const pGEcontext gc, pDevDesc dd);
+        void(*polygon)(int n, double *x, double *y, const pGEcontext gc, pDevDesc dd);
+        void(*polyline)(int n, double *x, double *y, const pGEcontext gc, pDevDesc dd);
+        void(*rect)(double x0, double y0, double x1, double y1, const pGEcontext gc, pDevDesc dd);
+        void(*path)(double *x, double *y, int npoly, int *nper, Rboolean winding, const pGEcontext gc, pDevDesc dd);
+        void(*raster)(unsigned int *raster, int w, int h, double x, double y, double width, double height, double rot, Rboolean interpolate, const pGEcontext gc, pDevDesc dd);
+        SEXP(*cap)(pDevDesc dd);
+        void(*size)(double *left, double *right, double *bottom, double *top, pDevDesc dd);
+        double(*strWidth)(const char *str, const pGEcontext gc, pDevDesc dd);
+        void(*text)(double x, double y, const char *str, double rot, double hadj, const pGEcontext gc, pDevDesc dd);
+        void(*onExit)(pDevDesc dd);
+        SEXP(*getEvent)(SEXP, const char *);
+        Rboolean(*newFrameConfirm)(pDevDesc dd);
+        Rboolean hasTextUTF8;
+        void(*textUTF8)(double x, double y, const char *str, double rot, double hadj, const pGEcontext gc, pDevDesc dd);
+        double(*strWidthUTF8)(const char *str, const pGEcontext gc, pDevDesc dd);
+        Rboolean wantSymbolUTF8;
+        Rboolean useRotatedTextInContour;
+        SEXP eventEnv;
+        void(*eventHelper)(pDevDesc dd, int code);
+        int(*holdflush)(pDevDesc dd, int level);
+        int haveTransparency;
+        int haveTransparentBg;
+        int haveRaster;
+        int haveCapture, haveLocator;
+        char reserved[64];
+    };
+
+    struct _DevDesc12 {
+        double left;
+        double right;
+        double bottom;
+        double top;
+        double clipLeft;
+        double clipRight;
+        double clipBottom;
+        double clipTop;
+        double xCharOffset;
+        double yCharOffset;
+        double yLineBias;
+        double ipr[2];
+        double cra[2];
+        double gamma;
+        Rboolean canClip;
+        Rboolean canChangeGamma;
+        int canHAdj;
+        double startps;
+        int startcol;
+        int startfill;
+        int startlty;
+        int startfont;
+        double startgamma;
+        void *deviceSpecific;
+        Rboolean displayListOn;
+        Rboolean canGenMouseDown;
+        Rboolean canGenMouseMove;
+        Rboolean canGenMouseUp;
+        Rboolean canGenKeybd;
+        Rboolean canGenIdle;
         Rboolean gettingEvent;
         void(*activate)(const pDevDesc);
         void(*circle)(double x, double y, double r, const pGEcontext gc, pDevDesc dd);
