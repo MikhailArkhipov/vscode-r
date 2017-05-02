@@ -222,9 +222,9 @@ namespace rhost {
         GA_initapp(0, 0);
         readconsolecfg();
 
-        (*rhost::rapi::_RAPI_PTR(CharacterMode)) = LinkDLL;
+        (*rhost::rapi::RHOST_RAPI_PTR(CharacterMode)) = LinkDLL;
         setup_Rmainloop();
-        (*rhost::rapi::_RAPI_PTR(CharacterMode)) = RGui;
+        (*rhost::rapi::RHOST_RAPI_PTR(CharacterMode)) = RGui;
 
         DllInfo *dll = R_getEmbeddingDllInfo();
         rhost::r_util::init(dll);
