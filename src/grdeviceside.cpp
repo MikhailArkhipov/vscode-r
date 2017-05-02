@@ -172,12 +172,12 @@ namespace rhost {
 
             private:
                 std::tr2::sys::path get_render_file_path();
-                pDevDesc get_or_create_file_device();
-                pDevDesc create_file_device();
+                devdesc_wrapper get_or_create_file_device();
+                devdesc_wrapper create_file_device();
                 void sync_file_device();
                 void set_pending_render();
 
-                static pDevDesc create_file_device(const std::string& device_type, const std::tr2::sys::path& filename, double width, double height, double resolution);
+                static devdesc_wrapper create_file_device(const std::string& device_type, const std::tr2::sys::path& filename, double width, double height, double resolution);
 
             private:
                 boost::uuids::uuid _device_id;
@@ -230,7 +230,8 @@ namespace rhost {
                 if (!_snapshot_render_filename.empty()) {
                     try {
                         std::tr2::sys::remove(_snapshot_render_filename);
-                    } catch (const std::tr2::sys::filesystem_error&) {
+                    }
+                    catch (const std::tr2::sys::filesystem_error&) {
                     }
                 }
             }
@@ -310,11 +311,13 @@ namespace rhost {
                         if (snapshot != nullptr && snapshot != R_UnboundValue && snapshot != R_NilValue) {
                             pGEDevDesc ge_dev_desc = Rf_desc2GEDesc(_device_desc);
                             GEplaySnapshot(snapshot, ge_dev_desc);
-                        } else {
+                        }
+                        else {
                             render_empty();
                         }
                     });
-                } catch (rhost::util::r_error&) {
+                }
+                catch (rhost::util::r_error&) {
                     render_empty();
                 }
             }
@@ -436,7 +439,8 @@ namespace rhost {
                         auto replay = replay_mode(*this);
                         auto plot = _active_plot->get();
                         plot->render_from_display_list();
-                    } else {
+                    }
+                    else {
                         render_from_snapshot();
                     }
                 }
@@ -468,11 +472,11 @@ namespace rhost {
             ///////////////////////////////////////////////////////////////////////
 
             std::unique_ptr<ide_device> ide_device::create(const boost::uuids::uuid& device_id, std::string device_type, double width, double height, double resolution) {
-                pDevDesc dd = static_cast<pDevDesc>(rhost::msvcrt::calloc(1, sizeof(DevDesc)));
+                pDevDesc dd = static_cast<pDevDesc>(devdesc_wrapper::allocate());
 
                 auto xdd = std::make_unique<ide_device>(dd, device_id, device_type, width, height, resolution);
 
-                pDevDesc file_dd = xdd->create_file_device();
+                pDevDesc file_dd = xdd->create_file_device().get_pDevDesc();
 
                 xdd.get()->_file_device = file_dd;
 
@@ -481,58 +485,63 @@ namespace rhost {
                 // (don't overwrite the callbacks that are already assigned).
                 copy_device_attributes(file_dd, dd);
 
-                dd->displayListOn = R_TRUE;
-                dd->canGenMouseDown = R_FALSE;
-                dd->canGenMouseMove = R_FALSE;
-                dd->canGenMouseUp = R_FALSE;
-                dd->canGenKeybd = R_FALSE;
+                devdesc_wrapper dw(dd);
+                dw.set_displayListOn(R_TRUE);
+                dw.set_canGenMouseDown(R_FALSE);
+                dw.set_canGenMouseMove(R_FALSE);
+                dw.set_canGenMouseUp(R_FALSE);
+                dw.set_canGenKeybd(R_FALSE);
+                dw.set_canGenIdle(R_FALSE);
 
-                dd->deviceSpecific = xdd.get();
+                dw.set_deviceSpecific(xdd.get());
 
                 return xdd;
             }
 
             void ide_device::copy_device_attributes(pDevDesc source_dd, pDevDesc target_dd) {
-                target_dd->left = source_dd->left;
-                target_dd->right = source_dd->right;
-                target_dd->bottom = source_dd->bottom;
-                target_dd->top = source_dd->top;
+                devdesc_wrapper td(target_dd);
+                devdesc_wrapper sd(source_dd);
 
-                target_dd->clipLeft = source_dd->clipLeft;
-                target_dd->clipRight = source_dd->clipRight;
-                target_dd->clipBottom = source_dd->clipBottom;
-                target_dd->clipTop = source_dd->clipTop;
+                td.set_left(sd.get_left());
+                td.set_right(sd.get_right());
+                td.set_bottom(sd.get_bottom());
+                td.set_top(sd.get_top());
 
-                target_dd->xCharOffset = source_dd->xCharOffset;
-                target_dd->yCharOffset = source_dd->yCharOffset;
-                target_dd->yLineBias = source_dd->yLineBias;
+                td.set_clipLeft(sd.get_clipLeft());
+                td.set_clipRight(sd.get_clipRight());
+                td.set_clipBottom(sd.get_clipBottom());
+                td.set_clipTop(sd.get_clipTop());
 
-                target_dd->ipr[0] = source_dd->ipr[0];
-                target_dd->ipr[1] = source_dd->ipr[1];
-                target_dd->cra[0] = source_dd->cra[0];
-                target_dd->cra[1] = source_dd->cra[1];
-                target_dd->gamma = source_dd->gamma;
+                td.set_xCharOffset(sd.get_xCharOffset());
+                td.set_yCharOffset(sd.get_yCharOffset());
+                td.set_yLineBias(sd.get_yLineBias());
 
-                target_dd->canClip = source_dd->canClip;
-                target_dd->canChangeGamma = source_dd->canChangeGamma;
-                target_dd->canHAdj = source_dd->canHAdj;
+                td.set_ipr(0, sd.get_ipr(0));
+                td.set_ipr(1, sd.get_ipr(1));
+                td.set_cra(0, sd.get_cra(0));
+                td.set_cra(1, sd.get_cra(1));
+                td.set_gamma(sd.get_gamma());
 
-                target_dd->startps = source_dd->startps;
-                target_dd->startcol = source_dd->startcol;
-                target_dd->startfill = source_dd->startfill;
-                target_dd->startlty = source_dd->startlty;
-                target_dd->startfont = source_dd->startfont;
-                target_dd->startgamma = source_dd->startgamma;
+                td.set_canClip(sd.get_canClip());
+                td.set_canChangeGamma(sd.get_canChangeGamma());
+                td.set_canHAdj(sd.get_canHAdj());
 
-                target_dd->hasTextUTF8 = source_dd->hasTextUTF8;
-                target_dd->wantSymbolUTF8 = source_dd->wantSymbolUTF8;
-                target_dd->useRotatedTextInContour = source_dd->useRotatedTextInContour;
+                td.set_startps(sd.get_startps());
+                td.set_startcol(sd.get_startcol());
+                td.set_startfill(sd.get_startfill());
+                td.set_startlty(sd.get_startlty());
+                td.set_startfont(sd.get_startfont());
+                td.set_startgamma(sd.get_startgamma());
 
-                target_dd->haveTransparency = source_dd->haveTransparency;
-                target_dd->haveTransparentBg = source_dd->haveTransparentBg;
-                target_dd->haveRaster = source_dd->haveRaster;
-                target_dd->haveCapture = source_dd->haveCapture;
-                target_dd->haveLocator = source_dd->haveLocator;
+                td.set_hasTextUTF8(sd.get_hasTextUTF8());
+                td.set_wantSymbolUTF8(sd.get_wantSymbolUTF8());
+                td.set_useRotatedTextInContour(sd.get_useRotatedTextInContour());
+
+                td.set_haveTransparency(sd.get_haveTransparency());
+                td.set_haveTransparentBg(sd.get_haveTransparentBg());
+                td.set_haveRaster(sd.get_haveRaster());
+                td.set_haveCapture(sd.get_haveCapture());
+                td.set_haveLocator(sd.get_haveLocator());
             }
 
             void ide_device::activate() {
@@ -540,15 +549,17 @@ namespace rhost {
 
             void ide_device::circle(double x, double y, double r, pGEcontext gc) {
                 auto dev = get_or_create_file_device();
-                if (dev->circle != nullptr) {
-                    dev->circle(x, y, r, gc, dev);
+                auto f = dev.get_circle();
+                if (f != nullptr) {
+                    f(x, y, r, gc, dev.get_pDevDesc());
                 }
             }
 
             void ide_device::clip(double x0, double x1, double y0, double y1) {
                 auto dev = get_or_create_file_device();
-                if (dev->clip != nullptr) {
-                    dev->clip(x0, x1, y0, y1, dev);
+                auto f = dev.get_clip();
+                if (f != nullptr) {
+                    f(x0, x1, y0, y1, dev.get_pDevDesc());
                 }
             }
 
@@ -596,8 +607,9 @@ namespace rhost {
 
             void ide_device::line(double x1, double y1, double x2, double y2, const pGEcontext gc) {
                 auto dev = get_or_create_file_device();
-                if (dev->line != nullptr) {
-                    dev->line(x1, y1, x2, y2, gc, dev);
+                auto f = dev.get_line();
+                if (f != nullptr) {
+                    f(x1, y1, x2, y2, gc, dev.get_pDevDesc());
                 }
             }
 
@@ -607,15 +619,17 @@ namespace rhost {
                 *width = 0;
 
                 auto dev = get_or_create_file_device();
-                if (dev->metricInfo != nullptr) {
-                    dev->metricInfo(c, gc, ascent, descent, width, dev);
+                auto f = dev.get_metricInfo();
+                if (f != nullptr) {
+                    f(c, gc, ascent, descent, width, dev.get_pDevDesc());
                 }
             }
 
             void ide_device::mode(int mode) {
                 auto dev = get_or_create_file_device();
-                if (dev->mode != nullptr) {
-                    dev->mode(mode, dev);
+                auto f = dev.get_mode();
+                if (f != nullptr) {
+                    f(mode, dev.get_pDevDesc());
                 }
 
                 set_pending_render();
@@ -625,43 +639,49 @@ namespace rhost {
                 _history.new_page();
 
                 auto dev = get_or_create_file_device();
-                if (dev->newPage != nullptr) {
-                    dev->newPage(gc, dev);
+                auto f = dev.get_newPage();
+                if (f != nullptr) {
+                    f(gc, dev.get_pDevDesc());
                 }
             }
 
             void ide_device::polygon(int n, double *x, double *y, const pGEcontext gc) {
                 auto dev = get_or_create_file_device();
-                if (dev->polygon != nullptr) {
-                    dev->polygon(n, x, y, gc, dev);
+                auto f = dev.get_polygon();
+                if (f != nullptr) {
+                    f(n, x, y, gc, dev.get_pDevDesc());
                 }
             }
 
             void ide_device::polyline(int n, double *x, double *y, const pGEcontext gc) {
                 auto dev = get_or_create_file_device();
-                if (dev->polyline != nullptr) {
-                    dev->polyline(n, x, y, gc, dev);
+                auto f = dev.get_polyline();
+                if (f != nullptr) {
+                    f(n, x, y, gc, dev.get_pDevDesc());
                 }
             }
 
             void ide_device::rect(double x0, double y0, double x1, double y1, const pGEcontext gc) {
                 auto dev = get_or_create_file_device();
-                if (dev->rect != nullptr) {
-                    dev->rect(x0, y0, x1, y1, gc, dev);
+                auto f = dev.get_rect();
+                if (f != nullptr) {
+                    f(x0, y0, x1, y1, gc, dev.get_pDevDesc());
                 }
             }
 
             void ide_device::path(double *x, double *y, int npoly, int *nper, Rboolean winding, const pGEcontext gc) {
                 auto dev = get_or_create_file_device();
-                if (dev->path) {
-                    dev->path(x, y, npoly, nper, winding, gc, dev);
+                auto f = dev.get_path();
+                if (f != nullptr) {
+                    f(x, y, npoly, nper, winding, gc, dev.get_pDevDesc());
                 }
             }
 
             void ide_device::raster(unsigned int *raster, int w, int h, double x, double y, double width, double height, double rot, Rboolean interpolate, const pGEcontext gc) {
                 auto dev = get_or_create_file_device();
-                if (dev->raster != nullptr) {
-                    dev->raster(raster, w, h, x, y, width, height, rot, interpolate, gc, dev);
+                auto f = dev.get_raster();
+                if (f != nullptr) {
+                    f(raster, w, h, x, y, width, height, rot, interpolate, gc, dev.get_pDevDesc());
                 }
             }
 
@@ -671,8 +691,9 @@ namespace rhost {
 
             void ide_device::size(double *left, double *right, double *bottom, double *top) {
                 auto dev = get_or_create_file_device();
-                if (dev->size != nullptr) {
-                    dev->size(left, right, bottom, top, dev);
+                auto f = dev.get_size();
+                if (f != nullptr) {
+                    f(left, right, bottom, top, dev.get_pDevDesc());
                 }
             }
 
@@ -680,16 +701,18 @@ namespace rhost {
                 double width = 0;
 
                 auto dev = get_or_create_file_device();
-                if (dev->strWidth != nullptr) {
-                    width = dev->strWidth(str, gc, dev);
+                auto f = dev.get_strWidth();
+                if (f != nullptr) {
+                    width = f(str, gc, dev.get_pDevDesc());
                 }
                 return width;
             }
 
             void ide_device::text(double x, double y, const char *str, double rot, double hadj, const pGEcontext gc) {
                 auto dev = get_or_create_file_device();
-                if (dev->text != nullptr) {
-                    dev->text(x, y, str, rot, hadj, gc, dev);
+                auto f = dev.get_text();
+                if (f != nullptr) {
+                    f(x, y, str, rot, hadj, gc, dev.get_pDevDesc());
                 }
             }
 
@@ -702,8 +725,9 @@ namespace rhost {
 
             void ide_device::text_utf8(double x, double y, const char *str, double rot, double hadj, const pGEcontext gc) {
                 auto dev = get_or_create_file_device();
-                if (dev->textUTF8 != nullptr) {
-                    dev->textUTF8(x, y, str, rot, hadj, gc, dev);
+                auto f = dev.get_textUTF8();
+                if (f != nullptr) {
+                    f(x, y, str, rot, hadj, gc, dev.get_pDevDesc());
                 }
             }
 
@@ -711,8 +735,9 @@ namespace rhost {
                 double width = 0;
 
                 auto dev = get_or_create_file_device();
-                if (dev->strWidthUTF8 != nullptr) {
-                    width = dev->strWidthUTF8(str, gc, dev);
+                auto f = dev.get_strWidthUTF8();
+                if (f != nullptr) {
+                    width = f(str, gc, dev.get_pDevDesc());
                 }
 
                 return width;
@@ -750,7 +775,7 @@ namespace rhost {
                     return nullptr;
                 }
 
-                auto target_plot(std::make_unique<plot>(device_desc, source_plot));
+                auto target_plot(std::make_unique<plot>(dev.get_pDevDesc(), source_plot));
                 auto plot = target_plot.get();
 
                 _history.append(std::move(target_plot));
@@ -760,7 +785,7 @@ namespace rhost {
 
             void ide_device::select() {
                 rhost::util::errors_to_exceptions([&] {
-                    auto num = Rf_ndevNumber(device_desc);
+                    auto num = Rf_ndevNumber(dev.get_pDevDesc());
                     Rf_selectDevice(num);
                 });
             }
@@ -774,13 +799,13 @@ namespace rhost {
 
                 // Recreate the file device to obtain its new attributes,
                 // based on the new width/height/resolution.
-                _file_device = create_file_device();
+                _file_device = create_file_device().get_pDevDesc();
 
                 // Update the ide device with attributes based
                 // on the new width/height/resolution, so that 
                 // future plots on this device are calculated correctly.
                 // https://github.com/Microsoft/RTVS/issues/2017
-                copy_device_attributes(_file_device, device_desc);
+                copy_device_attributes(_file_device, dev.get_pDevDesc());
 
                 delete_file_device();
 
@@ -820,7 +845,7 @@ namespace rhost {
 
                     int device_num = -1;
                     rhost::util::errors_to_exceptions([&] {
-                        device_num = Rf_ndevNumber(device_desc);
+                        device_num = Rf_ndevNumber(dev.get_pDevDesc());
                     });
 
                     rhost::host::send_notification(
@@ -858,15 +883,15 @@ namespace rhost {
                 return file_path;
             }
 
-            pDevDesc ide_device::get_or_create_file_device() {
+            devdesc_wrapper ide_device::get_or_create_file_device() {
                 if (_file_device == nullptr) {
-                    _file_device = create_file_device();
+                    _file_device = create_file_device().get_pDevDesc();
                     sync_file_device();
                 }
-                return _file_device;
+                return devdesc_wrapper(_file_device);
             }
 
-            pDevDesc ide_device::create_file_device() {
+            devdesc_wrapper ide_device::create_file_device() {
                 _file_device_filename = get_render_file_path();
                 return create_file_device(_file_device_type, _file_device_filename, _width, _height, _resolution);
             }
@@ -879,13 +904,14 @@ namespace rhost {
                 try {
                     rhost::util::errors_to_exceptions([&] {
                         int file_device_num = Rf_ndevNumber(_file_device);
-                        int ide_device_num = Rf_ndevNumber(device_desc);
+                        int ide_device_num = Rf_ndevNumber(dev.get_pDevDesc());
 
                         Rf_selectDevice(file_device_num);
                         GEcopyDisplayList(ide_device_num);
                         Rf_selectDevice(ide_device_num);
                     });
-                } catch (rhost::util::r_error&) {
+                }
+                catch (rhost::util::r_error&) {
                     auto path = save_empty();
                     send(boost::uuids::uuid(), path);
                 }
@@ -954,7 +980,8 @@ namespace rhost {
                 _history.remove(plot_id);
                 if (_history.plot_count() > 0) {
                     _history.render_from_snapshot();
-                } else {
+                }
+                else {
                     send_clear();
                 }
             }
@@ -971,7 +998,7 @@ namespace rhost {
                 return _history.get_active();
             }
 
-            pDevDesc ide_device::create_file_device(const std::string& device_type, const std::tr2::sys::path& filename, double width, double height, double resolution) {
+            devdesc_wrapper ide_device::create_file_device(const std::string& device_type, const std::tr2::sys::path& filename, double width, double height, double resolution) {
                 auto expr = boost::format("%1%(filename='%2%', width=%3%, height=%4%, res=%5%)") % device_type % filename.generic_string() % width % height % resolution;
 
                 // Create the file device via the public R API
@@ -990,7 +1017,7 @@ namespace rhost {
                     dev_desc = ge_dev_desc->dev;
                 });
 
-                return dev_desc;
+                return devdesc_wrapper(dev_desc);
             }
 
             static void process_pending_render(bool immediately) {
@@ -1001,7 +1028,7 @@ namespace rhost {
 
             static ide_device* find_device_by_num(int device_num) {
                 auto dev = find_if(devices.begin(), devices.end(), [&](auto& d) {
-                    return Rf_ndevNumber(d->device_desc) == (device_num - 1);
+                    return Rf_ndevNumber(d->dev.get_pDevDesc()) == (device_num - 1);
                 });
 
                 return (dev != devices.end()) ? *dev : nullptr;
@@ -1021,7 +1048,7 @@ namespace rhost {
 
             extern "C" SEXP ide_graphicsdevice_new(SEXP args) {
                 int ver = R_GE_getVersion();
-                if (ver < R_32_GE_version || ver > R_33_GE_version) {
+                if (ver < R_32_GE_version || ver > R_34_GE_version) {
                     Rf_error("Graphics API version %d is not supported.", ver);
                 }
 
@@ -1029,7 +1056,7 @@ namespace rhost {
                     R_CheckDeviceAvailable();
                     BEGIN_SUSPEND_INTERRUPTS{
 
-                    double width;
+                        double width;
                     double height;
                     double resolution;
                     boost::uuids::uuid device_id = uuid_generator();
@@ -1048,10 +1075,10 @@ namespace rhost {
                     });
 
                     auto dev = ide_device::create(device_id, "png", width, height, resolution);
-                    pGEDevDesc gdd = GEcreateDevDesc(dev->device_desc);
+                    pGEDevDesc gdd = GEcreateDevDesc(dev->dev.get_pDevDesc());
                     GEaddDevice2(gdd, "ide");
                     // Owner is DevDesc::deviceSpecific, and is released in close()
-                    dev->closed.connect([&] (ide_device* o) { devices.erase(std::find(devices.begin(), devices.end(), o)); });
+                    dev->closed.connect([&](ide_device* o) { devices.erase(std::find(devices.begin(), devices.end(), o)); });
                     devices.push_back(dev.release());
 
                     } END_SUSPEND_INTERRUPTS;
@@ -1215,7 +1242,7 @@ namespace rhost {
                 args = CDR(args);
                 SEXP param1 = CAR(args);
                 args = CDR(args);
-                SEXP param2= CAR(args);
+                SEXP param2 = CAR(args);
                 args = CDR(args);
                 SEXP param3 = CAR(args);
 
@@ -1264,14 +1291,14 @@ namespace rhost {
             extern "C" SEXP ide_graphicsdevice_get_device_num(SEXP args) {
                 args = CDR(args);
                 SEXP param1 = CAR(args);
-                
+
                 auto device_id = boost::lexical_cast<boost::uuids::uuid>(R_CHAR(STRING_ELT(param1, 0)));
 
                 return rhost::util::exceptions_to_errors([&] {
                     auto dev = find_device_by_id(device_id);
                     if (dev != nullptr) {
                         auto result = Rf_allocVector(INTSXP, 1);
-                        int num = Rf_ndevNumber(dev->device_desc) + 1;
+                        int num = Rf_ndevNumber(dev->dev.get_pDevDesc()) + 1;
                         *INTEGER(result) = num;
                         return result;
                     }

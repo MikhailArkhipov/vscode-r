@@ -18,6 +18,7 @@
     <ClCompile Include="transport.cpp" />
     <ClCompile Include="rstrtmgr.cpp" />
     <ClCompile Include="project.cpp" />
+    <ClCompile Include="devdesc_wrapper.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h" />
@@ -42,6 +43,7 @@
     <ClInclude Include="transport.h" />
     <ClInclude Include="rstrtmgr.h" />
     <ClInclude Include="project.h" />
+    <ClInclude Include="devdesc_wrapper.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
