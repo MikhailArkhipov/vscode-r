@@ -86,7 +86,7 @@ namespace rhost {
             rgraphapp_module = LoadLibraryEx(rgraphapp_path.make_preferred().wstring().c_str(), nullptr, LOAD_WITH_ALTERED_SEARCH_PATH);
             internal_load_rgraphapp_apis();
 #else // POSIX
-            fs::path r_path = r_dll_dir / "r.so";
+            fs::path r_path = r_dll_dir / "libR.so";
             r_module = dlopen(r_path.make_preferred().string().c_str(), RTLD_LOCAL | RTLD_LAZY)
 #endif
             internal_load_r_apis();
