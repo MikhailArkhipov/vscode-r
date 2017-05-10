@@ -36,7 +36,8 @@ include_directories(${libzip_INCLUDE_DIRS})
 target_link_libraries(Microsoft.R.Host ${zlib_LIBRARY} ${libzip_LIBRARY})
 
 if(WIN32)
-    set_property(TARGET Microsoft.R.Host APPEND_STRING PROPERTY LINK_FLAGS " -Wl,-high-entropy-va -Wl,-dynamicbase")
+    # TODO: enable -dynamicbase 
+    set_property(TARGET Microsoft.R.Host APPEND_STRING PROPERTY LINK_FLAGS " -Wl,-high-entropy-va")
     
     add_definitions(-DUNICODE -D_UNICODE)
     
