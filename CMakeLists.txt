@@ -9,13 +9,13 @@ if(NOT CMAKE_RUNTIME_OUTPUT_DIRECTORY)
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_HOME_DIRECTORY}/bin/${CMAKE_BUILD_TYPE})
 endif()
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -fstack-protector-all")
 
 file(GLOB src "src/*.h" "src/*.cpp" "src/*.rc")
 
 add_executable(Microsoft.R.Host ${src})
 
-set_target_properties(Microsoft.R.Host PROPERTIES LINK_FLAGS "-static-libgcc -static-libstdc++")
+set_target_properties(Microsoft.R.Host PROPERTIES LINK_FLAGS "-static-libgcc -static-libstdc++ -Wl,-nxcompat")
 if("${TARGET_ARCH}" STREQUAL "x86")
     set_target_properties(Microsoft.R.Host PROPERTIES COMPILE_FLAGS "-m32" LINK_FLAGS "-m32")
 endif()
@@ -35,6 +35,8 @@ include_directories(${libzip_INCLUDE_DIRS})
 target_link_libraries(Microsoft.R.Host ${zlib_LIBRARY} ${libzip_LIBRARY})
 
 if(WIN32)
+    set_property(TARGET Microsoft.R.Host APPEND_STRING PROPERTY LINK_FLAGS " -Wl,-high-entropy-va -Wl,-dynamicbase")
+    
     add_definitions(-DUNICODE -D_UNICODE)
     
     target_link_libraries(Microsoft.R.Host "rstrmgr")
