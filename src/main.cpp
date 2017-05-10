@@ -326,6 +326,10 @@ namespace rhost {
     }
 }
 
+#ifdef _WIN32
+// This is needed to force MinGW to generate a relocation table when -dynamicbase (ASLR) is used.
+__declspec(dllexport)
+#endif
 int main(int argc, char** argv) {
     setlocale(LC_NUMERIC, "C");
     
