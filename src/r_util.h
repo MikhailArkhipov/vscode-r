@@ -21,7 +21,7 @@
  * ***************************************************************************/
 
 #pragma once
-#include "R_ext/Rdynload.h"
+#include "r_api.h"
 
 namespace rhost {
     namespace r_util {

@@ -23,7 +23,9 @@
 #pragma once
 #pragma warning(disable: 4996)
 
+#ifndef NOMINMAX
 #define NOMINMAX
+#endif
 
 #include <atomic>
 #include <cstdarg>
@@ -102,9 +104,6 @@
 #endif
 
 namespace fs = boost::filesystem;
-
-#include "r_api.h"
-#include "loadr.h"
 
 #ifdef _WIN32
 #define RHOST_MAX_PATH MAX_PATH

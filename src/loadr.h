@@ -34,34 +34,21 @@
 #define RHOST_RAPI_SET_COMMON(macro) \
 macro(CAR) \
 macro(CDR) \
-macro(GEaddDevice2) \
-macro(GEaddDevice2f) \
-macro(GEcopyDisplayList) \
-macro(GEcreateDevDesc) \
-macro(GEcreateSnapshot) \
-macro(GEgetDevice) \
-macro(GEkillDevice) \
-macro(GEplayDisplayList) \
-macro(GEplaySnapshot) \
 macro(INTEGER) \
 macro(LOGICAL) \
 macro(PRCODE) \
 macro(PRVALUE) \
 macro(R_BaseEnv) \
 macro(R_CHAR) \
-macro(R_CheckDeviceAvailable) \
 macro(R_CleanUp) \
 macro(R_common_command_line) \
 macro(R_curErrorBuf) \
 macro(R_DefParams) \
 macro(R_EmptyEnv) \
 macro(R_FunTab) \
-macro(R_GE_getVersion) \
 macro(R_getEmbeddingDllInfo) \
 macro(R_GlobalContext) \
 macro(R_GlobalEnv) \
-macro(R_interrupts_pending) \
-macro(R_interrupts_suspended) \
 macro(R_IsNA) \
 macro(R_lsInternal3) \
 macro(R_NaInt) \
@@ -93,9 +80,7 @@ macro(Rf_asInteger) \
 macro(Rf_asLogical) \
 macro(Rf_asReal) \
 macro(Rf_classgets) \
-macro(Rf_curDevice) \
 macro(Rf_deparse1line) \
-macro(Rf_desc2GEDesc) \
 macro(Rf_duplicate) \
 macro(Rf_error) \
 macro(Rf_eval) \
@@ -110,15 +95,12 @@ macro(Rf_length) \
 macro(Rf_mkChar) \
 macro(Rf_mkCharCE) \
 macro(Rf_mkString) \
-macro(Rf_ndevNumber) \
 macro(Rf_NewEnvironment) \
-macro(Rf_onintr) \
 macro(Rf_protect) \
 macro(Rf_ScalarInteger) \
 macro(Rf_ScalarLogical) \
 macro(Rf_ScalarReal) \
 macro(Rf_ScalarString) \
-macro(Rf_selectDevice) \
 macro(Rf_translateCharUTF8) \
 macro(Rf_unprotect) \
 macro(SET_RDEBUG) \
@@ -130,7 +112,24 @@ macro(STRING_ELT) \
 macro(TYPEOF) \
 macro(VECTOR_ELT) \
 macro(vmaxget) \
-macro(vmaxset)
+macro(vmaxset) \
+macro(Rf_onintr) \
+macro(R_GE_getVersion) \
+macro(Rf_curDevice) \
+macro(Rf_selectDevice) \
+macro(Rf_desc2GEDesc) \
+macro(GEplayDisplayList) \
+macro(GEplaySnapshot) \
+macro(GEcreateSnapshot) \
+macro(Rf_ndevNumber) \
+macro(GEcopyDisplayList) \
+macro(GEgetDevice) \
+macro(GEkillDevice) \
+macro(R_CheckDeviceAvailable) \
+macro(R_interrupts_suspended) \
+macro(GEcreateDevDesc) \
+macro(GEaddDevice2) \
+macro(R_interrupts_pending)
 
 
 #ifdef _WIN32
@@ -150,7 +149,7 @@ macro(run_Rmainloop) \
 macro(setup_Rmainloop)
 
 #define RHOST_RGRAPHAPPAPI_SET(macro) \
-macro(GA_initapp) 
+macro(GA_initapp)
 
 #define RHOST_RAPI_SET(macro) \
 RHOST_RAPI_SET_COMMON(macro) \

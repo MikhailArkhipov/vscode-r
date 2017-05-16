@@ -235,58 +235,61 @@ namespace rhost {
             }
 
             std::unique_ptr<xaml_device> xaml_device::create(std::string filename, double width, double height) {
-                pDevDesc dd = static_cast<pDevDesc>(calloc(1, sizeof(DevDesc)));
+                pDevDesc dd = static_cast<pDevDesc>(devdesc_wrapper::allocate());
 
                 int startfill = R_RGB(255, 255, 255);
 
                 auto xdd = std::make_unique<xaml_device>(dd, filename, width, height, r_color_to_xaml(startfill), DEFAULT_FONT_NAME);
 
-                dd->left = 0;
-                dd->right = width;
-                dd->bottom = height;
-                dd->top = 0;
+                devdesc_wrapper dw(dd);
+                dw.set_left(0);
+                dw.set_right(width);
+                dw.set_bottom(height);
+                dw.set_top(0);
 
-                dd->clipLeft = dd->left;
-                dd->clipRight = dd->right;
-                dd->clipBottom = dd->bottom;
-                dd->clipTop = dd->top;
+                dw.set_clipLeft(dw.get_left());
+                dw.set_clipRight(dw.get_right());
+                dw.set_clipBottom(dw.get_bottom());
+                dw.set_clipTop(dw.get_top());
 
-                dd->xCharOffset = 0;
-                dd->yCharOffset = 0;
-                dd->yLineBias = 0;
+                dw.set_xCharOffset(0);
+                dw.set_yCharOffset(0);
+                dw.set_yLineBias(0);
 
-                dd->ipr[0] = dd->ipr[1] = DEVICE_UNIT_TO_INCH(1.0);
-                dd->cra[0] = dd->cra[1] = 10;
-                dd->gamma = 0;
+                dw.set_ipr(0, DEVICE_UNIT_TO_INCH(1.0));
+                dw.set_ipr(0, DEVICE_UNIT_TO_INCH(1.0));
+                dw.set_cra(0, 10);
+                dw.set_cra(1, 10);
+                dw.set_gamma(0);
 
-                dd->canClip = R_FALSE;
-                dd->canChangeGamma = R_FALSE;
-                dd->canHAdj = 0;
+                dw.set_canClip(R_FALSE);
+                dw.set_canChangeGamma(R_FALSE);
+                dw.set_canHAdj(0);
 
-                dd->startps = 10;
-                dd->startcol = R_RGB(0, 0, 0);
-                dd->startfill = startfill;
-                dd->startlty = LTY_SOLID;
-                dd->startfont = 0;
-                dd->startgamma = 0;
+                dw.set_startps(10);
+                dw.set_startcol(R_RGB(0, 0, 0));
+                dw.set_startfill(startfill);
+                dw.set_startlty(LTY_SOLID);
+                dw.set_startfont(0);
+                dw.set_startgamma(0);
 
-                dd->hasTextUTF8 = R_FALSE;
-                dd->wantSymbolUTF8 = R_FALSE;
-                dd->useRotatedTextInContour = R_FALSE;
+                dw.set_hasTextUTF8(R_FALSE);
+                dw.set_wantSymbolUTF8(R_FALSE);
+                dw.set_useRotatedTextInContour(R_FALSE);
 
-                dd->haveTransparency = 1; //no
-                dd->haveTransparentBg = 2; //fully
-                dd->haveRaster = 2; //yes
-                dd->haveCapture = 1; //no
-                dd->haveLocator = 1; //no
+                dw.set_haveTransparency(1); //no
+                dw.set_haveTransparentBg(2); //fully
+                dw.set_haveRaster(2); //yes
+                dw.set_haveCapture(1); //no
+                dw.set_haveLocator(1); //no
 
-                dd->displayListOn = R_TRUE;
-                dd->canGenMouseDown = R_FALSE;
-                dd->canGenMouseMove = R_FALSE;
-                dd->canGenMouseUp = R_FALSE;
-                dd->canGenKeybd = R_FALSE;
+                dw.set_displayListOn(R_TRUE);
+                dw.set_canGenMouseDown(R_FALSE);
+                dw.set_canGenMouseMove(R_FALSE);
+                dw.set_canGenMouseUp(R_FALSE);
+                dw.set_canGenKeybd(R_FALSE);
 
-                dd->deviceSpecific = xdd.get();
+                dw.set_deviceSpecific(xdd.get());
 
                 return xdd;
             }
@@ -404,10 +407,10 @@ namespace rhost {
             }
 
             void xaml_device::size(double *left, double *right, double *bottom, double *top) {
-                *left = device_desc->left;
-                *right = device_desc->right;
-                *bottom = device_desc->bottom;
-                *top = device_desc->top;
+                *left = dev.get_left();
+                *right = dev.get_right();
+                *bottom = dev.get_bottom();
+                *top = dev.get_top();
             }
 
             double xaml_device::str_width(const char *str, const pGEcontext gc) {
@@ -500,17 +503,17 @@ namespace rhost {
                 double *h = REAL(height);
 
                 int ver = R_GE_getVersion();
-                if (ver < R_32_GE_version || ver > R_33_GE_version) {
+                if (ver < R_32_GE_version || ver > R_34_GE_version) {
                     Rf_error("Graphics API version %d is not supported.", ver);
                 }
 
                 R_CheckDeviceAvailable();
                 BEGIN_SUSPEND_INTERRUPTS{
                     auto dev = xaml_device::create(f, *w, *h);
-                    pGEDevDesc gdd = GEcreateDevDesc(dev->device_desc);
-                    GEaddDevice2f(gdd, "xaml", f);
-                    // Owner is DevDesc::deviceSpecific, and is released in close()
-                    dev.release();
+                pGEDevDesc gdd = GEcreateDevDesc(dev->dev.get_pDevDesc());
+                GEaddDevice2f(gdd, "xaml", f);
+                // Owner is DevDesc::deviceSpecific, and is released in close()
+                dev.release();
                 } END_SUSPEND_INTERRUPTS;
 
                 return R_NilValue;
@@ -518,7 +521,7 @@ namespace rhost {
 
             static R_ExternalMethodDef external_methods[] = {
                 { "Microsoft.R.Host::External.xaml_graphicsdevice_new", (DL_FUNC)&xaml_graphicsdevice_new, 3 },
-                { }
+                {}
             };
 
             void init(DllInfo *dll)

@@ -23,6 +23,7 @@
 #pragma once
 
 #include "stdafx.h"
+#include "r_api.h"
 
 namespace rhost {
     namespace grdevices {

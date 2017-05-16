@@ -26,6 +26,7 @@
 #include "blobs.h"
 #include "message.h"
 #include "log.h"
+#include "r_api.h"
 
 namespace rhost {
     namespace host {

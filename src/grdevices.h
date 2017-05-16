@@ -25,6 +25,7 @@
 #include "stdafx.h"
 #include "util.h"
 #include "grdevices.h"
+#include "devdesc_wrapper.h"
 
 namespace rhost {
     namespace grdevices {
@@ -33,7 +34,7 @@ namespace rhost {
         ///////////////////////////////////////////////////////////////////
         class graphics_device {
         public:
-            pDevDesc device_desc;
+            devdesc_wrapper dev;
 
             virtual ~graphics_device()
             {
@@ -67,133 +68,133 @@ namespace rhost {
 
         protected:
             graphics_device(pDevDesc dd) :
-                device_desc(dd)
+                dev(dd)
             {
-                device_desc->activate = [](pDevDesc dd) {
+                dev.set_activate([](pDevDesc dd) {
                     return rhost::util::exceptions_to_errors([&] {
-                        return reinterpret_cast<graphics_device*>(dd->deviceSpecific)->activate();
+                        return reinterpret_cast<graphics_device*>(devdesc_wrapper(dd).get_deviceSpecific())->activate();
                     });
-                };
-                device_desc->circle = [](double x, double y, double r, pGEcontext gc, pDevDesc dd) {
+                });
+                dev.set_circle([](double x, double y, double r, pGEcontext gc, pDevDesc dd) {
                     return rhost::util::exceptions_to_errors([&] {
-                        return reinterpret_cast<graphics_device*>(dd->deviceSpecific)->circle(x, y, r, gc);
+                        return reinterpret_cast<graphics_device*>(devdesc_wrapper(dd).get_deviceSpecific())->circle(x, y, r, gc);
                     });
-                };
-                device_desc->clip = [](double x0, double x1, double y0, double y1, pDevDesc dd) {
+                });
+                dev.set_clip([](double x0, double x1, double y0, double y1, pDevDesc dd) {
                     return rhost::util::exceptions_to_errors([&] {
-                        return reinterpret_cast<graphics_device*>(dd->deviceSpecific)->clip(x0, x1, y0, y1);
+                        return reinterpret_cast<graphics_device*>(devdesc_wrapper(dd).get_deviceSpecific())->clip(x0, x1, y0, y1);
                     });
-                };
-                device_desc->close = [](pDevDesc dd) {
+                });
+                dev.set_close([](pDevDesc dd) {
                     return rhost::util::exceptions_to_errors([&] {
-                        reinterpret_cast<graphics_device*>(dd->deviceSpecific)->close();
+                        reinterpret_cast<graphics_device*>(devdesc_wrapper(dd).get_deviceSpecific())->close();
                     });
-                };
-                device_desc->deactivate = [](pDevDesc dd) {
+                });
+                dev.set_deactivate([](pDevDesc dd) {
                     return rhost::util::exceptions_to_errors([&] {
-                        return reinterpret_cast<graphics_device*>(dd->deviceSpecific)->deactivate();
+                        return reinterpret_cast<graphics_device*>(devdesc_wrapper(dd).get_deviceSpecific())->deactivate();
                     });
-                };
-                device_desc->locator = [](double *x, double *y, pDevDesc dd) {
+                });
+                dev.set_locator([](double *x, double *y, pDevDesc dd) {
                     return rhost::util::exceptions_to_errors([&] {
-                        return reinterpret_cast<graphics_device*>(dd->deviceSpecific)->locator(x, y);
+                        return reinterpret_cast<graphics_device*>(devdesc_wrapper(dd).get_deviceSpecific())->locator(x, y);
                     });
-                };
-                device_desc->line = [](double x1, double y1, double x2, double y2, const pGEcontext gc, pDevDesc dd) {
+                });
+                dev.set_line([](double x1, double y1, double x2, double y2, const pGEcontext gc, pDevDesc dd) {
                     return rhost::util::exceptions_to_errors([&] {
-                        return reinterpret_cast<graphics_device*>(dd->deviceSpecific)->line(x1, y1, x2, y2, gc);
+                        return reinterpret_cast<graphics_device*>(devdesc_wrapper(dd).get_deviceSpecific())->line(x1, y1, x2, y2, gc);
                     });
-                };
-                device_desc->metricInfo = [](int c, const pGEcontext gc, double* ascent, double* descent, double* width, pDevDesc dd) {
+                });
+                dev.set_metricInfo([](int c, const pGEcontext gc, double* ascent, double* descent, double* width, pDevDesc dd) {
                     return rhost::util::exceptions_to_errors([&] {
-                        return reinterpret_cast<graphics_device*>(dd->deviceSpecific)->metric_info(c, gc, ascent, descent, width);
+                        return reinterpret_cast<graphics_device*>(devdesc_wrapper(dd).get_deviceSpecific())->metric_info(c, gc, ascent, descent, width);
                     });
-                };
-                device_desc->mode = [](int mode, pDevDesc dd) {
+                });
+                dev.set_mode([](int mode, pDevDesc dd) {
                     return rhost::util::exceptions_to_errors([&] {
-                        return reinterpret_cast<graphics_device*>(dd->deviceSpecific)->mode(mode);
+                        return reinterpret_cast<graphics_device*>(devdesc_wrapper(dd).get_deviceSpecific())->mode(mode);
                     });
-                };
-                device_desc->newPage = [](const pGEcontext gc, pDevDesc dd) {
+                });
+                dev.set_newPage([](const pGEcontext gc, pDevDesc dd) {
                     return rhost::util::exceptions_to_errors([&] {
-                        return reinterpret_cast<graphics_device*>(dd->deviceSpecific)->new_page(gc);
+                        return reinterpret_cast<graphics_device*>(devdesc_wrapper(dd).get_deviceSpecific())->new_page(gc);
                     });
-                };
-                device_desc->polygon = [](int n, double *x, double *y, const pGEcontext gc, pDevDesc dd) {
+                });
+                dev.set_polygon([](int n, double *x, double *y, const pGEcontext gc, pDevDesc dd) {
                     return rhost::util::exceptions_to_errors([&] {
-                        return reinterpret_cast<graphics_device*>(dd->deviceSpecific)->polygon(n, x, y, gc);
+                        return reinterpret_cast<graphics_device*>(devdesc_wrapper(dd).get_deviceSpecific())->polygon(n, x, y, gc);
                     });
-                };
-                device_desc->polyline = [](int n, double *x, double *y, const pGEcontext gc, pDevDesc dd) {
+                });
+                dev.set_polyline([](int n, double *x, double *y, const pGEcontext gc, pDevDesc dd) {
                     return rhost::util::exceptions_to_errors([&] {
-                        return reinterpret_cast<graphics_device*>(dd->deviceSpecific)->polyline(n, x, y, gc);
+                        return reinterpret_cast<graphics_device*>(devdesc_wrapper(dd).get_deviceSpecific())->polyline(n, x, y, gc);
                     });
-                };
-                device_desc->rect = [](double x0, double y0, double x1, double y1, const pGEcontext gc, pDevDesc dd) {
+                });
+                dev.set_rect([](double x0, double y0, double x1, double y1, const pGEcontext gc, pDevDesc dd) {
                     return rhost::util::exceptions_to_errors([&] {
-                        return reinterpret_cast<graphics_device*>(dd->deviceSpecific)->rect(x0, y0, x1, y1, gc);
+                        return reinterpret_cast<graphics_device*>(devdesc_wrapper(dd).get_deviceSpecific())->rect(x0, y0, x1, y1, gc);
                     });
-                };
-                device_desc->path = [](double *x, double *y, int npoly, int *nper, Rboolean winding, const pGEcontext gc, pDevDesc dd) {
+                });
+                dev.set_path([](double *x, double *y, int npoly, int *nper, Rboolean winding, const pGEcontext gc, pDevDesc dd) {
                     return rhost::util::exceptions_to_errors([&] {
-                        return reinterpret_cast<graphics_device*>(dd->deviceSpecific)->path(x, y, npoly, nper, winding, gc);
+                        return reinterpret_cast<graphics_device*>(devdesc_wrapper(dd).get_deviceSpecific())->path(x, y, npoly, nper, winding, gc);
                     });
-                };
-                device_desc->raster = [](unsigned int *raster, int w, int h, double x, double y, double width, double height, double rot, Rboolean interpolate, const pGEcontext gc, pDevDesc dd) {
+                });
+                dev.set_raster([](unsigned int *raster, int w, int h, double x, double y, double width, double height, double rot, Rboolean interpolate, const pGEcontext gc, pDevDesc dd) {
                     return rhost::util::exceptions_to_errors([&] {
-                        return reinterpret_cast<graphics_device*>(dd->deviceSpecific)->raster(raster, w, h, x, y, width, height, rot, interpolate, gc);
+                        return reinterpret_cast<graphics_device*>(devdesc_wrapper(dd).get_deviceSpecific())->raster(raster, w, h, x, y, width, height, rot, interpolate, gc);
                     });
-                };
-                device_desc->cap = [](pDevDesc dd) {
+                });
+                dev.set_cap([](pDevDesc dd) {
                     return rhost::util::exceptions_to_errors([&] {
-                        return reinterpret_cast<graphics_device*>(dd->deviceSpecific)->cap();
+                        return reinterpret_cast<graphics_device*>(devdesc_wrapper(dd).get_deviceSpecific())->cap();
                     });
-                };
-                device_desc->size = [](double *left, double *right, double *bottom, double *top, pDevDesc dd) {
+                });
+                dev.set_size([](double *left, double *right, double *bottom, double *top, pDevDesc dd) {
                     return rhost::util::exceptions_to_errors([&] {
-                        return reinterpret_cast<graphics_device*>(dd->deviceSpecific)->size(left, right, bottom, top);
+                        return reinterpret_cast<graphics_device*>(devdesc_wrapper(dd).get_deviceSpecific())->size(left, right, bottom, top);
                     });
-                };
-                device_desc->strWidth = [](const char *str, const pGEcontext gc, pDevDesc dd) {
+                });
+                dev.set_strWidth([](const char *str, const pGEcontext gc, pDevDesc dd) {
                     return rhost::util::exceptions_to_errors([&] {
-                        return reinterpret_cast<graphics_device*>(dd->deviceSpecific)->str_width(str, gc);
+                        return reinterpret_cast<graphics_device*>(devdesc_wrapper(dd).get_deviceSpecific())->str_width(str, gc);
                     });
-                };
-                device_desc->text = [](double x, double y, const char *str, double rot, double hadj, const pGEcontext gc, pDevDesc dd) {
+                });
+                dev.set_text([](double x, double y, const char *str, double rot, double hadj, const pGEcontext gc, pDevDesc dd) {
                     return rhost::util::exceptions_to_errors([&] {
-                        return reinterpret_cast<graphics_device*>(dd->deviceSpecific)->text(x, y, str, rot, hadj, gc);
+                        return reinterpret_cast<graphics_device*>(devdesc_wrapper(dd).get_deviceSpecific())->text(x, y, str, rot, hadj, gc);
                     });
-                };
-                device_desc->onExit = [](pDevDesc dd) {
+                });
+                dev.set_onExit([](pDevDesc dd) {
                     return rhost::util::exceptions_to_errors([&] {
-                        return reinterpret_cast<graphics_device*>(dd->deviceSpecific)->on_exit();
+                        return reinterpret_cast<graphics_device*>(devdesc_wrapper(dd).get_deviceSpecific())->on_exit();
                     });
-                };
-                device_desc->newFrameConfirm = [](pDevDesc dd) {
+                });
+                dev.set_newFrameConfirm([](pDevDesc dd) {
                     return rhost::util::exceptions_to_errors([&] {
-                        return reinterpret_cast<graphics_device*>(dd->deviceSpecific)->new_frame_confirm();
+                        return reinterpret_cast<graphics_device*>(devdesc_wrapper(dd).get_deviceSpecific())->new_frame_confirm();
                     });
-                };
-                device_desc->textUTF8 = [](double x, double y, const char *str, double rot, double hadj, const pGEcontext gc, pDevDesc dd) {
+                });
+                dev.set_textUTF8([](double x, double y, const char *str, double rot, double hadj, const pGEcontext gc, pDevDesc dd) {
                     return rhost::util::exceptions_to_errors([&] {
-                        return reinterpret_cast<graphics_device*>(dd->deviceSpecific)->text_utf8(x, y, str, rot, hadj, gc);
+                        return reinterpret_cast<graphics_device*>(devdesc_wrapper(dd).get_deviceSpecific())->text_utf8(x, y, str, rot, hadj, gc);
                     });
-                };
-                device_desc->strWidthUTF8 = [](const char *str, const pGEcontext gc, pDevDesc dd) {
+                });
+                dev.set_strWidthUTF8([](const char *str, const pGEcontext gc, pDevDesc dd) {
                     return rhost::util::exceptions_to_errors([&] {
-                        return reinterpret_cast<graphics_device*>(dd->deviceSpecific)->str_width_utf8(str, gc);
+                        return reinterpret_cast<graphics_device*>(devdesc_wrapper(dd).get_deviceSpecific())->str_width_utf8(str, gc);
                     });
-                };
-                device_desc->eventHelper = [](pDevDesc dd, int code) {
+                });
+                dev.set_eventHelper([](pDevDesc dd, int code) {
                     return rhost::util::exceptions_to_errors([&] {
-                        return reinterpret_cast<graphics_device*>(dd->deviceSpecific)->event_helper(code);
+                        return reinterpret_cast<graphics_device*>(devdesc_wrapper(dd).get_deviceSpecific())->event_helper(code);
                     });
-                };
-                device_desc->holdflush = [](pDevDesc dd, int level) {
+                });
+                dev.set_holdflush([](pDevDesc dd, int level) {
                     return rhost::util::exceptions_to_errors([&] {
-                        return reinterpret_cast<graphics_device*>(dd->deviceSpecific)->hold_flush(level);
+                        return reinterpret_cast<graphics_device*>(devdesc_wrapper(dd).get_deviceSpecific())->hold_flush(level);
                     });
-                };
+                });
             }
         };
     }
