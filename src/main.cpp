@@ -195,8 +195,6 @@ namespace rhost {
 
         rhost::rapi::load_r_apis(args.r_dir);
 
-        R_running_as_main_program = 1;
-
         R_setStartTime();
         structRstart rp = {};
         R_DefParams(&rp);
@@ -228,7 +226,7 @@ namespace rhost {
 
         DllInfo *dll = R_getEmbeddingDllInfo();
         rhost::r_util::init(dll);
-        rhost::grdevices::xaml::init(dll);
+        //rhost::grdevices::xaml::init(dll);
         rhost::grdevices::ide::init(dll);
         rhost::exports::register_all(dll);
 

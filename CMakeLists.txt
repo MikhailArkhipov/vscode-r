@@ -50,17 +50,17 @@ if(WIN32)
     include_directories(${MinHook_INCLUDE_DIRS})
     target_link_libraries(Microsoft.R.Host ${MinHook_LIBRARY})
 
-    # Find R in registry, trying various keys from 3.3.20 to 3.3.1 down.
+    # Find R in registry, trying various keys from 3.4.20 to 3.4.0 down.
 
     set(R_PATH "/registry")
-    foreach(i RANGE 20 1 -1)
+    foreach(i RANGE 20 0 -1)
         if("${R_PATH}" STREQUAL "/registry")
-            GET_FILENAME_COMPONENT(R_PATH "[HKEY_LOCAL_MACHINE\\SOFTWARE\\R-core\\R64\\3.3.${i};InstallPath]" ABSOLUTE)
+            GET_FILENAME_COMPONENT(R_PATH "[HKEY_LOCAL_MACHINE\\SOFTWARE\\R-core\\R64\\3.4.${i};InstallPath]" ABSOLUTE)
         endif()
     endforeach()
 
     if("${R_PATH}" STREQUAL "/registry")
-        message(FATAL_ERROR "R 3.3.x not found")
+        message(FATAL_ERROR "R 3.4.x not found")
     endif()
 
     message(STATUS "Using R at ${R_PATH}")

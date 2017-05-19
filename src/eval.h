@@ -23,6 +23,7 @@
 #pragma once
 #include "stdafx.h"
 #include "util.h"
+#include "r_api.h"
 
 namespace rhost {
     namespace eval {

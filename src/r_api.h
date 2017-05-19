@@ -30,6 +30,8 @@
 #define R_NO_REMAP
 #undef ERROR
 
+#include "stdafx.h"
+
 #include "R.h"
 #include "Rinternals.h"
 
@@ -61,8 +63,11 @@ extern "C" {
     extern void R_CleanUp(SA_TYPE, int, int);
     typedef SEXP(*CCODE)(SEXP, SEXP, SEXP, SEXP);
 
-#define R_32_GE_version 10
-#define R_33_GE_version 11
+    enum {
+        R_32_GE_version = 10,
+        R_33_GE_version = 11,
+        R_34_GE_version = 12,
+    };
 
     enum {
         CTXT_TOPLEVEL = 0,
@@ -186,9 +191,11 @@ extern "C" {
     RHOST_IMPORT extern const wchar_t* Rf_wtransChar(SEXP s);
 #endif
 
-
 #ifdef _WIN32
 #undef Win32
 #endif // _WIN32
-
 }
+
+
+#include "loadr.h"
+#include "r_gd_api.h"

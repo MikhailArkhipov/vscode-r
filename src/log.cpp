@@ -22,8 +22,10 @@
 
 #include "stdafx.h"
 #include "log.h"
+#include "r_api.h"
 
 using namespace std::literals;
+using namespace rhost::rapi;
 
 namespace rhost {
     namespace log {

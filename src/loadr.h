@@ -26,42 +26,27 @@
 #define RHOST_RAPI_PTR(api) fp_##api
 #define RHOST_RAPI_DECL(api) extern decltype(api) *RHOST_RAPI_PTR(api)
 #define RHOST_RAPI_DECL_END(api) RHOST_RAPI_DECL(api);
-#define RHOST_RAPI_DEFINE(api) decltype(api) *RHOST_RAPI_PTR(api)
-#define RHOST_RAPI_DEFINE_NULLPTR(api) RHOST_RAPI_DEFINE(api) = nullptr;
 #define RHOST_RAPI_STR(api) #api
 #define RAPI(api) rhost::rapi::RHOST_RAPI_PTR(api)
 
 #define RHOST_RAPI_SET_COMMON(macro) \
 macro(CAR) \
 macro(CDR) \
-macro(GEaddDevice2) \
-macro(GEaddDevice2f) \
-macro(GEcopyDisplayList) \
-macro(GEcreateDevDesc) \
-macro(GEcreateSnapshot) \
-macro(GEgetDevice) \
-macro(GEkillDevice) \
-macro(GEplayDisplayList) \
-macro(GEplaySnapshot) \
 macro(INTEGER) \
 macro(LOGICAL) \
 macro(PRCODE) \
 macro(PRVALUE) \
 macro(R_BaseEnv) \
 macro(R_CHAR) \
-macro(R_CheckDeviceAvailable) \
 macro(R_CleanUp) \
 macro(R_common_command_line) \
 macro(R_curErrorBuf) \
 macro(R_DefParams) \
 macro(R_EmptyEnv) \
 macro(R_FunTab) \
-macro(R_GE_getVersion) \
 macro(R_getEmbeddingDllInfo) \
 macro(R_GlobalContext) \
 macro(R_GlobalEnv) \
-macro(R_interrupts_pending) \
-macro(R_interrupts_suspended) \
 macro(R_IsNA) \
 macro(R_lsInternal3) \
 macro(R_NaInt) \
@@ -93,9 +78,7 @@ macro(Rf_asInteger) \
 macro(Rf_asLogical) \
 macro(Rf_asReal) \
 macro(Rf_classgets) \
-macro(Rf_curDevice) \
 macro(Rf_deparse1line) \
-macro(Rf_desc2GEDesc) \
 macro(Rf_duplicate) \
 macro(Rf_error) \
 macro(Rf_eval) \
@@ -110,15 +93,12 @@ macro(Rf_length) \
 macro(Rf_mkChar) \
 macro(Rf_mkCharCE) \
 macro(Rf_mkString) \
-macro(Rf_ndevNumber) \
 macro(Rf_NewEnvironment) \
-macro(Rf_onintr) \
 macro(Rf_protect) \
 macro(Rf_ScalarInteger) \
 macro(Rf_ScalarLogical) \
 macro(Rf_ScalarReal) \
 macro(Rf_ScalarString) \
-macro(Rf_selectDevice) \
 macro(Rf_translateCharUTF8) \
 macro(Rf_unprotect) \
 macro(SET_RDEBUG) \
@@ -130,8 +110,26 @@ macro(STRING_ELT) \
 macro(TYPEOF) \
 macro(VECTOR_ELT) \
 macro(vmaxget) \
-macro(vmaxset)
+macro(vmaxset) \
+macro(Rf_onintr) \
+macro(R_GE_getVersion) \
+macro(Rf_curDevice) \
+macro(Rf_selectDevice) \
+macro(R_interrupts_suspended) \
+macro(R_interrupts_pending) \
+macro(R_CheckDeviceAvailable) \
+macro(GEcopyDisplayList)
 
+#define RHOST_GD_SET(macro) \
+macro(Rf_desc2GEDesc) \
+macro(GEplayDisplayList) \
+macro(GEplaySnapshot) \
+macro(GEcreateSnapshot) \
+macro(Rf_ndevNumber) \
+macro(GEgetDevice) \
+macro(GEkillDevice) \
+macro(GEcreateDevDesc) \
+macro(GEaddDevice2)
 
 #ifdef _WIN32
 
@@ -150,7 +148,7 @@ macro(run_Rmainloop) \
 macro(setup_Rmainloop)
 
 #define RHOST_RGRAPHAPPAPI_SET(macro) \
-macro(GA_initapp) 
+macro(GA_initapp)
 
 #define RHOST_RAPI_SET(macro) \
 RHOST_RAPI_SET_COMMON(macro) \
@@ -197,15 +195,15 @@ namespace rhost {
 #ifndef RHOST_NO_API_REDIRECT
 #define CAR rhost::rapi::RHOST_RAPI_PTR(CAR)
 #define CDR rhost::rapi::RHOST_RAPI_PTR(CDR)
-#define GEaddDevice2 rhost::rapi::RHOST_RAPI_PTR(GEaddDevice2)
-#define GEaddDevice2f rhost::rapi::RHOST_RAPI_PTR(GEaddDevice2f)
+//#define GEaddDevice2 rhost::rapi::RHOST_RAPI_PTR(GEaddDevice2)
+//#define GEaddDevice2f rhost::rapi::RHOST_RAPI_PTR(GEaddDevice2f)
 #define GEcopyDisplayList rhost::rapi::RHOST_RAPI_PTR(GEcopyDisplayList)
-#define GEcreateDevDesc rhost::rapi::RHOST_RAPI_PTR(GEcreateDevDesc)
-#define GEcreateSnapshot rhost::rapi::RHOST_RAPI_PTR(GEcreateSnapshot)
-#define GEgetDevice rhost::rapi::RHOST_RAPI_PTR(GEgetDevice)
-#define GEkillDevice rhost::rapi::RHOST_RAPI_PTR(GEkillDevice)
-#define GEplayDisplayList rhost::rapi::RHOST_RAPI_PTR(GEplayDisplayList)
-#define GEplaySnapshot rhost::rapi::RHOST_RAPI_PTR(GEplaySnapshot)
+//#define GEcreateDevDesc rhost::rapi::RHOST_RAPI_PTR(GEcreateDevDesc)
+//#define GEcreateSnapshot rhost::rapi::RHOST_RAPI_PTR(GEcreateSnapshot)
+//#define GEgetDevice rhost::rapi::RHOST_RAPI_PTR(GEgetDevice)
+//#define GEkillDevice rhost::rapi::RHOST_RAPI_PTR(GEkillDevice)
+//#define GEplayDisplayList rhost::rapi::RHOST_RAPI_PTR(GEplayDisplayList)
+//#define GEplaySnapshot rhost::rapi::RHOST_RAPI_PTR(GEplaySnapshot)
 #define INTEGER rhost::rapi::RHOST_RAPI_PTR(INTEGER)
 #define LOGICAL rhost::rapi::RHOST_RAPI_PTR(LOGICAL)
 #define PRCODE rhost::rapi::RHOST_RAPI_PTR(PRCODE)
@@ -258,7 +256,7 @@ namespace rhost {
 #define Rf_classgets rhost::rapi::RHOST_RAPI_PTR(Rf_classgets)
 #define Rf_curDevice rhost::rapi::RHOST_RAPI_PTR(Rf_curDevice)
 #define Rf_deparse1line rhost::rapi::RHOST_RAPI_PTR(Rf_deparse1line)
-#define Rf_desc2GEDesc rhost::rapi::RHOST_RAPI_PTR(Rf_desc2GEDesc)
+//#define Rf_desc2GEDesc rhost::rapi::RHOST_RAPI_PTR(Rf_desc2GEDesc)
 #define Rf_duplicate rhost::rapi::RHOST_RAPI_PTR(Rf_duplicate)
 #define Rf_error rhost::rapi::RHOST_RAPI_PTR(Rf_error)
 #define Rf_eval rhost::rapi::RHOST_RAPI_PTR(Rf_eval)
@@ -273,7 +271,7 @@ namespace rhost {
 #define Rf_mkChar rhost::rapi::RHOST_RAPI_PTR(Rf_mkChar)
 #define Rf_mkCharCE rhost::rapi::RHOST_RAPI_PTR(Rf_mkCharCE)
 #define Rf_mkString rhost::rapi::RHOST_RAPI_PTR(Rf_mkString)
-#define Rf_ndevNumber rhost::rapi::RHOST_RAPI_PTR(Rf_ndevNumber)
+//#define Rf_ndevNumber rhost::rapi::RHOST_RAPI_PTR(Rf_ndevNumber)
 #define Rf_NewEnvironment rhost::rapi::RHOST_RAPI_PTR(Rf_NewEnvironment)
 #define Rf_onintr rhost::rapi::RHOST_RAPI_PTR(Rf_onintr)
 #define Rf_protect rhost::rapi::RHOST_RAPI_PTR(Rf_protect)
