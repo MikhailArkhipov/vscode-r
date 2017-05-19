@@ -20,6 +20,8 @@
 *
 * ***************************************************************************/
 
+#if 0
+
 #include "stdafx.h"
 #include "xamlbuilder.h"
 #include "grdevices.h"
@@ -531,3 +533,5 @@ namespace rhost {
         }
     }
 }
+
+#endif

@@ -228,7 +228,7 @@ namespace rhost {
 
         DllInfo *dll = R_getEmbeddingDllInfo();
         rhost::r_util::init(dll);
-        rhost::grdevices::xaml::init(dll);
+        //rhost::grdevices::xaml::init(dll);
         rhost::grdevices::ide::init(dll);
         rhost::exports::register_all(dll);
 

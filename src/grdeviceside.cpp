@@ -29,12 +29,22 @@
 #include "grdevices.h"
 #include "exports.h"
 
+using namespace rhost::rapi;
+
 namespace rhost {
     namespace grdevices {
         namespace ide {
-            class plot {
+            template <int ApiVer>
+            class ide_device;
+
+            template <int ApiVer>
+            class plot : private gd_api<ApiVer> {
+                typedef gd_api<ApiVer> gd_api;
+                typedef ide_device<ApiVer> ide_device;
+                typedef typename gd_api::DevDesc DevDesc;
+
             public:
-                plot(pDevDesc dd, plot* source_plot = nullptr);
+                plot(DevDesc* dd, plot* source_plot = nullptr);
                 virtual ~plot();
 
                 boost::uuids::uuid get_id() const;
@@ -51,9 +61,8 @@ namespace rhost {
                 void create_snapshot();
                 void remove_snapshot_render_file();
 
-            private:
                 boost::uuids::uuid _plot_id;
-                pDevDesc _device_desc;
+                DevDesc* _device_desc;
                 bool _has_pending_render;
                 boost::posix_time::ptime _last_pending_render_time;
                 double _snapshot_render_width;
@@ -62,9 +71,16 @@ namespace rhost {
                 rhost::util::protected_sexp _snapshot;
             };
 
-            class plot_history {
+            template <int ApiVer>
+            class plot_history : private gd_api<ApiVer> {
+                typedef gd_api<ApiVer> gd_api;
+                typedef ide_device<ApiVer> ide_device;
+                typedef typename gd_api::DevDesc DevDesc;
+
             public:
-                plot_history(pDevDesc dd);
+                typedef plot<ApiVer> plot;
+
+                plot_history(DevDesc* dd);
 
                 plot* get_active() const;
                 plot* get_plot(const boost::uuids::uuid& plot_id);
@@ -84,9 +100,9 @@ namespace rhost {
                 int active_plot_index() const;
 
             private:
-                std::vector<std::unique_ptr<plot>>::iterator _active_plot;
-                std::vector<std::unique_ptr<plot>> _plots;
-                pDevDesc _device_desc;
+                typename std::vector<std::unique_ptr<plot>>::iterator _active_plot;
+                typename std::vector<std::unique_ptr<plot>> _plots;
+                DevDesc* _device_desc;
                 bool _replaying;
 
                 class replay_mode {
@@ -104,12 +120,19 @@ namespace rhost {
                 };
             };
 
-            class ide_device : public graphics_device {
-            public:
-                static std::unique_ptr<ide_device> create(const boost::uuids::uuid& device_id, std::string device_type, double width, double height, double resolution);
-                static void copy_device_attributes(pDevDesc source_dd, pDevDesc target_dd);
+            template <int ApiVer>
+            class ide_device : public graphics_device<ApiVer>, private gd_api<ApiVer> {
+                typedef gd_api<ApiVer> gd_api;
+                typedef typename gd_api::DevDesc DevDesc;
 
-                ide_device(pDevDesc dd, const boost::uuids::uuid& device_id, std::string device_type, double width, double height, double resolution);
+            public:
+                typedef plot<ApiVer> plot;
+                typedef plot_history<ApiVer> plot_history;
+
+                static std::unique_ptr<ide_device> create(const boost::uuids::uuid& device_id, std::string device_type, double width, double height, double resolution);
+                static void copy_device_attributes(DevDesc* source_dd, DevDesc* target_dd);
+
+                ide_device(DevDesc* dd, const boost::uuids::uuid& device_id, std::string device_type, double width, double height, double resolution);
                 virtual ~ide_device();
 
                 boost::signals2::signal<void(ide_device*)> closed;
@@ -142,6 +165,8 @@ namespace rhost {
                 virtual int hold_flush(int level);
 
             public:
+                static std::vector<ide_device*> devices;
+
                 boost::uuids::uuid get_id() const;
                 plot* get_plot(const boost::uuids::uuid& plot_id);
                 plot* copy_plot_from(ide_device *source_device, const boost::uuids::uuid& source_plot_id);
@@ -168,14 +193,18 @@ namespace rhost {
                 void delete_file_device();
                 void output_and_kill_file_device();
 
+                static void process_pending_render(bool immediately);
+                static ide_device* find_device_by_num(int device_num);
+                static ide_device* find_device_by_id(const boost::uuids::uuid& device_id);
+
             private:
                 fs::path get_render_file_path();
-                devdesc_wrapper get_or_create_file_device();
-                devdesc_wrapper create_file_device();
+                DevDesc* get_or_create_file_device();
+                DevDesc* create_file_device();
                 void sync_file_device();
                 void set_pending_render();
 
-                static devdesc_wrapper create_file_device(const std::string& device_type, const fs::path& filename, double width, double height, double resolution);
+                static DevDesc* create_file_device(const std::string& device_type, const fs::path& filename, double width, double height, double resolution);
 
             private:
                 boost::uuids::uuid _device_id;
@@ -183,7 +212,7 @@ namespace rhost {
                 double _height;
                 double _resolution;
                 bool _debug;
-                pDevDesc _file_device;
+                DevDesc* _file_device;
                 std::string _file_device_type;
                 fs::path _file_device_filename;
                 plot_history _history;
@@ -206,25 +235,23 @@ namespace rhost {
                 }
             };
 
-            static std::vector<ide_device*> devices;
             static boost::uuids::random_generator uuid_generator;
 
-            ///////////////////////////////////////////////////////////////////////
-            // Ide device plot
-            ///////////////////////////////////////////////////////////////////////
-
-            plot::plot(pDevDesc dd, plot* source_plot) :
+            template <int ApiVer>
+            plot<ApiVer>::plot(DevDesc* dd, plot* source_plot) :
                 _plot_id(uuid_generator()),
                 _device_desc(dd),
                 _snapshot(source_plot ? source_plot->_snapshot : nullptr),
                 _has_pending_render(false) {
             }
 
-            plot::~plot() {
+            template <int ApiVer>
+            plot<ApiVer>::~plot() {
                 remove_snapshot_render_file();
             }
 
-            void plot::remove_snapshot_render_file() {
+            template <int ApiVer>
+            void plot<ApiVer>::remove_snapshot_render_file() {
                 if (!_snapshot_render_filename.empty()) {
                     try {
                         fs::remove(_snapshot_render_filename);
@@ -234,26 +261,31 @@ namespace rhost {
                 }
             }
 
-            boost::uuids::uuid plot::get_id() const {
+            template <int ApiVer>
+            boost::uuids::uuid plot<ApiVer>::get_id() const {
                 return _plot_id;
             }
 
-            void plot::set_pending_render() {
+            template <int ApiVer>
+            void plot<ApiVer>::set_pending_render() {
                 _has_pending_render = true;
                 _last_pending_render_time = boost::posix_time::ptime(boost::posix_time::second_clock::local_time());
             }
 
-            bool plot::has_pending_render() const {
+            template <int ApiVer>
+            bool plot<ApiVer>::has_pending_render() const {
                 return _has_pending_render;
             }
 
-            bool plot::pending_render_timeout_elapsed() const {
+            template <int ApiVer>
+            bool plot<ApiVer>::pending_render_timeout_elapsed() const {
                 auto now = boost::posix_time::second_clock::local_time();
                 auto elapsed = now - _last_pending_render_time;
                 return elapsed.total_milliseconds() >= 50;
             }
 
-            void plot::render_empty() {
+            template <int ApiVer>
+            void plot<ApiVer>::render_empty() {
                 auto xdd = reinterpret_cast<ide_device*>(_device_desc->deviceSpecific);
                 auto path = xdd->save_empty();
 
@@ -263,7 +295,8 @@ namespace rhost {
                 xdd->send(_plot_id, path);
             }
 
-            void plot::render(bool save_snapshot) {
+            template <int ApiVer>
+            void plot<ApiVer>::render(bool save_snapshot) {
                 if (!has_pending_render()) {
                     return;
                 }
@@ -290,16 +323,18 @@ namespace rhost {
                 xdd->send(_plot_id, path);
             }
 
-            void plot::render_from_display_list() {
+            template <int ApiVer>
+            void plot<ApiVer>::render_from_display_list() {
                 rhost::util::errors_to_exceptions([&] {
-                    pGEDevDesc ge_dev_desc = Rf_desc2GEDesc(_device_desc);
-                    GEplayDisplayList(ge_dev_desc);
+                    pGEDevDesc ge_dev_desc = gd_api::Rf_desc2GEDesc(_device_desc);
+                    gd_api::GEplayDisplayList(ge_dev_desc);
                 });
 
                 render(true);
             }
 
-            void plot::render_from_snapshot() {
+            template <int ApiVer>
+            void plot<ApiVer>::render_from_snapshot() {
                 auto xdd = reinterpret_cast<ide_device*>(_device_desc->deviceSpecific);
                 xdd->output_and_kill_file_device();
 
@@ -307,8 +342,8 @@ namespace rhost {
                     rhost::util::errors_to_exceptions([&] {
                         auto snapshot = _snapshot.get();
                         if (snapshot != nullptr && snapshot != R_UnboundValue && snapshot != R_NilValue) {
-                            pGEDevDesc ge_dev_desc = Rf_desc2GEDesc(_device_desc);
-                            GEplaySnapshot(snapshot, ge_dev_desc);
+                            pGEDevDesc ge_dev_desc = gd_api::Rf_desc2GEDesc(_device_desc);
+                            gd_api::GEplaySnapshot(snapshot, ge_dev_desc);
                         }
                         else {
                             render_empty();
@@ -320,7 +355,8 @@ namespace rhost {
                 }
             }
 
-            void plot::set_snapshot(const rhost::util::protected_sexp& snapshot) {
+            template <int ApiVer>
+            void plot<ApiVer>::set_snapshot(const rhost::util::protected_sexp& snapshot) {
                 rhost::util::errors_to_exceptions([&] {
                     SEXP klass = Rf_protect(Rf_mkString("recordedplot"));
                     Rf_classgets(snapshot.get(), klass);
@@ -331,10 +367,11 @@ namespace rhost {
                 });
             }
 
-            void plot::create_snapshot() {
+            template <int ApiVer>
+            void plot<ApiVer>::create_snapshot() {
                 rhost::util::errors_to_exceptions([&] {
-                    pGEDevDesc ge_dev_desc = Rf_desc2GEDesc(_device_desc);
-                    _snapshot = GEcreateSnapshot(ge_dev_desc);
+                    pGEDevDesc ge_dev_desc = gd_api::Rf_desc2GEDesc(_device_desc);
+                    _snapshot = gd_api::GEcreateSnapshot(ge_dev_desc);
                 });
             }
 
@@ -342,13 +379,15 @@ namespace rhost {
             // Ide device plot history
             ///////////////////////////////////////////////////////////////////////
 
-            plot_history::plot_history(pDevDesc dd) :
+            template <int ApiVer>
+            plot_history<ApiVer>::plot_history(DevDesc* dd) :
                 _device_desc(dd),
                 _replaying(false) {
                 _active_plot = _plots.begin();
             }
 
-            plot* plot_history::get_active() const {
+            template <int ApiVer>
+            auto plot_history<ApiVer>::get_active() const -> plot* {
                 if (_active_plot == _plots.end()) {
                     return nullptr;
                 }
@@ -356,12 +395,14 @@ namespace rhost {
                 return (*_active_plot).get();
             }
 
-            plot* plot_history::get_plot(const boost::uuids::uuid& plot_id) {
+            template <int ApiVer>
+            auto plot_history<ApiVer>::get_plot(const boost::uuids::uuid& plot_id) -> plot* {
                 auto plot = find_if(_plots.begin(), _plots.end(), [&](auto& p) { return p->get_id() == plot_id; });
                 return (plot != _plots.end()) ? (*plot).get() : nullptr;
             }
 
-            bool plot_history::select(const boost::uuids::uuid& plot_id) {
+            template <int ApiVer>
+            bool plot_history<ApiVer>::select(const boost::uuids::uuid& plot_id) {
                 if (_active_plot != _plots.end() && (*_active_plot)->get_id() == plot_id) {
                     return false;
                 }
@@ -375,7 +416,8 @@ namespace rhost {
                 return false;
             }
 
-            void plot_history::move_next() {
+            template <int ApiVer>
+            void plot_history<ApiVer>::move_next() {
                 auto end = _plots.end();
                 if (_active_plot != end) {
                     auto next = std::next(_active_plot);
@@ -385,17 +427,19 @@ namespace rhost {
                 }
             }
 
-            void plot_history::move_previous() {
+            template <int ApiVer>
+            void plot_history<ApiVer>::move_previous() {
                 if (_active_plot != _plots.begin()) {
                     _active_plot--;
                 }
             }
 
-            void plot_history::new_page() {
+            template <int ApiVer>
+            void plot_history<ApiVer>::new_page() {
                 if (!_replaying) {
                     auto previous_plot = get_active();
                     if (previous_plot != nullptr) {
-                        pGEDevDesc ge_dev_desc = Rf_desc2GEDesc(_device_desc);
+                        pGEDevDesc ge_dev_desc = gd_api::Rf_desc2GEDesc(_device_desc);
                         util::protected_sexp snapshot(ge_dev_desc->savedSnapshot);
                         if (previous_plot->has_pending_render()) {
                             previous_plot->set_snapshot(snapshot);
@@ -408,17 +452,20 @@ namespace rhost {
                 }
             }
 
-            void plot_history::append(std::unique_ptr<plot> p) {
+            template <int ApiVer>
+            void plot_history<ApiVer>::append(std::unique_ptr<plot> p) {
                 _plots.push_back(std::move(p));
                 _active_plot = std::prev(_plots.end(), 1);
             }
 
-            void plot_history::clear() {
+            template <int ApiVer>
+            void plot_history<ApiVer>::clear() {
                 _plots.clear();
                 _active_plot = _plots.begin();
             }
 
-            void plot_history::remove(const boost::uuids::uuid& plot_id) {
+            template <int ApiVer>
+            void plot_history<ApiVer>::remove(const boost::uuids::uuid& plot_id) {
                 auto plot = find_if(_plots.begin(), _plots.end(), [&](auto& p) { return p->get_id() == plot_id; });
                 if (plot != _plots.end()) {
                     _active_plot = _plots.erase(plot);
@@ -430,7 +477,8 @@ namespace rhost {
                 }
             }
 
-            void plot_history::resize(double width, double height, double resolution) {
+            template <int ApiVer>
+            void plot_history<ApiVer>::resize(double width, double height, double resolution) {
                 auto plot = get_active();
                 if (plot != nullptr) {
                     if (plot->has_pending_render()) {
@@ -444,7 +492,8 @@ namespace rhost {
                 }
             }
 
-            void plot_history::render_from_snapshot() {
+            template <int ApiVer>
+            void plot_history<ApiVer>::render_from_snapshot() {
                 auto replay = replay_mode(*this);
                 auto plot = _active_plot->get();
                 if (plot != nullptr) {
@@ -452,11 +501,13 @@ namespace rhost {
                 }
             }
 
-            int plot_history::plot_count() const {
+            template <int ApiVer>
+            int plot_history<ApiVer>::plot_count() const {
                 return (int)_plots.size();
             }
 
-            int plot_history::active_plot_index() const {
+            template <int ApiVer>
+            int plot_history<ApiVer>::active_plot_index() const {
                 if (_active_plot == _plots.end()) {
                     return -1;
                 }
@@ -469,99 +520,104 @@ namespace rhost {
             // Ide device
             ///////////////////////////////////////////////////////////////////////
 
-            std::unique_ptr<ide_device> ide_device::create(const boost::uuids::uuid& device_id, std::string device_type, double width, double height, double resolution) {
-                pDevDesc dd = static_cast<pDevDesc>(devdesc_wrapper::allocate());
+            template <int ApiVer>
+            std::vector<ide_device<ApiVer>*> ide_device<ApiVer>::devices;
 
+            template <int ApiVer>
+            auto ide_device<ApiVer>::create(const boost::uuids::uuid& device_id, std::string device_type, double width, double height, double resolution) -> std::unique_ptr<ide_device> {
+                auto dd = static_cast<DevDesc*>(calloc(1, sizeof(DevDesc)));
                 auto xdd = std::make_unique<ide_device>(dd, device_id, device_type, width, height, resolution);
 
-                pDevDesc file_dd = xdd->create_file_device().get_pDevDesc();
-
-                xdd.get()->_file_device = file_dd;
+                DevDesc* file_dd = xdd->create_file_device();
+                xdd->_file_device = file_dd;
 
                 // Our ide device needs to look like an instance of the 
                 // file device, so we copy most of its attributes
                 // (don't overwrite the callbacks that are already assigned).
                 copy_device_attributes(file_dd, dd);
 
-                devdesc_wrapper dw(dd);
-                dw.set_displayListOn(R_TRUE);
-                dw.set_canGenMouseDown(R_FALSE);
-                dw.set_canGenMouseMove(R_FALSE);
-                dw.set_canGenMouseUp(R_FALSE);
-                dw.set_canGenKeybd(R_FALSE);
-                dw.set_canGenIdle(R_FALSE);
+                dd->displayListOn = R_TRUE;
+                dd->canGenMouseDown = R_FALSE;
+                dd->canGenMouseMove = R_FALSE;
+                dd->canGenMouseUp = R_FALSE;
+                dd->canGenKeybd = R_FALSE;
+                //dd->canGenIdle = R_FALSE;
 
-                dw.set_deviceSpecific(xdd.get());
-
+                dd->deviceSpecific = xdd.get();
                 return xdd;
             }
 
-            void ide_device::copy_device_attributes(pDevDesc source_dd, pDevDesc target_dd) {
-                devdesc_wrapper td(target_dd);
-                devdesc_wrapper sd(source_dd);
-
-                td.set_left(sd.get_left());
-                td.set_right(sd.get_right());
-                td.set_bottom(sd.get_bottom());
-                td.set_top(sd.get_top());
-
-                td.set_clipLeft(sd.get_clipLeft());
-                td.set_clipRight(sd.get_clipRight());
-                td.set_clipBottom(sd.get_clipBottom());
-                td.set_clipTop(sd.get_clipTop());
-
-                td.set_xCharOffset(sd.get_xCharOffset());
-                td.set_yCharOffset(sd.get_yCharOffset());
-                td.set_yLineBias(sd.get_yLineBias());
-
-                td.set_ipr(0, sd.get_ipr(0));
-                td.set_ipr(1, sd.get_ipr(1));
-                td.set_cra(0, sd.get_cra(0));
-                td.set_cra(1, sd.get_cra(1));
-                td.set_gamma(sd.get_gamma());
-
-                td.set_canClip(sd.get_canClip());
-                td.set_canChangeGamma(sd.get_canChangeGamma());
-                td.set_canHAdj(sd.get_canHAdj());
-
-                td.set_startps(sd.get_startps());
-                td.set_startcol(sd.get_startcol());
-                td.set_startfill(sd.get_startfill());
-                td.set_startlty(sd.get_startlty());
-                td.set_startfont(sd.get_startfont());
-                td.set_startgamma(sd.get_startgamma());
-
-                td.set_hasTextUTF8(sd.get_hasTextUTF8());
-                td.set_wantSymbolUTF8(sd.get_wantSymbolUTF8());
-                td.set_useRotatedTextInContour(sd.get_useRotatedTextInContour());
-
-                td.set_haveTransparency(sd.get_haveTransparency());
-                td.set_haveTransparentBg(sd.get_haveTransparentBg());
-                td.set_haveRaster(sd.get_haveRaster());
-                td.set_haveCapture(sd.get_haveCapture());
-                td.set_haveLocator(sd.get_haveLocator());
+            template <>
+            auto ide_device<12>::create(const boost::uuids::uuid& device_id, std::string device_type, double width, double height, double resolution) -> std::unique_ptr<ide_device> {
+                return nullptr;
             }
 
-            void ide_device::activate() {
+            template <int ApiVer>
+            void ide_device<ApiVer>::copy_device_attributes(DevDesc* source_dd, DevDesc* target_dd) {
+                target_dd->left = source_dd->left;
+                target_dd->right = source_dd->right;
+                target_dd->bottom = source_dd->bottom;
+                target_dd->top = source_dd->top;
+
+                target_dd->clipLeft = source_dd->clipLeft;
+                target_dd->clipRight = source_dd->clipRight;
+                target_dd->clipBottom = source_dd->clipBottom;
+                target_dd->clipTop = source_dd->clipTop;
+
+                target_dd->xCharOffset = source_dd->xCharOffset;
+                target_dd->yCharOffset = source_dd->yCharOffset;
+                target_dd->yLineBias = source_dd->yLineBias;
+
+                target_dd->ipr[0] = source_dd->ipr[0];
+                target_dd->ipr[1] = source_dd->ipr[1];
+                target_dd->cra[0] = source_dd->cra[0];
+                target_dd->cra[1] = source_dd->cra[1];
+                target_dd->gamma = source_dd->gamma;
+
+                target_dd->canClip = source_dd->canClip;
+                target_dd->canChangeGamma = source_dd->canChangeGamma;
+                target_dd->canHAdj = source_dd->canHAdj;
+
+                target_dd->startps = source_dd->startps;
+                target_dd->startcol = source_dd->startcol;
+                target_dd->startfill = source_dd->startfill;
+                target_dd->startlty = source_dd->startlty;
+                target_dd->startfont = source_dd->startfont;
+                target_dd->startgamma = source_dd->startgamma;
+
+                target_dd->hasTextUTF8 = source_dd->hasTextUTF8;
+                target_dd->wantSymbolUTF8 = source_dd->wantSymbolUTF8;
+                target_dd->useRotatedTextInContour = source_dd->useRotatedTextInContour;
+
+                target_dd->haveTransparency = source_dd->haveTransparency;
+                target_dd->haveTransparentBg = source_dd->haveTransparentBg;
+                target_dd->haveRaster = source_dd->haveRaster;
+                target_dd->haveCapture = source_dd->haveCapture;
+                target_dd->haveLocator = source_dd->haveLocator;
             }
 
-            void ide_device::circle(double x, double y, double r, pGEcontext gc) {
+            template <int ApiVer>
+            void ide_device<ApiVer>::activate() {
+            }
+
+            template <int ApiVer>
+            void ide_device<ApiVer>::circle(double x, double y, double r, pGEcontext gc) {
                 auto dev = get_or_create_file_device();
-                auto f = dev.get_circle();
-                if (f != nullptr) {
-                    f(x, y, r, gc, dev.get_pDevDesc());
+                if (dev->circle != nullptr) {
+                    dev->circle(x, y, r, gc, dev);
                 }
             }
 
-            void ide_device::clip(double x0, double x1, double y0, double y1) {
+            template <int ApiVer>
+            void ide_device<ApiVer>::clip(double x0, double x1, double y0, double y1) {
                 auto dev = get_or_create_file_device();
-                auto f = dev.get_clip();
-                if (f != nullptr) {
-                    f(x0, x1, y0, y1, dev.get_pDevDesc());
+                if (dev->clip != nullptr) {
+                    dev->clip(x0, x1, y0, y1, dev);
                 }
             }
 
-            void ide_device::close() {
+            template <int ApiVer>
+            void ide_device<ApiVer>::close() {
                 auto device_name(boost::uuids::to_string(_device_id));
                 rhost::host::with_cancellation([&] {
                     rhost::host::send_notification(
@@ -576,10 +632,12 @@ namespace rhost {
                 delete this;
             }
 
-            void ide_device::deactivate() {
+            template <int ApiVer>
+            void ide_device<ApiVer>::deactivate() {
             }
 
-            Rboolean ide_device::locator(double *x, double *y) {
+            template <int ApiVer>
+            Rboolean ide_device<ApiVer>::locator(double *x, double *y) {
                 *x = 0;
                 *y = 0;
                 Rboolean clicked = R_FALSE;
@@ -603,156 +661,164 @@ namespace rhost {
                 return clicked;
             }
 
-            void ide_device::line(double x1, double y1, double x2, double y2, const pGEcontext gc) {
+            template <int ApiVer>
+            void ide_device<ApiVer>::line(double x1, double y1, double x2, double y2, const pGEcontext gc) {
                 auto dev = get_or_create_file_device();
-                auto f = dev.get_line();
-                if (f != nullptr) {
-                    f(x1, y1, x2, y2, gc, dev.get_pDevDesc());
+                if (dev->line != nullptr) {
+                    dev->line(x1, y1, x2, y2, gc, dev);
                 }
             }
 
-            void ide_device::metric_info(int c, const pGEcontext gc, double* ascent, double* descent, double* width) {
+            template <int ApiVer>
+            void ide_device<ApiVer>::metric_info(int c, const pGEcontext gc, double* ascent, double* descent, double* width) {
                 *ascent = 0;
                 *descent = 0;
                 *width = 0;
 
                 auto dev = get_or_create_file_device();
-                auto f = dev.get_metricInfo();
-                if (f != nullptr) {
-                    f(c, gc, ascent, descent, width, dev.get_pDevDesc());
+                if (dev->metricInfo != nullptr) {
+                    dev->metricInfo(c, gc, ascent, descent, width, dev);
                 }
             }
 
-            void ide_device::mode(int mode) {
+            template <int ApiVer>
+            void ide_device<ApiVer>::mode(int mode) {
                 auto dev = get_or_create_file_device();
-                auto f = dev.get_mode();
-                if (f != nullptr) {
-                    f(mode, dev.get_pDevDesc());
+                if (dev->mode != nullptr) {
+                    dev->mode(mode, dev);
                 }
 
                 set_pending_render();
             }
 
-            void ide_device::new_page(const pGEcontext gc) {
+            template <int ApiVer>
+            void ide_device<ApiVer>::new_page(const pGEcontext gc) {
                 _history.new_page();
 
                 auto dev = get_or_create_file_device();
-                auto f = dev.get_newPage();
-                if (f != nullptr) {
-                    f(gc, dev.get_pDevDesc());
+                if (dev->newPage != nullptr) {
+                    dev->newPage(gc, dev);
                 }
             }
 
-            void ide_device::polygon(int n, double *x, double *y, const pGEcontext gc) {
+            template <int ApiVer>
+            void ide_device<ApiVer>::polygon(int n, double *x, double *y, const pGEcontext gc) {
                 auto dev = get_or_create_file_device();
-                auto f = dev.get_polygon();
-                if (f != nullptr) {
-                    f(n, x, y, gc, dev.get_pDevDesc());
+                if (dev->polygon != nullptr) {
+                    dev->polygon(n, x, y, gc, dev);
                 }
             }
 
-            void ide_device::polyline(int n, double *x, double *y, const pGEcontext gc) {
+            template <int ApiVer>
+            void ide_device<ApiVer>::polyline(int n, double *x, double *y, const pGEcontext gc) {
                 auto dev = get_or_create_file_device();
-                auto f = dev.get_polyline();
-                if (f != nullptr) {
-                    f(n, x, y, gc, dev.get_pDevDesc());
+                if (dev->polyline != nullptr) {
+                    dev->polyline(n, x, y, gc, dev);
                 }
             }
 
-            void ide_device::rect(double x0, double y0, double x1, double y1, const pGEcontext gc) {
+            template <int ApiVer>
+            void ide_device<ApiVer>::rect(double x0, double y0, double x1, double y1, const pGEcontext gc) {
                 auto dev = get_or_create_file_device();
-                auto f = dev.get_rect();
-                if (f != nullptr) {
-                    f(x0, y0, x1, y1, gc, dev.get_pDevDesc());
+                if (dev->rect != nullptr) {
+                    dev->rect(x0, y0, x1, y1, gc, dev);
                 }
             }
 
-            void ide_device::path(double *x, double *y, int npoly, int *nper, Rboolean winding, const pGEcontext gc) {
+            template <int ApiVer>
+            void ide_device<ApiVer>::path(double *x, double *y, int npoly, int *nper, Rboolean winding, const pGEcontext gc) {
                 auto dev = get_or_create_file_device();
-                auto f = dev.get_path();
-                if (f != nullptr) {
-                    f(x, y, npoly, nper, winding, gc, dev.get_pDevDesc());
+                if (dev->path) {
+                    dev->path(x, y, npoly, nper, winding, gc, dev);
                 }
             }
 
-            void ide_device::raster(unsigned int *raster, int w, int h, double x, double y, double width, double height, double rot, Rboolean interpolate, const pGEcontext gc) {
+            template <int ApiVer>
+            void ide_device<ApiVer>::raster(unsigned int *raster, int w, int h, double x, double y, double width, double height, double rot, Rboolean interpolate, const pGEcontext gc) {
                 auto dev = get_or_create_file_device();
-                auto f = dev.get_raster();
-                if (f != nullptr) {
-                    f(raster, w, h, x, y, width, height, rot, interpolate, gc, dev.get_pDevDesc());
+                if (dev->raster != nullptr) {
+                    dev->raster(raster, w, h, x, y, width, height, rot, interpolate, gc, dev);
                 }
             }
 
-            SEXP ide_device::cap() {
+
+            template <int ApiVer>
+            SEXP ide_device<ApiVer>::cap() {
                 return R_NilValue;
             }
 
-            void ide_device::size(double *left, double *right, double *bottom, double *top) {
+            template <int ApiVer>
+            void ide_device<ApiVer>::size(double *left, double *right, double *bottom, double *top) {
                 auto dev = get_or_create_file_device();
-                auto f = dev.get_size();
-                if (f != nullptr) {
-                    f(left, right, bottom, top, dev.get_pDevDesc());
+                if (dev->size != nullptr) {
+                    dev->size(left, right, bottom, top, dev);
                 }
             }
 
-            double ide_device::str_width(const char *str, const pGEcontext gc) {
+            template <int ApiVer>
+            double ide_device<ApiVer>::str_width(const char *str, const pGEcontext gc) {
                 double width = 0;
 
                 auto dev = get_or_create_file_device();
-                auto f = dev.get_strWidth();
-                if (f != nullptr) {
-                    width = f(str, gc, dev.get_pDevDesc());
+                if (dev->strWidth != nullptr) {
+                    width = dev->strWidth(str, gc, dev);
                 }
                 return width;
             }
 
-            void ide_device::text(double x, double y, const char *str, double rot, double hadj, const pGEcontext gc) {
+            template <int ApiVer>
+            void ide_device<ApiVer>::text(double x, double y, const char *str, double rot, double hadj, const pGEcontext gc) {
                 auto dev = get_or_create_file_device();
-                auto f = dev.get_text();
-                if (f != nullptr) {
-                    f(x, y, str, rot, hadj, gc, dev.get_pDevDesc());
+                if (dev->text != nullptr) {
+                    dev->text(x, y, str, rot, hadj, gc, dev);
                 }
             }
 
-            void ide_device::on_exit() {
+            template <int ApiVer>
+            void ide_device<ApiVer>::on_exit() {
             }
 
-            Rboolean ide_device::new_frame_confirm() {
+            template <int ApiVer>
+            Rboolean ide_device<ApiVer>::new_frame_confirm() {
                 return R_FALSE;
             }
 
-            void ide_device::text_utf8(double x, double y, const char *str, double rot, double hadj, const pGEcontext gc) {
+            template <int ApiVer>
+            void ide_device<ApiVer>::text_utf8(double x, double y, const char *str, double rot, double hadj, const pGEcontext gc) {
                 auto dev = get_or_create_file_device();
-                auto f = dev.get_textUTF8();
-                if (f != nullptr) {
-                    f(x, y, str, rot, hadj, gc, dev.get_pDevDesc());
+                if (dev->textUTF8 != nullptr) {
+                    dev->textUTF8(x, y, str, rot, hadj, gc, dev);
                 }
             }
 
-            double ide_device::str_width_utf8(const char *str, const pGEcontext gc) {
+            template <int ApiVer>
+            double ide_device<ApiVer>::str_width_utf8(const char *str, const pGEcontext gc) {
                 double width = 0;
 
                 auto dev = get_or_create_file_device();
-                auto f = dev.get_strWidthUTF8();
-                if (f != nullptr) {
-                    width = f(str, gc, dev.get_pDevDesc());
+                if (dev->strWidthUTF8 != nullptr) {
+                    width = dev->strWidthUTF8(str, gc, dev);
                 }
 
                 return width;
             }
 
-            void ide_device::event_helper(int code) {
+            template <int ApiVer>
+            void ide_device<ApiVer>::event_helper(int code) {
             }
 
-            int ide_device::hold_flush(int level) {
+            template <int ApiVer>
+            int ide_device<ApiVer>::hold_flush(int level) {
                 return 0;
             }
 
-            boost::uuids::uuid ide_device::get_id() const {
+            template <int ApiVer>
+            boost::uuids::uuid ide_device<ApiVer>::get_id() const {
                 return _device_id;
             }
 
-            void ide_device::render_request(bool immediately) {
+            template <int ApiVer>
+            void ide_device<ApiVer>::render_request(bool immediately) {
                 auto plot = _history.get_active();
                 if (plot != nullptr) {
                     if (plot->has_pending_render()) {
@@ -763,17 +829,19 @@ namespace rhost {
                 }
             }
 
-            plot* ide_device::get_plot(const boost::uuids::uuid& plot_id) {
+            template <int ApiVer>
+            auto ide_device<ApiVer>::get_plot(const boost::uuids::uuid& plot_id) -> plot* {
                 return _history.get_plot(plot_id);
             }
 
-            plot* ide_device::copy_plot_from(ide_device *source_device, const boost::uuids::uuid& source_plot_id) {
+            template <int ApiVer>
+            auto ide_device<ApiVer>::copy_plot_from(ide_device *source_device, const boost::uuids::uuid& source_plot_id) -> plot* {
                 auto source_plot = source_device->get_plot(source_plot_id);
                 if (source_plot == nullptr) {
                     return nullptr;
                 }
 
-                auto target_plot(std::make_unique<plot>(dev.get_pDevDesc(), source_plot));
+                auto target_plot(std::make_unique<plot>(this->device_desc, source_plot));
                 auto plot = target_plot.get();
 
                 _history.append(std::move(target_plot));
@@ -781,14 +849,16 @@ namespace rhost {
                 return plot;
             }
 
-            void ide_device::select() {
+            template <int ApiVer>
+            void ide_device<ApiVer>::select() {
                 rhost::util::errors_to_exceptions([&] {
-                    auto num = Rf_ndevNumber(dev.get_pDevDesc());
+                    auto num = gd_api::Rf_ndevNumber(this->device_desc);
                     Rf_selectDevice(num);
                 });
             }
 
-            void ide_device::resize(double width, double height, double resolution) {
+            template <int ApiVer>
+            void ide_device<ApiVer>::resize(double width, double height, double resolution) {
                 output_and_kill_file_device();
 
                 _width = width;
@@ -797,39 +867,43 @@ namespace rhost {
 
                 // Recreate the file device to obtain its new attributes,
                 // based on the new width/height/resolution.
-                _file_device = create_file_device().get_pDevDesc();
+                _file_device = create_file_device();
 
                 // Update the ide device with attributes based
                 // on the new width/height/resolution, so that 
                 // future plots on this device are calculated correctly.
                 // https://github.com/Microsoft/RTVS/issues/2017
-                copy_device_attributes(_file_device, dev.get_pDevDesc());
+                copy_device_attributes(_file_device, this->device_desc);
 
                 delete_file_device();
 
                 _history.resize(width, height, resolution);
             }
 
-            fs::path ide_device::save() {
+            template <int ApiVer>
+            fs::path ide_device<ApiVer>::save() {
                 auto path = _file_device_filename;
                 sync_file_device();
                 output_and_kill_file_device();
                 return path;
             }
 
-            fs::path ide_device::save_empty() {
+            template <int ApiVer>
+            fs::path ide_device<ApiVer>::save_empty() {
                 auto path = get_render_file_path();
                 std::ofstream empty_file(path.make_preferred().string());
                 empty_file.close();
                 return path;
             }
 
-            void ide_device::send_clear() {
+            template <int ApiVer>
+            void ide_device<ApiVer>::send_clear() {
                 // send an 'empty' plot to ide to clear the plot window
                 send(boost::uuids::uuid(), fs::path(""));
             }
 
-            void ide_device::send(const boost::uuids::uuid& plot_id, const fs::path& filename) {
+            template <int ApiVer>
+            void ide_device<ApiVer>::send(const boost::uuids::uuid& plot_id, const fs::path& filename) {
                 auto path_copy(filename);
                 auto plot_name(boost::uuids::to_string(plot_id));
                 auto device_name(boost::uuids::to_string(_device_id));
@@ -843,7 +917,7 @@ namespace rhost {
 
                     int device_num = -1;
                     rhost::util::errors_to_exceptions([&] {
-                        device_num = Rf_ndevNumber(dev.get_pDevDesc());
+                        device_num = gd_api::Rf_ndevNumber(this->device_desc);
                     });
 
                     rhost::host::send_notification(
@@ -859,8 +933,9 @@ namespace rhost {
                 });
             }
 
-            ide_device::ide_device(pDevDesc dd, const boost::uuids::uuid& device_id, std::string device_type, double width, double height, double resolution) :
-                graphics_device(dd),
+            template <int ApiVer>
+            ide_device<ApiVer>::ide_device(DevDesc* dd, const boost::uuids::uuid& device_id, std::string device_type, double width, double height, double resolution) :
+                graphics_device<ApiVer>(dd),
                 _device_id(device_id),
                 _width(width),
                 _height(height),
@@ -871,38 +946,43 @@ namespace rhost {
                 _file_device_type(device_type) {
             }
 
-            ide_device::~ide_device() {
+            template <int ApiVer>
+            ide_device<ApiVer>::~ide_device() {
             }
 
-            fs::path ide_device::get_render_file_path() {
+            template <int ApiVer>
+            fs::path ide_device<ApiVer>::get_render_file_path() {
                 auto file_path = fs::temp_directory_path();
                 auto file_name = std::string("rhost-ide-plot-") + boost::uuids::to_string(uuid_generator()) + std::string(".") + _file_device_type;
                 file_path /= file_name;
                 return file_path;
             }
 
-            devdesc_wrapper ide_device::get_or_create_file_device() {
+            template <int ApiVer>
+            auto ide_device<ApiVer>::get_or_create_file_device() -> DevDesc* {
                 if (_file_device == nullptr) {
-                    _file_device = create_file_device().get_pDevDesc();
+                    _file_device = create_file_device();
                     sync_file_device();
                 }
-                return devdesc_wrapper(_file_device);
+                return _file_device;
             }
 
-            devdesc_wrapper ide_device::create_file_device() {
+            template <int ApiVer>
+            auto ide_device<ApiVer>::create_file_device() -> DevDesc* {
                 _file_device_filename = get_render_file_path();
                 return create_file_device(_file_device_type, _file_device_filename, _width, _height, _resolution);
             }
 
-            void ide_device::sync_file_device() {
+            template <int ApiVer>
+            void ide_device<ApiVer>::sync_file_device() {
                 if (_file_device == nullptr) {
                     return;
                 }
 
                 try {
                     rhost::util::errors_to_exceptions([&] {
-                        int file_device_num = Rf_ndevNumber(_file_device);
-                        int ide_device_num = Rf_ndevNumber(dev.get_pDevDesc());
+                        int file_device_num = gd_api::Rf_ndevNumber(_file_device);
+                        int ide_device_num = gd_api::Rf_ndevNumber(this->device_desc);
 
                         Rf_selectDevice(file_device_num);
                         GEcopyDisplayList(ide_device_num);
@@ -915,7 +995,8 @@ namespace rhost {
                 }
             }
 
-            void ide_device::delete_file_device() {
+            template <int ApiVer>
+            void ide_device<ApiVer>::delete_file_device() {
                 // Kill the temporary file device and delete the file it opened on disk
                 auto file_device_filename = _file_device_filename;
                 output_and_kill_file_device();
@@ -928,14 +1009,15 @@ namespace rhost {
                 }
             }
 
-            void ide_device::output_and_kill_file_device() {
+            template <int ApiVer>
+            void ide_device<ApiVer>::output_and_kill_file_device() {
                 rhost::util::errors_to_exceptions([&] {
                     // The device number is not constant, so get the current number
-                    int file_device_num = Rf_ndevNumber(_file_device);
+                    int file_device_num = gd_api::Rf_ndevNumber(_file_device);
 
                     // Killing the device will call close, which will save the file to disk
-                    pGEDevDesc ge_dev_desc = GEgetDevice(file_device_num);
-                    GEkillDevice(ge_dev_desc);
+                    pGEDevDesc ge_dev_desc = gd_api::GEgetDevice(file_device_num);
+                    gd_api::GEkillDevice(ge_dev_desc);
                 });
 
                 // Blank our state, next call to graphics primitive (if any) will create 
@@ -944,14 +1026,16 @@ namespace rhost {
                 _file_device_filename = fs::path();
             }
 
-            void ide_device::set_pending_render() {
+            template <int ApiVer>
+            void ide_device<ApiVer>::set_pending_render() {
                 auto plot = _history.get_active();
                 if (plot != nullptr) {
                     plot->set_pending_render();
                 }
             }
 
-            bool ide_device::history_select(const boost::uuids::uuid& plot_id, bool force_render) {
+            template <int ApiVer>
+            bool ide_device<ApiVer>::history_select(const boost::uuids::uuid& plot_id, bool force_render) {
                 if (_history.select(plot_id) || force_render) {
                     _history.render_from_snapshot();
                     return true;
@@ -959,22 +1043,26 @@ namespace rhost {
                 return false;
             }
 
-            void ide_device::history_next() {
+            template <int ApiVer>
+            void ide_device<ApiVer>::history_next() {
                 _history.move_next();
                 _history.render_from_snapshot();
             }
 
-            void ide_device::history_previous() {
+            template <int ApiVer>
+            void ide_device<ApiVer>::history_previous() {
                 _history.move_previous();
                 _history.render_from_snapshot();
             }
 
-            void ide_device::history_clear() {
+            template <int ApiVer>
+            void ide_device<ApiVer>::history_clear() {
                 _history.clear();
                 send_clear();
             }
 
-            void ide_device::history_remove(const boost::uuids::uuid& plot_id) {
+            template <int ApiVer>
+            void ide_device<ApiVer>::history_remove(const boost::uuids::uuid& plot_id) {
                 _history.remove(plot_id);
                 if (_history.plot_count() > 0) {
                     _history.render_from_snapshot();
@@ -984,19 +1072,23 @@ namespace rhost {
                 }
             }
 
-            int ide_device::plot_count() const {
+            template <int ApiVer>
+            int ide_device<ApiVer>::plot_count() const {
                 return _history.plot_count();
             }
 
-            int ide_device::active_plot_index() const {
+            template <int ApiVer>
+            int ide_device<ApiVer>::active_plot_index() const {
                 return _history.active_plot_index();
             }
 
-            plot* ide_device::active_plot() const {
+            template <int ApiVer>
+            auto ide_device<ApiVer>::active_plot() const -> plot* {
                 return _history.get_active();
             }
 
-            devdesc_wrapper ide_device::create_file_device(const std::string& device_type, const fs::path& filename, double width, double height, double resolution) {
+            template <int ApiVer>
+            auto ide_device<ApiVer>::create_file_device(const std::string& device_type, const fs::path& filename, double width, double height, double resolution) -> DevDesc* {
                 auto expr = boost::format("%1%(filename='%2%', width=%3%, height=%4%, res=%5%)") % device_type % filename.generic_string() % width % height % resolution;
 
                 // Create the file device via the public R API
@@ -1006,33 +1098,36 @@ namespace rhost {
                     throw rhost::util::r_error(result.error.c_str());
                 }
 
-                pDevDesc dev_desc = nullptr;
+                DevDesc* dev_desc = nullptr;
 
                 // Retrieve the device descriptor of the current device (the one created above)
                 rhost::util::errors_to_exceptions([&] {
                     int device_num = Rf_curDevice();
-                    pGEDevDesc ge_dev_desc = GEgetDevice(device_num);
-                    dev_desc = ge_dev_desc->dev;
+                    pGEDevDesc ge_dev_desc = gd_api::GEgetDevice(device_num);
+                    dev_desc = (DevDesc*)ge_dev_desc->dev;
                 });
 
-                return devdesc_wrapper(dev_desc);
+                return dev_desc;
             }
 
-            static void process_pending_render(bool immediately) {
+            template <int ApiVer>
+            void ide_device<ApiVer>::process_pending_render(bool immediately) {
                 for (auto dev : devices) {
                     dev->render_request(immediately);
                 }
             }
 
-            static ide_device* find_device_by_num(int device_num) {
+            template <int ApiVer>
+            auto ide_device<ApiVer>::find_device_by_num(int device_num) -> ide_device* {
                 auto dev = find_if(devices.begin(), devices.end(), [&](auto& d) {
-                    return Rf_ndevNumber(d->dev.get_pDevDesc()) == (device_num - 1);
+                    return gd_api::Rf_ndevNumber(d->device_desc) == (device_num - 1);
                 });
 
                 return (dev != devices.end()) ? *dev : nullptr;
             }
 
-            static ide_device* find_device_by_id(const boost::uuids::uuid& device_id) {
+            template <int ApiVer>
+            auto ide_device<ApiVer>::find_device_by_id(const boost::uuids::uuid& device_id) -> ide_device* {
                 auto dev = find_if(devices.begin(), devices.end(), [&](auto& d) {
                     return d->get_id() == device_id;
                 });
@@ -1040,316 +1135,344 @@ namespace rhost {
                 return (dev != devices.end()) ? *dev : nullptr;
             }
 
-            ///////////////////////////////////////////////////////////////////////
-            // Exported R routines
-            ///////////////////////////////////////////////////////////////////////
+            template <int ApiVer>
+            struct external_methods_impl {
+                typedef gd_api<ApiVer> gd_api;
+                typedef ide_device<ApiVer> ide_device;
 
-            extern "C" SEXP ide_graphicsdevice_new(SEXP args) {
-                int ver = R_GE_getVersion();
-                if (ver < R_32_GE_version || ver > R_34_GE_version) {
-                    Rf_error("Graphics API version %d is not supported.", ver);
+                static SEXP ide_graphicsdevice_new(SEXP args) {
+                    int ver = R_GE_getVersion();
+                    if (ver < R_32_GE_version || ver > R_34_GE_version) {
+                        Rf_error("Graphics API version %d is not supported.", ver);
+                    }
+
+                    return rhost::util::exceptions_to_errors([&] {
+                        R_CheckDeviceAvailable();
+                        BEGIN_SUSPEND_INTERRUPTS{
+                            double width;
+                            double height;
+                            double resolution;
+                            boost::uuids::uuid device_id = uuid_generator();
+                            auto device_name(boost::uuids::to_string(device_id));
+
+                            rhost::host::with_cancellation([&] {
+                                auto msg = rhost::host::send_request_and_get_response("?PlotDeviceCreate", rhost::util::to_utf8_json(device_name.c_str()));
+                                auto args = msg.json();
+                                if (args.size() != 3 || !args[0].is<double>() || !args[1].is<double>() || !args[2].is<double>()) {
+                                    rhost::log::fatal_error("PlotDeviceCreate response is malformed. It must have 3 elements: double, double, double.");
+                                }
+
+                                width = args[0].get<double>();
+                                height = args[1].get<double>();
+                                resolution = args[2].get<double>();
+                            });
+
+                            auto dev = ide_device::create(device_id, "png", width, height, resolution);
+                            pGEDevDesc gdd = gd_api::GEcreateDevDesc(dev->device_desc);
+                            gd_api::GEaddDevice2(gdd, "ide");
+                            // Owner is DevDesc::deviceSpecific, and is released in close()
+                            dev->closed.connect([&](ide_device* o) {
+                                ide_device::devices.erase(std::find(ide_device::devices.begin(), ide_device::devices.end(), o));
+                            });
+                            ide_device::devices.push_back(dev.release());
+                        } END_SUSPEND_INTERRUPTS;
+
+                        return R_NilValue;
+                    });
                 }
 
-                return rhost::util::exceptions_to_errors([&] {
-                    R_CheckDeviceAvailable();
-                    BEGIN_SUSPEND_INTERRUPTS{
-                        double width;
-                        double height;
-                        double resolution;
-                        boost::uuids::uuid device_id = uuid_generator();
-                        auto device_name(boost::uuids::to_string(device_id));
+                static SEXP ide_graphicsdevice_resize(SEXP args) {
+                    args = CDR(args);
+                    SEXP param1 = CAR(args);
+                    args = CDR(args);
+                    SEXP param2 = CAR(args);
+                    args = CDR(args);
+                    SEXP param3 = CAR(args);
+                    args = CDR(args);
+                    SEXP param4 = CAR(args);
 
-                        rhost::host::with_cancellation([&] {
-                            auto msg = rhost::host::send_request_and_get_response("?PlotDeviceCreate", rhost::util::to_utf8_json(device_name.c_str()));
-                            auto args = msg.json();
-                            if (args.size() != 3 || !args[0].is<double>() || !args[1].is<double>() || !args[2].is<double>()) {
-                                rhost::log::fatal_error("PlotDeviceCreate response is malformed. It must have 3 elements: double, double, double.");
-                            }
+                    return rhost::util::exceptions_to_errors([&] {
+                        auto device_id = boost::lexical_cast<boost::uuids::uuid>(R_CHAR(STRING_ELT(param1, 0)));
+                        double width = *REAL(param2);
+                        double height = *REAL(param3);
+                        double resolution = *REAL(param4);
 
-                            width = args[0].get<double>();
-                            height = args[1].get<double>();
-                            resolution = args[2].get<double>();
-                        });
+                        auto dev = ide_device::find_device_by_id(device_id);
+                        if (dev != nullptr) {
+                            current_device_restorer device_restorer;
 
-                        auto dev = ide_device::create(device_id, "png", width, height, resolution);
-                        pGEDevDesc gdd = GEcreateDevDesc(dev->dev.get_pDevDesc());
-                        GEaddDevice2(gdd, "ide");
-                        // Owner is DevDesc::deviceSpecific, and is released in close()
-                        dev->closed.connect([&](ide_device* o) { devices.erase(std::find(devices.begin(), devices.end(), o)); });
-                        devices.push_back(dev.release());
-                    } END_SUSPEND_INTERRUPTS;
-
-                    return R_NilValue;
-                });
-            }
-
-            extern "C" SEXP ide_graphicsdevice_resize(SEXP args) {
-                args = CDR(args);
-                SEXP param1 = CAR(args);
-                args = CDR(args);
-                SEXP param2 = CAR(args);
-                args = CDR(args);
-                SEXP param3 = CAR(args);
-                args = CDR(args);
-                SEXP param4 = CAR(args);
-
-                return rhost::util::exceptions_to_errors([&] {
-                    auto device_id = boost::lexical_cast<boost::uuids::uuid>(R_CHAR(STRING_ELT(param1, 0)));
-                    double width = *REAL(param2);
-                    double height = *REAL(param3);
-                    double resolution = *REAL(param4);
-
-                    auto dev = find_device_by_id(device_id);
-                    if (dev != nullptr) {
-                        current_device_restorer device_restorer;
-
-                        dev->select();
-                        dev->resize(width, height, resolution);
-                        dev->render_request(true);
-                    }
-
-                    return R_NilValue;
-                });
-            }
-
-            extern "C" SEXP ide_graphicsdevice_next_plot(SEXP args) {
-                args = CDR(args);
-                SEXP param1 = CAR(args);
-
-                auto device_id = boost::lexical_cast<boost::uuids::uuid>(R_CHAR(STRING_ELT(param1, 0)));
-
-                return rhost::util::exceptions_to_errors([&] {
-                    auto dev = find_device_by_id(device_id);
-                    if (dev != nullptr) {
-                        current_device_restorer device_restorer;
-
-                        dev->select();
-                        dev->history_next();
-                        dev->render_request(true);
-                    }
-
-                    return R_NilValue;
-                });
-            }
-
-            extern "C" SEXP ide_graphicsdevice_previous_plot(SEXP args) {
-                args = CDR(args);
-                SEXP param1 = CAR(args);
-
-                auto device_id = boost::lexical_cast<boost::uuids::uuid>(R_CHAR(STRING_ELT(param1, 0)));
-
-                return rhost::util::exceptions_to_errors([&] {
-                    auto dev = find_device_by_id(device_id);
-                    if (dev != nullptr) {
-                        current_device_restorer device_restorer;
-
-                        dev->select();
-                        dev->history_previous();
-                        dev->render_request(true);
-                    }
-
-                    return R_NilValue;
-                });
-            }
-
-            extern "C" SEXP ide_graphicsdevice_clear_plots(SEXP args) {
-                args = CDR(args);
-                SEXP param1 = CAR(args);
-
-                auto device_id = boost::lexical_cast<boost::uuids::uuid>(R_CHAR(STRING_ELT(param1, 0)));
-
-                return rhost::util::exceptions_to_errors([&] {
-                    auto dev = find_device_by_id(device_id);
-                    if (dev != nullptr) {
-                        current_device_restorer device_restorer;
-
-                        dev->select();
-                        dev->history_clear();
-                        dev->render_request(true);
-                    }
-
-                    return R_NilValue;
-                });
-            }
-
-            extern "C" SEXP ide_graphicsdevice_remove_plot(SEXP args) {
-                args = CDR(args);
-                SEXP param1 = CAR(args);
-                args = CDR(args);
-                SEXP param2 = CAR(args);
-
-                auto device_id = boost::lexical_cast<boost::uuids::uuid>(R_CHAR(STRING_ELT(param1, 0)));
-                auto plot_id = boost::lexical_cast<boost::uuids::uuid>(R_CHAR(STRING_ELT(param2, 0)));
-
-                return rhost::util::exceptions_to_errors([&] {
-                    auto dev = find_device_by_id(device_id);
-                    if (dev != nullptr) {
-                        current_device_restorer device_restorer;
-
-                        dev->select();
-                        dev->history_remove(plot_id);
-                        dev->render_request(true);
-                    }
-
-                    return R_NilValue;
-                });
-            }
-
-            extern "C" SEXP ide_graphicsdevice_copy_plot(SEXP args) {
-                args = CDR(args);
-                SEXP param1 = CAR(args);
-                args = CDR(args);
-                SEXP param2 = CAR(args);
-                args = CDR(args);
-                SEXP param3 = CAR(args);
-
-                auto source_device_id = boost::lexical_cast<boost::uuids::uuid>(R_CHAR(STRING_ELT(param1, 0)));
-                auto source_plot_id = boost::lexical_cast<boost::uuids::uuid>(R_CHAR(STRING_ELT(param2, 0)));
-                auto target_device_id = boost::lexical_cast<boost::uuids::uuid>(R_CHAR(STRING_ELT(param3, 0)));
-
-                return rhost::util::exceptions_to_errors([&] {
-                    current_device_restorer device_restorer;
-
-                    auto source_dev = find_device_by_id(source_device_id);
-                    if (source_dev == nullptr) {
-                        throw rhost::util::r_error("Source device could not be found.");
-                    }
-
-                    auto target_dev = find_device_by_id(target_device_id);
-                    if (target_dev == nullptr) {
-                        throw rhost::util::r_error("Destination device could not be found.");
-                    }
-
-                    auto target_plot = target_dev->copy_plot_from(source_dev, source_plot_id);
-                    if (target_plot == nullptr) {
-                        throw rhost::util::r_error("Could not copy plot.");
-                    }
-
-                    target_dev->select();
-                    if (target_dev->history_select(target_plot->get_id(), true)) {
-                        target_dev->render_request(true);
-                    }
-
-                    return R_NilValue;
-                });
-            }
-
-            extern "C" SEXP ide_graphicsdevice_select_plot(SEXP args) {
-                args = CDR(args);
-                SEXP param1 = CAR(args);
-                args = CDR(args);
-                SEXP param2 = CAR(args);
-                args = CDR(args);
-                SEXP param3 = CAR(args);
-
-                auto device_id = boost::lexical_cast<boost::uuids::uuid>(R_CHAR(STRING_ELT(param1, 0)));
-                auto plot_id = boost::lexical_cast<boost::uuids::uuid>(R_CHAR(STRING_ELT(param2, 0)));
-                auto force_render = *LOGICAL(param3);
-
-                return rhost::util::exceptions_to_errors([&] {
-                    auto dev = find_device_by_id(device_id);
-                    if (dev != nullptr) {
-                        current_device_restorer device_restorer;
-
-                        dev->select();
-                        if (dev->history_select(plot_id, force_render != 0)) {
+                            dev->select();
+                            dev->resize(width, height, resolution);
                             dev->render_request(true);
                         }
-                    }
 
-                    return R_NilValue;
-                });
-            }
+                        return R_NilValue;
+                    });
+                }
 
-            extern "C" SEXP ide_graphicsdevice_get_device_id(SEXP args) {
-                args = CDR(args);
-                SEXP param1 = CAR(args);
+                static SEXP ide_graphicsdevice_next_plot(SEXP args) {
+                    args = CDR(args);
+                    SEXP param1 = CAR(args);
 
-                int device_num = *INTEGER(param1);
+                    auto device_id = boost::lexical_cast<boost::uuids::uuid>(R_CHAR(STRING_ELT(param1, 0)));
 
-                return rhost::util::exceptions_to_errors([&] {
-                    auto dev = find_device_by_num(device_num);
-                    if (dev != nullptr) {
-                        auto device_name(boost::uuids::to_string(dev->get_id()));
+                    return rhost::util::exceptions_to_errors([&] {
+                        auto dev = ide_device::find_device_by_id(device_id);
+                        if (dev != nullptr) {
+                            current_device_restorer device_restorer;
 
-                        SEXP device_id = Rf_mkCharCE(device_name.c_str(), CE_UTF8);
-                        Rf_protect(device_id);
-                        SEXP result = Rf_allocVector(STRSXP, 1);
-                        SET_STRING_ELT(result, 0, device_id);
-                        Rf_unprotect(1);
-                        return result;
-                    }
+                            dev->select();
+                            dev->history_next();
+                            dev->render_request(true);
+                        }
 
-                    return R_NilValue;
-                });
-            }
+                        return R_NilValue;
+                    });
+                }
 
-            extern "C" SEXP ide_graphicsdevice_get_device_num(SEXP args) {
-                args = CDR(args);
-                SEXP param1 = CAR(args);
+                static SEXP ide_graphicsdevice_previous_plot(SEXP args) {
+                    args = CDR(args);
+                    SEXP param1 = CAR(args);
 
-                auto device_id = boost::lexical_cast<boost::uuids::uuid>(R_CHAR(STRING_ELT(param1, 0)));
+                    auto device_id = boost::lexical_cast<boost::uuids::uuid>(R_CHAR(STRING_ELT(param1, 0)));
 
-                return rhost::util::exceptions_to_errors([&] {
-                    auto dev = find_device_by_id(device_id);
-                    if (dev != nullptr) {
-                        auto result = Rf_allocVector(INTSXP, 1);
-                        int num = Rf_ndevNumber(dev->dev.get_pDevDesc()) + 1;
-                        *INTEGER(result) = num;
-                        return result;
-                    }
+                    return rhost::util::exceptions_to_errors([&] {
+                        auto dev = ide_device::find_device_by_id(device_id);
+                        if (dev != nullptr) {
+                            current_device_restorer device_restorer;
 
-                    return R_NilValue;
-                });
-            }
+                            dev->select();
+                            dev->history_previous();
+                            dev->render_request(true);
+                        }
 
-            extern "C" SEXP ide_graphicsdevice_get_active_plot_id(SEXP args) {
-                args = CDR(args);
-                SEXP param1 = CAR(args);
+                        return R_NilValue;
+                    });
+                }
 
-                auto device_id = boost::lexical_cast<boost::uuids::uuid>(R_CHAR(STRING_ELT(param1, 0)));
+                static SEXP ide_graphicsdevice_clear_plots(SEXP args) {
+                    args = CDR(args);
+                    SEXP param1 = CAR(args);
 
-                return rhost::util::exceptions_to_errors([&] {
-                    auto dev = find_device_by_id(device_id);
-                    if (dev != nullptr) {
-                        auto plot = dev->active_plot();
-                        if (plot != nullptr) {
-                            auto plot_name(boost::uuids::to_string(plot->get_id()));
+                    auto device_id = boost::lexical_cast<boost::uuids::uuid>(R_CHAR(STRING_ELT(param1, 0)));
 
-                            SEXP plot_id = Rf_mkCharCE(plot_name.c_str(), CE_UTF8);
-                            Rf_protect(plot_id);
+                    return rhost::util::exceptions_to_errors([&] {
+                        auto dev = ide_device::find_device_by_id(device_id);
+                        if (dev != nullptr) {
+                            current_device_restorer device_restorer;
+
+                            dev->select();
+                            dev->history_clear();
+                            dev->render_request(true);
+                        }
+
+                        return R_NilValue;
+                    });
+                }
+
+                static SEXP ide_graphicsdevice_remove_plot(SEXP args) {
+                    args = CDR(args);
+                    SEXP param1 = CAR(args);
+                    args = CDR(args);
+                    SEXP param2 = CAR(args);
+
+                    auto device_id = boost::lexical_cast<boost::uuids::uuid>(R_CHAR(STRING_ELT(param1, 0)));
+                    auto plot_id = boost::lexical_cast<boost::uuids::uuid>(R_CHAR(STRING_ELT(param2, 0)));
+
+                    return rhost::util::exceptions_to_errors([&] {
+                        auto dev = ide_device::find_device_by_id(device_id);
+                        if (dev != nullptr) {
+                            current_device_restorer device_restorer;
+
+                            dev->select();
+                            dev->history_remove(plot_id);
+                            dev->render_request(true);
+                        }
+
+                        return R_NilValue;
+                    });
+                }
+
+                static SEXP ide_graphicsdevice_copy_plot(SEXP args) {
+                    args = CDR(args);
+                    SEXP param1 = CAR(args);
+                    args = CDR(args);
+                    SEXP param2 = CAR(args);
+                    args = CDR(args);
+                    SEXP param3 = CAR(args);
+
+                    auto source_device_id = boost::lexical_cast<boost::uuids::uuid>(R_CHAR(STRING_ELT(param1, 0)));
+                    auto source_plot_id = boost::lexical_cast<boost::uuids::uuid>(R_CHAR(STRING_ELT(param2, 0)));
+                    auto target_device_id = boost::lexical_cast<boost::uuids::uuid>(R_CHAR(STRING_ELT(param3, 0)));
+
+                    return rhost::util::exceptions_to_errors([&] {
+                        current_device_restorer device_restorer;
+
+                        auto source_dev = ide_device::find_device_by_id(source_device_id);
+                        if (source_dev == nullptr) {
+                            throw rhost::util::r_error("Source device could not be found.");
+                        }
+
+                        auto target_dev = ide_device::find_device_by_id(target_device_id);
+                        if (target_dev == nullptr) {
+                            throw rhost::util::r_error("Destination device could not be found.");
+                        }
+
+                        auto target_plot = target_dev->copy_plot_from(source_dev, source_plot_id);
+                        if (target_plot == nullptr) {
+                            throw rhost::util::r_error("Could not copy plot.");
+                        }
+
+                        target_dev->select();
+                        if (target_dev->history_select(target_plot->get_id(), true)) {
+                            target_dev->render_request(true);
+                        }
+
+                        return R_NilValue;
+                    });
+                }
+
+                static SEXP ide_graphicsdevice_select_plot(SEXP args) {
+                    args = CDR(args);
+                    SEXP param1 = CAR(args);
+                    args = CDR(args);
+                    SEXP param2 = CAR(args);
+                    args = CDR(args);
+                    SEXP param3 = CAR(args);
+
+                    auto device_id = boost::lexical_cast<boost::uuids::uuid>(R_CHAR(STRING_ELT(param1, 0)));
+                    auto plot_id = boost::lexical_cast<boost::uuids::uuid>(R_CHAR(STRING_ELT(param2, 0)));
+                    auto force_render = *LOGICAL(param3);
+
+                    return rhost::util::exceptions_to_errors([&] {
+                        auto dev = ide_device::find_device_by_id(device_id);
+                        if (dev != nullptr) {
+                            current_device_restorer device_restorer;
+
+                            dev->select();
+                            if (dev->history_select(plot_id, force_render != 0)) {
+                                dev->render_request(true);
+                            }
+                        }
+
+                        return R_NilValue;
+                    });
+                }
+
+                static SEXP ide_graphicsdevice_get_device_id(SEXP args) {
+                    args = CDR(args);
+                    SEXP param1 = CAR(args);
+
+                    int device_num = *INTEGER(param1);
+
+                    return rhost::util::exceptions_to_errors([&] {
+                        auto dev = ide_device::find_device_by_num(device_num);
+                        if (dev != nullptr) {
+                            auto device_name(boost::uuids::to_string(dev->get_id()));
+
+                            SEXP device_id = Rf_mkCharCE(device_name.c_str(), CE_UTF8);
+                            Rf_protect(device_id);
                             SEXP result = Rf_allocVector(STRSXP, 1);
-                            SET_STRING_ELT(result, 0, plot_id);
+                            SET_STRING_ELT(result, 0, device_id);
                             Rf_unprotect(1);
                             return result;
                         }
-                    }
 
-                    return R_NilValue;
-                });
-            }
+                        return R_NilValue;
+                    });
+                }
 
-            static R_ExternalMethodDef external_methods[] = {
-                { "Microsoft.R.Host::External.ide_graphicsdevice_new", (DL_FUNC)&ide_graphicsdevice_new, 0 },
-                { "Microsoft.R.Host::External.ide_graphicsdevice_resize", (DL_FUNC)&ide_graphicsdevice_resize, 4 },
-                { "Microsoft.R.Host::External.ide_graphicsdevice_next_plot", (DL_FUNC)&ide_graphicsdevice_next_plot, 1 },
-                { "Microsoft.R.Host::External.ide_graphicsdevice_previous_plot", (DL_FUNC)&ide_graphicsdevice_previous_plot, 1 },
-                { "Microsoft.R.Host::External.ide_graphicsdevice_clear_plots", (DL_FUNC)&ide_graphicsdevice_clear_plots, 1 },
-                { "Microsoft.R.Host::External.ide_graphicsdevice_remove_plot", (DL_FUNC)&ide_graphicsdevice_remove_plot, 2 },
-                { "Microsoft.R.Host::External.ide_graphicsdevice_copy_plot", (DL_FUNC)&ide_graphicsdevice_copy_plot, 3 },
-                { "Microsoft.R.Host::External.ide_graphicsdevice_select_plot", (DL_FUNC)&ide_graphicsdevice_select_plot, 3 },
-                { "Microsoft.R.Host::External.ide_graphicsdevice_get_device_id", (DL_FUNC)&ide_graphicsdevice_get_device_id, 1 },
-                { "Microsoft.R.Host::External.ide_graphicsdevice_get_device_num", (DL_FUNC)&ide_graphicsdevice_get_device_num, 1 },
-                { "Microsoft.R.Host::External.ide_graphicsdevice_get_active_plot_id", (DL_FUNC)&ide_graphicsdevice_get_active_plot_id, 1 },
+                static SEXP ide_graphicsdevice_get_device_num(SEXP args) {
+                    args = CDR(args);
+                    SEXP param1 = CAR(args);
+
+                    auto device_id = boost::lexical_cast<boost::uuids::uuid>(R_CHAR(STRING_ELT(param1, 0)));
+
+                    return rhost::util::exceptions_to_errors([&] {
+                        auto dev = ide_device::find_device_by_id(device_id);
+                        if (dev != nullptr) {
+                            auto result = Rf_allocVector(INTSXP, 1);
+                            int num = gd_api::Rf_ndevNumber(dev->device_desc) + 1;
+                            *INTEGER(result) = num;
+                            return result;
+                        }
+
+                        return R_NilValue;
+                    });
+                }
+
+                static SEXP ide_graphicsdevice_get_active_plot_id(SEXP args) {
+                    args = CDR(args);
+                    SEXP param1 = CAR(args);
+
+                    auto device_id = boost::lexical_cast<boost::uuids::uuid>(R_CHAR(STRING_ELT(param1, 0)));
+
+                    return rhost::util::exceptions_to_errors([&] {
+                        auto dev = ide_device::find_device_by_id(device_id);
+                        if (dev != nullptr) {
+                            auto plot = dev->active_plot();
+                            if (plot != nullptr) {
+                                auto plot_name(boost::uuids::to_string(plot->get_id()));
+
+                                SEXP plot_id = Rf_mkCharCE(plot_name.c_str(), CE_UTF8);
+                                Rf_protect(plot_id);
+                                SEXP result = Rf_allocVector(STRSXP, 1);
+                                SET_STRING_ELT(result, 0, plot_id);
+                                Rf_unprotect(1);
+                                return result;
+                            }
+                        }
+
+                        return R_NilValue;
+                    });
+                }
+
+                static R_ExternalMethodDef external_methods[];
+            };
+
+            template <int ApiVer>
+            R_ExternalMethodDef external_methods_impl<ApiVer>::external_methods[] = {
+                {"Microsoft.R.Host::External.ide_graphicsdevice_new", (DL_FUNC)&ide_graphicsdevice_new, 0},
+                {"Microsoft.R.Host::External.ide_graphicsdevice_resize", (DL_FUNC)&ide_graphicsdevice_resize, 4},
+                {"Microsoft.R.Host::External.ide_graphicsdevice_next_plot", (DL_FUNC)&ide_graphicsdevice_next_plot, 1},
+                {"Microsoft.R.Host::External.ide_graphicsdevice_previous_plot", (DL_FUNC)&ide_graphicsdevice_previous_plot, 1},
+                {"Microsoft.R.Host::External.ide_graphicsdevice_clear_plots", (DL_FUNC)&ide_graphicsdevice_clear_plots, 1},
+                {"Microsoft.R.Host::External.ide_graphicsdevice_remove_plot", (DL_FUNC)&ide_graphicsdevice_remove_plot, 2},
+                {"Microsoft.R.Host::External.ide_graphicsdevice_copy_plot", (DL_FUNC)&ide_graphicsdevice_copy_plot, 3},
+                {"Microsoft.R.Host::External.ide_graphicsdevice_select_plot", (DL_FUNC)&ide_graphicsdevice_select_plot, 3},
+                {"Microsoft.R.Host::External.ide_graphicsdevice_get_device_id", (DL_FUNC)&ide_graphicsdevice_get_device_id, 1},
+                {"Microsoft.R.Host::External.ide_graphicsdevice_get_device_num", (DL_FUNC)&ide_graphicsdevice_get_device_num, 1},
+                {"Microsoft.R.Host::External.ide_graphicsdevice_get_active_plot_id", (DL_FUNC)&ide_graphicsdevice_get_active_plot_id, 1},
                 {}
             };
 
             void init(DllInfo *dll) {
+                R_ExternalMethodDef* external_methods;
+                void (*process_pending_render)(bool immediately);
+
+                switch (int ver = R_GE_getVersion()) {
+                case 10:
+                    external_methods = external_methods_impl<10>::external_methods;
+                    process_pending_render = ide_device<10>::process_pending_render;
+                    break;
+                case 11:
+                    external_methods = external_methods_impl<11>::external_methods;
+                    process_pending_render = ide_device<11>::process_pending_render;
+                    break;
+                case 12:
+                    external_methods = external_methods_impl<12>::external_methods;
+                    process_pending_render = ide_device<12>::process_pending_render;
+                    break;
+                default:
+                    log::fatal_error("Unsupported GD API version %d", ver);
+                }
+
                 rhost::exports::add_external_methods(external_methods);
-                rhost::host::callback_started.connect([] {
+
+                rhost::host::callback_started.connect([=] {
                     process_pending_render(false);
                 });
-                rhost::host::readconsole_done.connect([] {
+                rhost::host::readconsole_done.connect([=] {
                     process_pending_render(true);
                 });
             }

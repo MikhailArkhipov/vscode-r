@@ -90,7 +90,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="blobs.cpp" />
-    <ClCompile Include="devdesc_wrapper.cpp" />
     <ClCompile Include="exports.cpp" />
     <ClCompile Include="grdeviceside.cpp" />
     <ClCompile Include="grdevicesxaml.cpp" />
@@ -111,7 +110,6 @@
   <ItemGroup>
     <ClInclude Include="blobs.h" />
     <ClInclude Include="detours.h" />
-    <ClInclude Include="devdesc_wrapper.h" />
     <ClInclude Include="exports.h" />
     <ClInclude Include="grdevices.h" />
     <ClInclude Include="grdeviceside.h" />
@@ -125,6 +123,7 @@
     <ClInclude Include="json.h" />
     <ClInclude Include="rstrtmgr.h" />
     <ClInclude Include="r_api.h" />
+    <ClInclude Include="r_gd_api.h" />
     <ClInclude Include="r_util.h" />
     <ClInclude Include="host.h" />
     <ClInclude Include="stdafx.h" />

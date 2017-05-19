@@ -26,8 +26,6 @@
 #define RHOST_RAPI_PTR(api) fp_##api
 #define RHOST_RAPI_DECL(api) extern decltype(api) *RHOST_RAPI_PTR(api)
 #define RHOST_RAPI_DECL_END(api) RHOST_RAPI_DECL(api);
-#define RHOST_RAPI_DEFINE(api) decltype(api) *RHOST_RAPI_PTR(api)
-#define RHOST_RAPI_DEFINE_NULLPTR(api) RHOST_RAPI_DEFINE(api) = nullptr;
 #define RHOST_RAPI_STR(api) #api
 #define RAPI(api) rhost::rapi::RHOST_RAPI_PTR(api)
 
@@ -117,20 +115,21 @@ macro(Rf_onintr) \
 macro(R_GE_getVersion) \
 macro(Rf_curDevice) \
 macro(Rf_selectDevice) \
+macro(R_interrupts_suspended) \
+macro(R_interrupts_pending) \
+macro(R_CheckDeviceAvailable) \
+macro(GEcopyDisplayList)
+
+#define RHOST_GD_SET(macro) \
 macro(Rf_desc2GEDesc) \
 macro(GEplayDisplayList) \
 macro(GEplaySnapshot) \
 macro(GEcreateSnapshot) \
 macro(Rf_ndevNumber) \
-macro(GEcopyDisplayList) \
 macro(GEgetDevice) \
 macro(GEkillDevice) \
-macro(R_CheckDeviceAvailable) \
-macro(R_interrupts_suspended) \
 macro(GEcreateDevDesc) \
-macro(GEaddDevice2) \
-macro(R_interrupts_pending)
-
+macro(GEaddDevice2)
 
 #ifdef _WIN32
 
@@ -196,15 +195,15 @@ namespace rhost {
 #ifndef RHOST_NO_API_REDIRECT
 #define CAR rhost::rapi::RHOST_RAPI_PTR(CAR)
 #define CDR rhost::rapi::RHOST_RAPI_PTR(CDR)
-#define GEaddDevice2 rhost::rapi::RHOST_RAPI_PTR(GEaddDevice2)
-#define GEaddDevice2f rhost::rapi::RHOST_RAPI_PTR(GEaddDevice2f)
+//#define GEaddDevice2 rhost::rapi::RHOST_RAPI_PTR(GEaddDevice2)
+//#define GEaddDevice2f rhost::rapi::RHOST_RAPI_PTR(GEaddDevice2f)
 #define GEcopyDisplayList rhost::rapi::RHOST_RAPI_PTR(GEcopyDisplayList)
-#define GEcreateDevDesc rhost::rapi::RHOST_RAPI_PTR(GEcreateDevDesc)
-#define GEcreateSnapshot rhost::rapi::RHOST_RAPI_PTR(GEcreateSnapshot)
-#define GEgetDevice rhost::rapi::RHOST_RAPI_PTR(GEgetDevice)
-#define GEkillDevice rhost::rapi::RHOST_RAPI_PTR(GEkillDevice)
-#define GEplayDisplayList rhost::rapi::RHOST_RAPI_PTR(GEplayDisplayList)
-#define GEplaySnapshot rhost::rapi::RHOST_RAPI_PTR(GEplaySnapshot)
+//#define GEcreateDevDesc rhost::rapi::RHOST_RAPI_PTR(GEcreateDevDesc)
+//#define GEcreateSnapshot rhost::rapi::RHOST_RAPI_PTR(GEcreateSnapshot)
+//#define GEgetDevice rhost::rapi::RHOST_RAPI_PTR(GEgetDevice)
+//#define GEkillDevice rhost::rapi::RHOST_RAPI_PTR(GEkillDevice)
+//#define GEplayDisplayList rhost::rapi::RHOST_RAPI_PTR(GEplayDisplayList)
+//#define GEplaySnapshot rhost::rapi::RHOST_RAPI_PTR(GEplaySnapshot)
 #define INTEGER rhost::rapi::RHOST_RAPI_PTR(INTEGER)
 #define LOGICAL rhost::rapi::RHOST_RAPI_PTR(LOGICAL)
 #define PRCODE rhost::rapi::RHOST_RAPI_PTR(PRCODE)
@@ -257,7 +256,7 @@ namespace rhost {
 #define Rf_classgets rhost::rapi::RHOST_RAPI_PTR(Rf_classgets)
 #define Rf_curDevice rhost::rapi::RHOST_RAPI_PTR(Rf_curDevice)
 #define Rf_deparse1line rhost::rapi::RHOST_RAPI_PTR(Rf_deparse1line)
-#define Rf_desc2GEDesc rhost::rapi::RHOST_RAPI_PTR(Rf_desc2GEDesc)
+//#define Rf_desc2GEDesc rhost::rapi::RHOST_RAPI_PTR(Rf_desc2GEDesc)
 #define Rf_duplicate rhost::rapi::RHOST_RAPI_PTR(Rf_duplicate)
 #define Rf_error rhost::rapi::RHOST_RAPI_PTR(Rf_error)
 #define Rf_eval rhost::rapi::RHOST_RAPI_PTR(Rf_eval)
@@ -272,7 +271,7 @@ namespace rhost {
 #define Rf_mkChar rhost::rapi::RHOST_RAPI_PTR(Rf_mkChar)
 #define Rf_mkCharCE rhost::rapi::RHOST_RAPI_PTR(Rf_mkCharCE)
 #define Rf_mkString rhost::rapi::RHOST_RAPI_PTR(Rf_mkString)
-#define Rf_ndevNumber rhost::rapi::RHOST_RAPI_PTR(Rf_ndevNumber)
+//#define Rf_ndevNumber rhost::rapi::RHOST_RAPI_PTR(Rf_ndevNumber)
 #define Rf_NewEnvironment rhost::rapi::RHOST_RAPI_PTR(Rf_NewEnvironment)
 #define Rf_onintr rhost::rapi::RHOST_RAPI_PTR(Rf_onintr)
 #define Rf_protect rhost::rapi::RHOST_RAPI_PTR(Rf_protect)

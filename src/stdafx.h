@@ -45,6 +45,7 @@
 #include <string>
 #include <thread>
 #include <tuple>
+#include <type_traits>
 #include <utility>
 #include <unordered_map>
 #include <vector>

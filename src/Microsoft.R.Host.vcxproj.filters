@@ -1,48 +1,47 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="main.cpp" />
-    <ClCompile Include="r_util.cpp" />
-    <ClCompile Include="util.cpp" />
-    <ClCompile Include="log.cpp" />
+    <ClCompile Include="blobs.cpp" />
+    <ClCompile Include="exports.cpp" />
+    <ClCompile Include="grdeviceside.cpp" />
+    <ClCompile Include="grdevicesxaml.cpp" />
+    <ClCompile Include="loadr.cpp" />
+    <ClCompile Include="message.cpp" />
     <ClCompile Include="eval.cpp" />
+    <ClCompile Include="log.cpp" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="json.cpp" />
+    <ClCompile Include="project.cpp" />
+    <ClCompile Include="rstrtmgr.cpp" />
+    <ClCompile Include="r_util.cpp" />
     <ClCompile Include="host.cpp" />
     <ClCompile Include="detours.cpp" />
-    <ClCompile Include="exports.cpp" />
-    <ClCompile Include="grdevicesxaml.cpp" />
-    <ClCompile Include="grdeviceside.cpp" />
-    <ClCompile Include="json.cpp" />
-    <ClCompile Include="blobs.cpp" />
-    <ClCompile Include="message.cpp" />
     <ClCompile Include="transport.cpp" />
-    <ClCompile Include="rstrtmgr.cpp" />
-    <ClCompile Include="project.cpp" />
-    <ClCompile Include="devdesc_wrapper.cpp" />
-    <ClCompile Include="loadr.cpp" />
+    <ClCompile Include="util.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="stdafx.h" />
-    <ClInclude Include="util.h" />
-    <ClInclude Include="xamlbuilder.h" />
-    <ClInclude Include="r_util.h" />
-    <ClInclude Include="eval.h" />
-    <ClInclude Include="log.h" />
-    <ClInclude Include="host.h" />
-    <ClInclude Include="resource.h" />
+    <ClInclude Include="blobs.h" />
     <ClInclude Include="detours.h" />
     <ClInclude Include="exports.h" />
     <ClInclude Include="grdevices.h" />
-    <ClInclude Include="grdevicesxaml.h" />
     <ClInclude Include="grdeviceside.h" />
-    <ClInclude Include="json.h" />
-    <ClInclude Include="blobs.h" />
-    <ClInclude Include="message.h" />
-    <ClInclude Include="transport.h" />
-    <ClInclude Include="rstrtmgr.h" />
-    <ClInclude Include="project.h" />
-    <ClInclude Include="r_api.h" />
+    <ClInclude Include="grdevicesxaml.h" />
     <ClInclude Include="loadr.h" />
-    <ClInclude Include="devdesc_wrapper.h" />
+    <ClInclude Include="message.h" />
+    <ClInclude Include="eval.h" />
+    <ClInclude Include="log.h" />
+    <ClInclude Include="project.h" />
+    <ClInclude Include="resource.h" />
+    <ClInclude Include="json.h" />
+    <ClInclude Include="rstrtmgr.h" />
+    <ClInclude Include="r_api.h" />
+    <ClInclude Include="r_util.h" />
+    <ClInclude Include="host.h" />
+    <ClInclude Include="stdafx.h" />
+    <ClInclude Include="transport.h" />
+    <ClInclude Include="util.h" />
+    <ClInclude Include="xamlbuilder.h" />
+    <ClInclude Include="r_gd_api.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Resource.rc" />

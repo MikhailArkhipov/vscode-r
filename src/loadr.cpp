@@ -22,10 +22,21 @@
 
 #define RHOST_NO_API_REDIRECT
 #include "stdafx.h"
+#include "r_api.h"
 
-#define RHOST_GET_PROC(m, api) RHOST_RAPI_PTR(api) = get_proc<decltype(api)>(m, RHOST_RAPI_STR(api));
+#define RHOST_RAPI_DEFINE(api) decltype(api) *RHOST_RAPI_PTR(api)
+#define RHOST_RAPI_DEFINE_NULLPTR(api) RHOST_RAPI_DEFINE(api) = nullptr;
+
+#define RHOST_GD_DEFINE(api) \
+    decltype(gd_api<10>::api) gd_api<10>::api; \
+    decltype(gd_api<12>::api) gd_api<12>::api;
+
+#define RHOST_GET_PROC(m, api) RHOST_RAPI_PTR(api) = get_proc<decltype(api)*>(m, RHOST_RAPI_STR(api));
 #define RHOST_RAPI_GET_PROC(api) RHOST_GET_PROC(r_module, api)
 #define RHOST_RAPI_UNLOAD(api) RHOST_RAPI_PTR(api) = nullptr;
+
+#define RHOST_GD_GET_PROC(api) api = get_proc<decltype(api)>(r_module, RHOST_RAPI_STR(api));
+#define RHOST_GD_UNLOAD(api) api = nullptr;
 
 #ifdef _WIN32
 #define RHOST_RGRAPHAPPAPI_GET_PROC(api) RHOST_GET_PROC(rgraphapp_module, api)
@@ -34,25 +45,26 @@
 #ifdef _WIN32
 typedef HMODULE rhost_module_t;
 #else
-typedef void*   rhost_module_t;
+typedef void* rhost_module_t;
 #endif 
 
 namespace rhost {
     namespace rapi {
         RHOST_RAPI_SET(RHOST_RAPI_DEFINE_NULLPTR);
         RHOST_RGRAPHAPPAPI_SET(RHOST_RAPI_DEFINE_NULLPTR);
+        RHOST_GD_SET(RHOST_GD_DEFINE);
 
         namespace {
             rhost_module_t r_module = nullptr;
             rhost_module_t rgraphapp_module = nullptr;
 
             template<typename T>
-            T* get_proc(HMODULE module, const char* proc_name) {
-                T* ptr = nullptr;
+            T get_proc(HMODULE module, const char* proc_name) {
+                T ptr = nullptr;
 #ifdef _WIN32
-                ptr = reinterpret_cast<T*>(GetProcAddress(module, proc_name));
+                ptr = reinterpret_cast<T>(GetProcAddress(module, proc_name));
 #else
-                ptr = reinterpret_cast<T*>(dlsym(module, proc_name));
+                ptr = reinterpret_cast<T>(dlsym(module, proc_name));
 #endif
                 return ptr;
             }
@@ -75,7 +87,22 @@ namespace rhost {
             }
 #endif
         }
-        
+
+        void gd_api<10>::load() {
+            RHOST_GD_SET(RHOST_GD_GET_PROC);
+        }
+
+        void gd_api<10>::unload() {
+            RHOST_GD_SET(RHOST_GD_UNLOAD);
+        }
+
+        void gd_api<12>::load() {
+            RHOST_GD_SET(RHOST_GD_GET_PROC);
+        }
+
+        void gd_api<12>::unload() {
+            RHOST_GD_SET(RHOST_GD_UNLOAD);
+        }
 
         void load_r_apis(fs::path& r_dll_dir) {
 #ifdef _WIN32 
