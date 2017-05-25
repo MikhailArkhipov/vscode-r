@@ -16,7 +16,7 @@ file(GLOB src "src/*.h" "src/*.cpp" "src/*.rc")
 
 add_executable(Microsoft.R.Host ${src})
 
-set_target_properties(Microsoft.R.Host PROPERTIES LINK_FLAGS "-static-libgcc -static-libstdc++ -Wl,-nxcompat")
+set_target_properties(Microsoft.R.Host PROPERTIES LINK_FLAGS "-static-libgcc -static-libstdc++")
 if("${TARGET_ARCH}" STREQUAL "x86")
     set_target_properties(Microsoft.R.Host PROPERTIES COMPILE_FLAGS "-m32" LINK_FLAGS "-m32")
 endif()
@@ -37,7 +37,7 @@ target_link_libraries(Microsoft.R.Host ${zlib_LIBRARY} ${libzip_LIBRARY})
 
 if(WIN32)
     # TODO: enable -dynamicbase 
-    set_property(TARGET Microsoft.R.Host APPEND_STRING PROPERTY LINK_FLAGS " -Wl,-high-entropy-va")
+    set_property(TARGET Microsoft.R.Host APPEND_STRING PROPERTY LINK_FLAGS " -Wl,-high-entropy-va -Wl,-nxcompat")
     
     add_definitions(-DUNICODE -D_UNICODE)
     
@@ -80,5 +80,5 @@ else()
     include_directories("/usr/share/R/include")
     target_link_libraries(Microsoft.R.Host ${R_LIBRARIES})
 
-    target_link_libraries(Microsoft.R.Host pthread)
+    target_link_libraries(Microsoft.R.Host pthread ${CMAKE_DL_LIBS})
 endif()

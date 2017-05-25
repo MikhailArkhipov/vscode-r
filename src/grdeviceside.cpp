@@ -38,9 +38,9 @@ namespace rhost {
             class ide_device;
 
             template <int ApiVer>
-            class plot : private gd_api<ApiVer> {
-                typedef gd_api<ApiVer> gd_api;
-                typedef ide_device<ApiVer> ide_device;
+            class plot {
+                typedef rapi::gd_api<ApiVer> gd_api;
+                typedef ide::ide_device<ApiVer> ide_device;
                 typedef typename gd_api::DevDesc DevDesc;
 
             public:
@@ -72,14 +72,13 @@ namespace rhost {
             };
 
             template <int ApiVer>
-            class plot_history : private gd_api<ApiVer> {
-                typedef gd_api<ApiVer> gd_api;
-                typedef ide_device<ApiVer> ide_device;
+            class plot_history {
+                typedef rapi::gd_api<ApiVer> gd_api;
+                typedef ide::ide_device<ApiVer> ide_device;
                 typedef typename gd_api::DevDesc DevDesc;
+                typedef ide::plot<ApiVer> plot;
 
             public:
-                typedef plot<ApiVer> plot;
-
                 plot_history(DevDesc* dd);
 
                 plot* get_active() const;
@@ -121,13 +120,13 @@ namespace rhost {
             };
 
             template <int ApiVer>
-            class ide_device : public graphics_device<ApiVer>, private gd_api<ApiVer> {
-                typedef gd_api<ApiVer> gd_api;
+            class ide_device : public graphics_device<ApiVer> {
+                typedef rapi::gd_api<ApiVer> gd_api;
                 typedef typename gd_api::DevDesc DevDesc;
+                typedef ide::plot<ApiVer> plot;
+                typedef ide::plot_history<ApiVer> plot_history;
 
             public:
-                typedef plot<ApiVer> plot;
-                typedef plot_history<ApiVer> plot_history;
 
                 static std::unique_ptr<ide_device> create(const boost::uuids::uuid& device_id, std::string device_type, double width, double height, double resolution);
                 static void copy_device_attributes(DevDesc* source_dd, DevDesc* target_dd);
@@ -1137,8 +1136,8 @@ namespace rhost {
 
             template <int ApiVer>
             struct external_methods_impl {
-                typedef gd_api<ApiVer> gd_api;
-                typedef ide_device<ApiVer> ide_device;
+                typedef rapi::gd_api<ApiVer> gd_api;
+                typedef ide::ide_device<ApiVer> ide_device;
 
                 static SEXP ide_graphicsdevice_new(SEXP args) {
                     int ver = R_GE_getVersion();

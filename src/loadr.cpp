@@ -51,15 +51,17 @@ typedef void* rhost_module_t;
 namespace rhost {
     namespace rapi {
         RHOST_RAPI_SET(RHOST_RAPI_DEFINE_NULLPTR);
-        RHOST_RGRAPHAPPAPI_SET(RHOST_RAPI_DEFINE_NULLPTR);
         RHOST_GD_SET(RHOST_GD_DEFINE);
+#ifdef _WIN32
+        RHOST_RGRAPHAPPAPI_SET(RHOST_RAPI_DEFINE_NULLPTR);
+#endif
 
         namespace {
             rhost_module_t r_module = nullptr;
             rhost_module_t rgraphapp_module = nullptr;
 
             template<typename T>
-            T get_proc(HMODULE module, const char* proc_name) {
+            T get_proc(rhost_module_t module, const char* proc_name) {
                 T ptr = nullptr;
 #ifdef _WIN32
                 ptr = reinterpret_cast<T>(GetProcAddress(module, proc_name));
@@ -114,7 +116,7 @@ namespace rhost {
             internal_load_rgraphapp_apis();
 #else // POSIX
             fs::path r_path = r_dll_dir / "libR.so";
-            r_module = dlopen(r_path.make_preferred().string().c_str(), RTLD_LOCAL | RTLD_LAZY)
+            r_module = dlopen(r_path.make_preferred().string().c_str(), RTLD_LOCAL | RTLD_LAZY);
 #endif
             internal_load_r_apis();
         }

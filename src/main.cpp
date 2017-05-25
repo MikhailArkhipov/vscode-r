@@ -285,13 +285,13 @@ namespace rhost {
         R_SetParams(&rp);
         
         // This is a exported static library member Rf_initialize_R sets it to TRUE
-        R_Interactive = args.is_interactive ? R_TRUE : R_FALSE;
+        R_Interactive_ = args.is_interactive ? R_TRUE : R_FALSE;
         R_Consolefile = nullptr;
         R_Outputfile = nullptr;
 
         DllInfo *dll = R_getEmbeddingDllInfo();
         rhost::r_util::init(dll);
-        rhost::grdevices::xaml::init(dll);
+        //rhost::grdevices::xaml::init(dll);
         rhost::grdevices::ide::init(dll);
         rhost::exports::register_all(dll);
 

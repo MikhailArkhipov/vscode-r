@@ -163,11 +163,8 @@ macro(ptr_R_ShowMessage) \
 macro(ptr_R_WriteConsole) \
 macro(ptr_R_WriteConsoleEx) \
 macro(R_Consolefile) \
-macro(R_FalseValue) \
 macro(R_Interactive) \
 macro(R_Outputfile) \
-macro(R_ReadConsole) \
-macro(R_TrueValue) \
 macro(Rf_initialize_R) \
 macro(Rf_mainloop)
 
@@ -316,12 +313,9 @@ namespace rhost {
 #define ptr_R_ShowMessage (*rhost::rapi::RHOST_RAPI_PTR(ptr_R_ShowMessage))
 #define ptr_R_WriteConsole (*rhost::rapi::RHOST_RAPI_PTR(ptr_R_WriteConsole))
 #define ptr_R_WriteConsoleEx (*rhost::rapi::RHOST_RAPI_PTR(ptr_R_WriteConsoleEx))
-#define R_Consolefile rhost::rapi::RHOST_RAPI_PTR(R_Consolefile)
-#define R_FalseValue (*rhost::rapi::RHOST_RAPI_PTR(R_FalseValue))
-#define R_Interactive rhost::rapi::RHOST_RAPI_PTR(R_Interactive)
-#define R_Outputfile rhost::rapi::RHOST_RAPI_PTR(R_Outputfile)
-#define R_ReadConsole rhost::rapi::RHOST_RAPI_PTR(R_ReadConsole)
-#define R_TrueValue (*rhost::rapi::RHOST_RAPI_PTR(R_TrueValue))
+#define R_Consolefile (*rhost::rapi::RHOST_RAPI_PTR(R_Consolefile))
+#define R_Interactive_ (*rhost::rapi::RHOST_RAPI_PTR(R_Interactive))
+#define R_Outputfile (*rhost::rapi::RHOST_RAPI_PTR(R_Outputfile))
 #define Rf_initialize_R rhost::rapi::RHOST_RAPI_PTR(Rf_initialize_R)
 #define Rf_mainloop rhost::rapi::RHOST_RAPI_PTR(Rf_mainloop)
 
