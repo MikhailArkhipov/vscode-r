@@ -40,8 +40,8 @@
             "name": "C++ Attach",
             "type": "cppdbg",
             "request": "attach",
-            "program": "enter program name, for example ${workspaceRoot}/a.out",
-            "processId": "${command.pickProcess}",
+            "program": "${workspaceRoot}/../../../bin/Debug/Microsoft.R.Host.exe",
+            "processId": "${command:pickProcess}",
             "linux": {
                 "MIMode": "gdb",
                 "setupCommands": [
@@ -57,6 +57,7 @@
             },
             "windows": {
                 "MIMode": "gdb",
+                "miDebuggerPath": "C:/msys64/mingw64/bin/gdb.exe",
                 "setupCommands": [
                     {
                         "description": "Enable pretty-printing for gdb",

@@ -23,6 +23,7 @@
 #define RHOST_NO_API_REDIRECT
 #include "stdafx.h"
 #include "r_api.h"
+#include "log.h"
 
 #define RHOST_RAPI_DEFINE(api) decltype(api) *RHOST_RAPI_PTR(api)
 #define RHOST_RAPI_DEFINE_NULLPTR(api) RHOST_RAPI_DEFINE(api) = nullptr;
@@ -119,9 +120,37 @@ namespace rhost {
             r_module = dlopen(r_path.make_preferred().string().c_str(), RTLD_LOCAL | RTLD_LAZY);
 #endif
             internal_load_r_apis();
+
+            switch (int ver = fp_R_GE_getVersion()) {
+            case 10:
+                gd_api<10>::load();
+                break;
+            case 11:
+                gd_api<11>::load();
+                break;
+            case 12:
+                gd_api<12>::load();
+                break;
+            default:
+                log::fatal_error("Unsupported GD API version %d", ver);
+            }
         }
 
         void unload_r_apis() {
+            switch (int ver = fp_R_GE_getVersion()) {
+            case 10:
+                gd_api<10>::unload();
+                break;
+            case 11:
+                gd_api<11>::unload();
+                break;
+            case 12:
+                gd_api<12>::unload();
+                break;
+            default:
+                log::fatal_error("Unsupported GD API version %d", ver);
+            }
+
             internal_unload_r_apis();
 #ifdef _WIN32
             internal_unload_rgraphapp_apis();
