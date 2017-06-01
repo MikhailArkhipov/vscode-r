@@ -127,7 +127,6 @@ namespace rhost {
                 typedef ide::plot_history<ApiVer> plot_history;
 
             public:
-
                 static std::unique_ptr<ide_device> create(const boost::uuids::uuid& device_id, std::string device_type, double width, double height, double resolution);
                 static void copy_device_attributes(DevDesc* source_dd, DevDesc* target_dd);
 
@@ -203,6 +202,7 @@ namespace rhost {
                 void sync_file_device();
                 void set_pending_render();
 
+                static void init_devdesc(DevDesc* dd);
                 static DevDesc* create_file_device(const std::string& device_type, const fs::path& filename, double width, double height, double resolution);
 
             private:
@@ -522,6 +522,34 @@ namespace rhost {
             template <int ApiVer>
             std::vector<ide_device<ApiVer>*> ide_device<ApiVer>::devices;
 
+            template <>
+            void ide_device<10>::init_devdesc(DevDesc* dd) {
+                dd->displayListOn = R_TRUE;
+                dd->canGenMouseDown = R_FALSE;
+                dd->canGenMouseMove = R_FALSE;
+                dd->canGenMouseUp = R_FALSE;
+                dd->canGenKeybd = R_FALSE;
+            }
+
+            template <>
+            void ide_device<11>::init_devdesc(DevDesc* dd) {
+                dd->displayListOn = R_TRUE;
+                dd->canGenMouseDown = R_FALSE;
+                dd->canGenMouseMove = R_FALSE;
+                dd->canGenMouseUp = R_FALSE;
+                dd->canGenKeybd = R_FALSE;
+            }
+
+            template <>
+            void ide_device<12>::init_devdesc(DevDesc* dd) {
+                dd->displayListOn = R_TRUE;
+                dd->canGenMouseDown = R_FALSE;
+                dd->canGenMouseMove = R_FALSE;
+                dd->canGenMouseUp = R_FALSE;
+                dd->canGenKeybd = R_FALSE;
+                dd->canGenIdle = R_FALSE;
+            }
+
             template <int ApiVer>
             auto ide_device<ApiVer>::create(const boost::uuids::uuid& device_id, std::string device_type, double width, double height, double resolution) -> std::unique_ptr<ide_device> {
                 auto dd = static_cast<DevDesc*>(calloc(1, sizeof(DevDesc)));
@@ -535,20 +563,10 @@ namespace rhost {
                 // (don't overwrite the callbacks that are already assigned).
                 copy_device_attributes(file_dd, dd);
 
-                dd->displayListOn = R_TRUE;
-                dd->canGenMouseDown = R_FALSE;
-                dd->canGenMouseMove = R_FALSE;
-                dd->canGenMouseUp = R_FALSE;
-                dd->canGenKeybd = R_FALSE;
-                //dd->canGenIdle = R_FALSE;
-
+                init_devdesc(dd);
                 dd->deviceSpecific = xdd.get();
-                return xdd;
-            }
 
-            template <>
-            auto ide_device<12>::create(const boost::uuids::uuid& device_id, std::string device_type, double width, double height, double resolution) -> std::unique_ptr<ide_device> {
-                return nullptr;
+                return xdd;
             }
 
             template <int ApiVer>
@@ -1169,6 +1187,7 @@ namespace rhost {
                             auto dev = ide_device::create(device_id, "png", width, height, resolution);
                             pGEDevDesc gdd = gd_api::GEcreateDevDesc(dev->device_desc);
                             gd_api::GEaddDevice2(gdd, "ide");
+
                             // Owner is DevDesc::deviceSpecific, and is released in close()
                             dev->closed.connect([&](ide_device* o) {
                                 ide_device::devices.erase(std::find(ide_device::devices.begin(), ide_device::devices.end(), o));

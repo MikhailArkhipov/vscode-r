@@ -42,6 +42,7 @@
             "request": "attach",
             "program": "${workspaceRoot}/../../../bin/Debug/Microsoft.R.Host.exe",
             "processId": "${command:pickProcess}",
+            "stopAtEntry": true,
             "linux": {
                 "MIMode": "gdb",
                 "setupCommands": [
