@@ -259,7 +259,7 @@ namespace rhost {
                 dw.set_yLineBias(0);
 
                 dw.set_ipr(0, DEVICE_UNIT_TO_INCH(1.0));
-                dw.set_ipr(0, DEVICE_UNIT_TO_INCH(1.0));
+                dw.set_ipr(1, DEVICE_UNIT_TO_INCH(1.0));
                 dw.set_cra(0, 10);
                 dw.set_cra(1, 10);
                 dw.set_gamma(0);
