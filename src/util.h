@@ -22,8 +22,8 @@
 
 #pragma once
 #include "stdafx.h"
-#include "Rapi.h"
 #include "log.h"
+#include "r_api.h"
 
 #define SCOPE_WARDEN(NAME, ...)                \
     auto xx##NAME##xx = [&]() { __VA_ARGS__ }; \
@@ -38,22 +38,22 @@ namespace rhost {
         template<typename F>
         class scope_warden {
         public:
-            explicit __declspec(nothrow) scope_warden(F& f)
-                : _p(std::addressof(f)) {
+            scope_warden(F& f) noexcept
+                : _p(std::addressof(f))  {
             }
 
-            void __declspec(nothrow) dismiss() {
+            void dismiss() noexcept {
                 _p = nullptr;
             }
 
-            void __declspec(nothrow) run() {
+            void run() noexcept {
                 if (_p) {
                     (*_p)();
                 }
                 dismiss();
             }
 
-            __declspec(nothrow) ~scope_warden() {
+            ~scope_warden() noexcept {
                 if (_p) {
                     try {
                         (*_p)();
@@ -66,7 +66,7 @@ namespace rhost {
         private:
             F* _p;
 
-            explicit scope_warden(F&&) = delete;
+            scope_warden(F&&) = delete;
             scope_warden(const scope_warden&) = delete;
             scope_warden& operator=(const scope_warden&) = delete;
         };
@@ -103,7 +103,8 @@ namespace rhost {
             using unique_ptr::operator=;
 
             protected_sexp& operator= (SEXP other) {
-                swap(protected_sexp(other));
+                protected_sexp o(other);
+                swap(o);
                 return *this;
             }
 
@@ -117,18 +118,34 @@ namespace rhost {
             }
         };
 
+#ifdef _WIN32
         std::string Rchar_to_utf8(const char* buf, size_t len);
 
         inline std::string Rchar_to_utf8(const std::string& s) {
             return Rchar_to_utf8(s.data(), s.size());
         }
+        std::string from_utf8(const std::string& u8s);
+#else
+        inline std::string Rchar_to_utf8(const char* buf, size_t len) {
+            return std::string(buf, len);
+        }
+
+        inline std::string Rchar_to_utf8(const std::string& s){
+            return s;
+        }
+
+        inline std::string from_utf8(const std::string& u8s){
+            return u8s;
+        }
+#endif
 
         inline picojson::value to_utf8_json(const char* buf) {
             return buf ? picojson::value(Rchar_to_utf8(buf)) : picojson::value();
         }
-
-        std::string from_utf8(const std::string& u8s);
+        
         const std::locale& single_byte_locale();
+
+        fs::path path_from_string_elt(SEXP string_elt);
 
         inline void append(picojson::array& msg) {
         }

@@ -21,7 +21,7 @@
  * ***************************************************************************/
 
 #pragma once
-#include "Rapi.h"
+#include "r_api.h"
 
 namespace rhost {
     namespace r_util {

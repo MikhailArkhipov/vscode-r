@@ -22,11 +22,11 @@
 
 #pragma once
 #include "stdafx.h"
-#include "Rapi.h"
 #include "util.h"
 #include "blobs.h"
 #include "message.h"
 #include "log.h"
+#include "r_api.h"
 
 namespace rhost {
     namespace host {
@@ -34,6 +34,8 @@ namespace rhost {
         };
 
         void initialize(structRstart& rp, const fs::path& rdata, std::chrono::seconds idle_timeout);
+        void set_callbacks_windows(structRstart& rp);
+        void set_callbacks_posix();
         void shutdown_if_requested();
         void do_r_callback(bool allow_eval_interrupt);
 
@@ -46,7 +48,7 @@ namespace rhost {
         extern boost::signals2::signal<void()> readconsole_done;
         extern boost::signals2::signal<void()> disconnected;
 
-        __declspec(noreturn) void propagate_cancellation();
+        RHOST_NORETURN void propagate_cancellation();
 
         template <class F>
         auto with_cancellation(F body) -> decltype(body()) {

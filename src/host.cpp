@@ -20,9 +20,9 @@
  *
  * ***************************************************************************/
 
+#include "stdafx.h"
 #include "host.h"
 #include "log.h"
-#include "msvcrt.h"
 #include "eval.h"
 #include "util.h"
 #include "json.h"
@@ -38,6 +38,12 @@ using namespace rhost::json;
 using namespace rhost::blobs;
 using namespace rhost::protocol;
 
+#ifdef _WIN32
+typedef char ReadConsole_buf_t;
+#else
+typedef unsigned char ReadConsole_buf_t;
+#endif
+
 namespace rhost {
     namespace host {
         boost::signals2::signal<void()> callback_started;
@@ -45,7 +51,7 @@ namespace rhost {
         boost::signals2::signal<void()> disconnected;
 
         fs::path rdata;
-        std::atomic<bool> shutdown_requested = false;
+        std::atomic<bool> shutdown_requested(false);
 
         bool is_r_ready = false;
         std::mutex is_r_ready_lock;
@@ -54,8 +60,10 @@ namespace rhost {
         std::mutex idle_timer_lock;
         std::chrono::steady_clock::time_point idling_since;
 
+#ifdef _WIN32
         DWORD main_thread_id;
-        std::atomic<bool> is_waiting_for_wm = false;
+#endif
+        std::atomic<bool> is_waiting_for_wm(false);
         bool allow_callbacks = true, allow_intr_in_CallBack = true;
 
         // Specifies whether the host is currently expecting a response message to some earlier request that it had sent.
@@ -180,7 +188,9 @@ namespace rhost {
             // pumping events and return to PeekMessage.
             auto delay = 10ms;
             for (; is_waiting_for_wm; std::this_thread::sleep_for(delay)) {
+#ifdef _WIN32
                 PostThreadMessage(main_thread_id, WM_NULL, 0, 0);
+#endif
 
                 // Further guard against overflowing the queue by posting to it too aggressively.
                 // If previous wait didn't help, give it a little more time to process next message,
@@ -314,6 +324,7 @@ namespace rhost {
             return id;
         }
 
+
         void compress_data(blob& compressed_blob, void* data, size_t length) {
             fs::path temp_archive = std::tmpnam(nullptr);
 
@@ -369,7 +380,7 @@ namespace rhost {
 
         bool get_blob(blobs::blob_id id, blobs::blob& blob) {
             std::lock_guard<std::mutex> lock(blobs_mutex);
-            auto& it = blobs.find(id);
+            auto it = blobs.find(id);
 
             if (it == blobs.end()) {
                 return false;
@@ -410,7 +421,7 @@ namespace rhost {
             auto id = static_cast<blobs::blob_id>(json[0].get<double>());
 
             std::lock_guard<std::mutex> lock(blobs_mutex);
-            auto& it = blobs.find(id);
+            auto it = blobs.find(id);
             if (it == blobs.end()) {
                 fatal_error("GetBlobSize: no blob with ID %llu", id);
             }
@@ -433,7 +444,7 @@ namespace rhost {
             auto size = static_cast<size_t>(json[1].get<double>());
 
             std::lock_guard<std::mutex> lock(blobs_mutex);
-            auto& it = blobs.find(id);
+            auto it = blobs.find(id);
             if (it == blobs.end()) {
                 fatal_error("SetBlobSize: no blob with ID %llu", id);
             }
@@ -469,7 +480,7 @@ namespace rhost {
             }
 
             std::lock_guard<std::mutex> lock(blobs_mutex);
-            auto& it = blobs.find(id);
+            auto it = blobs.find(id);
             if (it == blobs.end()) {
                 fatal_error("ReadBlob: no blob with ID %llu", id);
             }
@@ -488,14 +499,14 @@ namespace rhost {
             } 
             
             // Read at position and count
-            size_t size = pos;
-            size += count;
+            size_t size = static_cast<size_t>(pos);
+            size += static_cast<size_t>(count);
             if (count == -1 || size > it->second.size()) {
                 count = it->second.size() - pos;
             }
 
-            blobs::blob::const_iterator begin = it->second.begin() + pos;
-            blobs::blob::const_iterator end = begin + count;
+            blobs::blob::const_iterator begin = it->second.begin() + static_cast<size_t>(pos);
+            blobs::blob::const_iterator end = begin + static_cast<size_t>(count);
 
             blobs::blob part(begin, end);
             respond_to_message(msg, part);
@@ -516,7 +527,7 @@ namespace rhost {
             long long pos = static_cast<long long>(json[1].get<double>());
 
             std::lock_guard<std::mutex> lock(blobs_mutex);
-            auto& it = blobs.find(id);
+            auto it = blobs.find(id);
             if (it == blobs.end()) {
                 fatal_error("WriteBlob: no blob with ID %llu", id);
             }
@@ -528,13 +539,13 @@ namespace rhost {
             } else {
                 // write/over-write at position
                 auto blob = msg.blob();
-                size_t size = pos;
+                size_t size = static_cast<size_t>(pos);
                 size += blob.size();
                 if (it->second.size() < size) {
                     it->second.resize(size);
                 }
 
-                std::copy(blob.begin(), blob.end(), it->second.begin() + pos);
+                std::copy(blob.begin(), blob.end(), it->second.begin() + static_cast<size_t>(pos));
             }
             
             respond_to_message(msg, ensure_fits_double(it->second.size()));
@@ -838,7 +849,9 @@ namespace rhost {
                     R_ToplevelExec([](void*) {
                         // Errors can happen during event processing (from GUI windows such as graphs), and
                         // we don't want them to bubble up here, so run these in a fresh execution context.
+#ifdef _WIN32
                         R_WaitEvent();
+#endif
                         is_waiting_for_wm = false;
                         R_ProcessEvents();
                     }, nullptr);
@@ -871,7 +884,7 @@ namespace rhost {
 
         picojson::array get_context() {
             picojson::array context;
-            for (RCNTXT* ctxt = R_GlobalContext; ctxt != nullptr; ctxt = ctxt->nextcontext) {
+            for (RCNTXT* ctxt = reinterpret_cast<RCNTXT*>(R_GlobalContext); ctxt != nullptr; ctxt = ctxt->nextcontext) {
                 context.push_back(picojson::value(double(ctxt->callflag)));
             }
             return context;
@@ -914,7 +927,8 @@ namespace rhost {
             do_r_callback(true);
         }
 
-        extern "C" int R_ReadConsole(const char* prompt, char* buf, int len, int addToHistory) {
+
+        extern "C" int R_ReadConsole(const char* prompt, ReadConsole_buf_t* buf, int len, int addToHistory) {
             return with_cancellation([&] {
                 // The moment we get the first ReadConsole from R is when it's ready to process our requests.
                 // Until then, attempts to do things (especially to eval arbitrary code) can fail because
@@ -941,7 +955,7 @@ namespace rhost {
                 }
 
                 bool is_browser = false;
-                for (RCNTXT* ctxt = R_GlobalContext; ctxt != nullptr; ctxt = ctxt->nextcontext) {
+                for (RCNTXT* ctxt = reinterpret_cast<RCNTXT*>(R_GlobalContext); ctxt != nullptr; ctxt = ctxt->nextcontext) {
                     if (ctxt->callflag & CTXT_BROWSER) {
                         is_browser = true;
                         break;
@@ -997,12 +1011,12 @@ namespace rhost {
                     }
 
                     auto s = from_utf8(arg.get<std::string>());
-                    if (s.size() >= len) {
+                    if (s.size() >= static_cast<size_t>(len)) {
                         retry_reason = "BUFFER_OVERFLOW";
                         continue;
                     }
 
-                    strcpy_s(buf, len, s.c_str());
+                    strcpy_s(reinterpret_cast<char*>(buf), len, s.c_str());
                     return 1;
                 }
             });
@@ -1068,22 +1082,42 @@ namespace rhost {
             }
         }
 
-        void initialize(structRstart& rp, const fs::path& rdata, std::chrono::seconds idle_timeout) {
-            host::rdata = rdata;
-
-            main_thread_id = GetCurrentThreadId();
-
-            transport::message_received.connect(message_received);
-            transport::disconnected.connect(unblock_message_loop);
-
+#ifdef _WIN32
+        void set_callbacks_windows(structRstart& rp) {
             rp.ReadConsole = R_ReadConsole;
             rp.WriteConsoleEx = WriteConsoleEx;
             rp.CallBack = CallBack;
             rp.ShowMessage = ShowMessage;
             rp.YesNoCancel = YesNoCancel;
             rp.Busy = Busy;
+        }
+#else
+        void set_callbacks_posix() {
+            ptr_R_ReadConsole = R_ReadConsole;
+            ptr_R_WriteConsole = nullptr;
+            ptr_R_WriteConsoleEx = WriteConsoleEx;
+            ptr_R_ShowMessage = ShowMessage;
+            ptr_R_Busy = Busy;
+        }
+#endif
 
-            send_notification("!Microsoft.R.Host", 1.0, getDLLVersion());
+        void initialize(structRstart& rp, const fs::path& rdata, std::chrono::seconds idle_timeout) {
+            host::rdata = rdata;
+#ifdef _WIN32
+            main_thread_id = GetCurrentThreadId();
+#endif
+            transport::message_received.connect(message_received);
+            transport::disconnected.connect(unblock_message_loop);
+
+#ifdef _WIN32
+            set_callbacks_windows(rp);
+            char* dllVersion = getDLLVersion();
+#else
+            set_callbacks_posix();
+            char dllVersion[25] = {};
+            snprintf(dllVersion, 25, "%s.%s", R_MAJOR, R_MINOR);
+#endif
+            send_notification("!Microsoft.R.Host", 1.0, dllVersion);
 
             if (idle_timeout > 0s) {
                 logf(log_verbosity::minimal, "Host process will shut down after %lld seconds of inactivity.\n", idle_timeout.count());

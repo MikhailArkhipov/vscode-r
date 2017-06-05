@@ -23,6 +23,7 @@
 #pragma once
 #include "stdafx.h"
 #include "util.h"
+#include "r_api.h"
 
 namespace rhost {
     namespace eval {
@@ -49,13 +50,13 @@ namespace rhost {
             protected_sexp sexp_parsed(R_ParseVector(sexp_expr.get(), -1, &parse_status, R_NilValue));
             if (parse_status == PARSE_OK) {
                 results.resize(Rf_length(sexp_parsed.get()));
-                for (int i = 0; i < results.size(); ++i) {
+                for (size_t i = 0; i < results.size(); ++i) {
                     auto& result = results[i];
 
                     struct eval_data_t {
                         SEXP expr;
                         SEXP env;
-                        decltype(result)& result;
+                        decltype(result)& result_ref;
                         FBefore& before;
                         FAfter& after;
                     } eval_data = { VECTOR_ELT(sexp_parsed.get(), i), env, result, before, after };
@@ -67,7 +68,7 @@ namespace rhost {
                     result.has_error = !rhost::util::r_top_level_exec([&] {
                         eval_data.before();
                         was_eval_canceled = false;
-                        eval_data.result.value.reset(Rf_eval(eval_data.expr, eval_data.env));
+                        eval_data.result_ref.value.reset(Rf_eval(eval_data.expr, eval_data.env));
                         eval_data.after();
                     });
                     result.is_canceled = was_eval_canceled;

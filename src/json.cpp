@@ -54,7 +54,7 @@ namespace rhost {
                 va_list va;
                 va_start(va, format);
                 vsnprintf(buf + len, sizeof buf - len, format, va);
-                va_end(format);
+                va_end(va);
 
                 Rf_error("%s", buf);
             }
@@ -192,7 +192,7 @@ namespace rhost {
                 if (R_IsNA(x)) {
                     result = js::value();
                 } else {
-                    if (isinf(x) || isnan(x)) {
+                    if (std::isinf(x) || std::isnan(x)) {
                         json_error(sexp, "+Inf, -Inf and NaN cannot be serialized.");
                     }
                     result = js::value(x);

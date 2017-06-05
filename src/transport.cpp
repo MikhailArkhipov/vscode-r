@@ -29,7 +29,7 @@ namespace rhost {
     namespace transport {
         namespace {
             const char devNull[] =
-#ifdef WIN32
+#ifdef _WIN32
                 "NUL";
 #else
                 "/dev/null";
@@ -94,8 +94,10 @@ namespace rhost {
         void initialize() {
             assert(!input && !output);
 
+#ifdef _WIN32
             setmode(fileno(stdin), _O_BINARY);
             setmode(fileno(stdout), _O_BINARY);
+#endif
 
             // Duplicate and stash away handles for original stdin & stdout.
             input = fdopen(dup(fileno(stdin)), "rb");

@@ -43,7 +43,7 @@ namespace rhost {
                 va_list va;
                 va_start(va, format);
                 vsnprintf(buf + len, sizeof buf - len, format, va);
-                va_end(format);
+                va_end(va);
 
                 Rf_error("%s", buf);
             }
@@ -93,7 +93,7 @@ namespace rhost {
                     fseek(fp, 0, SEEK_SET);
                     size_t read = fread(&blob[offset], 1, len, fp);
                     if (read != len) {
-                        throw std::exception("Error reading file");
+                        throw std::runtime_error("Error reading file");
                     }
                 }
             }
@@ -109,7 +109,7 @@ namespace rhost {
 
             FILE *f = std::fopen(file_path.make_preferred().string().c_str(), "wb");
             if (!f) {
-                throw std::exception("Error saving blob to file.");
+                throw std::runtime_error("Error saving blob to file.");
             }
 
             SCOPE_WARDEN(blob_file, {
@@ -118,7 +118,7 @@ namespace rhost {
 
             size_t sz = std::fwrite(data.data(), sizeof(char), data.size(), f);
             if (sz != data.size()) {
-                throw std::exception("Error while writing blob to file.");
+                throw std::runtime_error("Error while writing blob to file.");
             }
         }
     }

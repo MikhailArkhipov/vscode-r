@@ -22,41 +22,22 @@
 
 #include "stdafx.h"
 #include "util.h"
-#include "msvcrt.h"
 
 namespace po = boost::program_options;
 
+#ifndef _WIN32
+void strcpy_s(char* dest, size_t n, char const* source) {
+    strcpy(dest, source);
+}
+
+void memcpy_s(void* const dest, size_t const destSize, void const* const source, size_t const sourceSize) {
+    memcpy(dest, source, sourceSize);
+}
+#endif
+
 namespace rhost {
     namespace util {
-#ifdef USE_BOOST_LOCALE
-        const std::locale& single_byte_locale() {
-            static auto locale = [] {
-                boost::locale::generator gen;
-                return gen.generate("");
-            } ();
-            return locale;
-        }
-
-        std::string to_utf8(const char* buf, size_t len) {
-            std::locale loc = single_byte_locale();
-            auto& codecvt_wchar = std::use_facet<std::codecvt<wchar_t, char, std::mbstate_t>>(loc);
-            std::wstring_convert<std::codecvt<wchar_t, char, std::mbstate_t>> convert(&codecvt_wchar);
-            auto ws = convert.from_bytes(buf, buf + len);
-
-            std::wstring_convert<std::codecvt_utf8<wchar_t>> codecvt_utf8;
-            return codecvt_utf8.to_bytes(ws);
-        }
-
-        std::string from_utf8(const std::string& u8s) {
-            std::wstring_convert<std::codecvt_utf8<wchar_t>> codecvt_utf8;
-            auto ws = codecvt_utf8.from_bytes(u8s);
-
-            std::locale loc = single_byte_locale();
-            auto& codecvt_wchar = std::use_facet<std::codecvt<wchar_t, char, std::mbstate_t>>(loc);
-            std::wstring_convert<std::codecvt<wchar_t, char, std::mbstate_t>> convert(&codecvt_wchar);
-            return convert.to_bytes(ws);
-        }
-#endif
+#ifdef _WIN32
         // Taken from R gnuwin32\console.c. Converts string that is partially
         // ANSI and partially UTF-8 to Unicode. UTF-8 fragment is bounded by
         // 02 FF FE at the start and by 03 FF FE at the end.
@@ -69,7 +50,8 @@ namespace rhost {
 
             if ((pb = strchr(s, UTF8in[0])) && *(pb + 1) == UTF8in[1] && *(pb + 2) == UTF8in[2]) {
                 *pb = '\0';
-                nc += msvcrt::mbstowcs(wc, s, n);
+
+                nc += mbstowcs(wc, s, n);
                 pb += 3; pe = pb;
 
                 while (*pe &&
@@ -87,7 +69,7 @@ namespace rhost {
                 pe += 3;
                 nc += RString2Unicode(wc + nc, pe, n - nc);
             } else {
-                nc = msvcrt::mbstowcs(wc, s, n);
+                nc = mbstowcs(wc, s, n);
             }
             return nc;
         }
@@ -105,14 +87,12 @@ namespace rhost {
                 RString2Unicode(&ws[0], (char*)buf, len);
             }
             // Now convert Unicode to UTF-8 for passing over to the host.
-            std::wstring_convert<std::codecvt_utf8<wchar_t>> codecvt_utf8;
-            return codecvt_utf8.to_bytes(ws.c_str());
+            return boost::locale::conv::utf_to_utf<char>(ws);
         }
 
         std::string from_utf8(const std::string& u8s) {
             // Convert UTF-8 string that is coming from the host to Unicode.
-            std::wstring_convert<std::codecvt_utf8<wchar_t>> codecvt_utf8;
-            auto ws = codecvt_utf8.from_bytes(u8s);
+            auto ws = boost::locale::conv::utf_to_utf<wchar_t>(u8s);
 
             // Now convert to MBCS. Do it manually since WideCharToMultiByte
             // requires specific code page and fails if character
@@ -125,7 +105,7 @@ namespace rhost {
             for (size_t i = 0; i < ws.length(); i++)
             {
                 char mbcharbuf[8];
-                int mbcch = msvcrt::wctomb(mbcharbuf, ws[i]);
+                int mbcch = wctomb(mbcharbuf, ws[i]);
 
                 bool escape;
                 if (mbcch == -1) {
@@ -137,7 +117,7 @@ namespace rhost {
                     // do "\u..." escaping instead, to preserve the original letter exactly. To detect
                     // that, convert the result back, and see if it matches the original. 
                     wchar_t wc;
-                    escape = msvcrt::mbtowc(&wc, mbcharbuf, mbcch) == -1 || wc != ws[i];
+                    escape = mbtowc(&wc, mbcharbuf, mbcch) == -1 || wc != ws[i];
                 }
 
                 if (escape) {
@@ -152,6 +132,15 @@ namespace rhost {
             converted[j] = '\0';
             converted.resize(j);
             return converted;
+        }
+#endif
+
+        fs::path path_from_string_elt(SEXP string_elt) {
+#ifdef _WIN32
+            return fs::path(Rf_wtransChar(string_elt));
+#else
+            return fs::path(Rf_translateCharUTF8(string_elt));
+#endif
         }
     }
 }

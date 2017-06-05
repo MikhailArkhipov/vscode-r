@@ -21,8 +21,6 @@
  * ***************************************************************************/
 
 #include "stdafx.h"
-#include "Rapi.h"
-#include "msvcrt.h"
 #include "log.h"
 #include "util.h"
 #include "host.h"
@@ -56,7 +54,7 @@ namespace rhost {
             static memory_connection* of_connection_sexp(SEXP conn_sexp) {
                 auto it = _instances.find(conn_sexp);
                 if (it == _instances.end()) {
-                    throw std::exception("Connection is not a memory_connection");
+                    throw std::runtime_error("Connection is not a memory_connection");
                 }
                 return it->second;
             }
@@ -73,12 +71,12 @@ namespace rhost {
                 int count;
 
                 // Try with a reasonably large stack allocated buffer first.
-                // Use vsnprintf from msvcrt, since that is what R normally uses, and there are differences.
                 va_list va2;
                 va_copy(va2, va);
                 char buf[0x1000], *pbuf = buf;
                 size_t bufsize = sizeof buf;
-                count = msvcrt::vsnprintf(buf, bufsize, format, va2);
+
+                count = vsnprintf(buf, bufsize, format, va2);
                 va_end(va2);
 
                 std::unique_ptr<char[]> buf_deleter;
@@ -86,7 +84,7 @@ namespace rhost {
                     // If it didn't fit in the buffer, heap-allocate a larger buffer.
                     bufsize *= 2;
                     if (bufsize >= 100 * 1024 * 1024) {
-                        throw std::exception("Output is too long");
+                        throw std::runtime_error("Output is too long");
                     }
 
                     // If we run out of memory, new will throw std::bad_alloc, which will
@@ -94,7 +92,7 @@ namespace rhost {
                     buf_deleter.reset(pbuf = new char[bufsize *= 2]);
 
                     va_copy(va2, va);
-                    count = msvcrt::vsnprintf(pbuf, bufsize, format, va2);
+                    count = vsnprintf(pbuf, bufsize, format, va2);
                     va_end(va2);
                 }
 
@@ -106,15 +104,15 @@ namespace rhost {
                 }
 
                 _data.append(pbuf);
-                if (_max_size != R_NaInt && _data.size() > _max_size) {
+                if (_max_size != R_NaInt && _data.size() > static_cast<size_t>(_max_size)) {
                     _data.resize(_max_size - _overflow_suffix.size());
                     _data += _overflow_suffix;
                     _overflown = true;
-                    throw std::exception("Connection size limit exceeded");
+                    throw std::runtime_error("Connection size limit exceeded");
                 }
 
                 if (_seen_eof) {
-                    throw std::exception("EOF marker encountered");
+                    throw std::runtime_error("EOF marker encountered");
                 }
 
                 return count;
@@ -125,7 +123,7 @@ namespace rhost {
             }
 
             const std::string& overflow_suffix(const std::string& value) {
-                if (value.size() > _max_size) {
+                if (value.size() > static_cast<size_t>(_max_size)) {
                     throw std::invalid_argument("max_size is not large enough to fit overflow_suffix");
                 }
                 return _overflow_suffix = value;
@@ -170,7 +168,7 @@ namespace rhost {
             }
 
             SEXP overflown_sexp() const {
-                return _overflown ? R_TrueValue : R_FalseValue;
+                return _overflown ? Rf_ScalarLogical(R_TRUE) : Rf_ScalarLogical(R_FALSE);
             }
 
         private:
@@ -305,7 +303,7 @@ namespace rhost {
                     if (args[i].is<picojson::null>()) {
                         arg = R_NilValue;
                     } else if (args[i].is<bool>()) {
-                        arg = args[i].get<bool>() ? R_TrueValue : R_FalseValue;
+                        arg = args[i].get<bool>() ? Rf_ScalarLogical(R_TRUE) : Rf_ScalarLogical(R_FALSE);
                     } else if (args[i].is<double>()) {
                         arg = Rf_ScalarReal(args[i].get<double>());
                     } else if (args[i].is<std::string>()) {
@@ -373,7 +371,7 @@ namespace rhost {
                     FUNTAB* funtab = R_FunTab;
                     for (;;) {
                         if (!funtab->name) {
-                            throw std::exception("R_FunTab does not contain an entry for 'parse'.");
+                            throw std::runtime_error("R_FunTab does not contain an entry for 'parse'.");
                         } else if (strcmp(funtab->name, "parse") == 0) {
                             break;
                         } else {
@@ -391,7 +389,7 @@ namespace rhost {
         }
 
         extern "C" SEXP is_rdebug(SEXP obj) {
-            return RDEBUG(obj) ? R_TrueValue : R_FalseValue;
+            return RDEBUG(obj) ? Rf_ScalarLogical(R_TRUE) : Rf_ScalarLogical(R_FALSE);
         }
 
         extern "C" SEXP set_rdebug(SEXP obj, SEXP debug) {
@@ -411,7 +409,7 @@ namespace rhost {
             }
 
             // Skip the requisite number of top-level contexts first.
-            auto ctx = R_GlobalContext;
+            RCNTXT* ctx = reinterpret_cast<RCNTXT*>(R_GlobalContext);
             while (ctx && skip_toplevel) {
                 if (ctx->callflag == CTXT_TOPLEVEL) {
                     --skip_toplevel;
@@ -493,7 +491,9 @@ namespace rhost {
             SEXP rawVector = nullptr;
             Rf_protect(rawVector = Rf_allocVector(RAWSXP, data.size()));
             Rbyte* dest = RAW(rawVector);
+
             memcpy_s(dest, data.size(), data.data(), data.size());
+
             Rf_unprotect(1);
             return rawVector;
         }
@@ -509,8 +509,8 @@ namespace rhost {
             std::vector<std::wstring> files;
             r_top_level_exec([&]() {
                 for (R_len_t i = 0; i < len; ++i) {
-                    const wchar_t* file_path = Rf_wtransChar(STRING_ELT(paths, i));
-                    files.emplace_back(file_path);
+                    fs::path file_path = rhost::util::path_from_string_elt(STRING_ELT(paths, i));
+                    files.emplace_back(file_path.make_preferred().wstring());
                 }
             }, __FUNCTION__);
             file_lock_state lock_state = lock_state_by_file(files);
@@ -518,31 +518,30 @@ namespace rhost {
         }
 
         extern "C" SEXP fetch_file(SEXP remotePath, SEXP localPath, SEXP silent) {
-            const char* f_remotePath = Rf_translateCharUTF8(STRING_ELT(remotePath, 0));
-            const char* f_localPath = Rf_translateCharUTF8(STRING_ELT(localPath, 0));
             return util::exceptions_to_errors([&]() {
-                fs::path file_remote_path = fs::u8path(f_remotePath);
-                fs::path file_local_path = fs::u8path(f_localPath);
+                fs::path file_remote_path = rhost::util::path_from_string_elt(STRING_ELT(remotePath, 0));
+                fs::path file_local_path = rhost::util::path_from_string_elt(STRING_ELT(localPath, 0));;
+
                 if (!file_remote_path.empty()) {
                     blobs::blob file_data;
                     blobs::append_from_file(file_data, file_remote_path);
                     auto blob_id = rhost::host::create_compressed_blob(blobs::blob(file_data.data(), file_data.data() + file_data.size()));
                     auto file_remote_name = file_remote_path.filename().string();
                     host::send_notification("!FetchFile", file_remote_name, (double)blob_id, file_local_path.string(), Rf_asLogical(silent) != 0);
-                    return R_TrueValue;
+                    return Rf_ScalarLogical(R_TRUE);
                 }
-                return R_FalseValue;
+                return Rf_ScalarLogical(R_FALSE);
             });
         }
 
         extern "C" SEXP save_to_project_folder(SEXP id, SEXP project_name, SEXP dest_dir, SEXP temp_dir) {
             auto blob_id = static_cast<blobs::blob_id>(Rf_asReal(id));
-            const char *prj_name = Rf_translateCharUTF8(STRING_ELT(project_name, 0));
-            const char *t_dir = Rf_translateCharUTF8(STRING_ELT(temp_dir, 0));
-            const char *d_dir = Rf_translateCharUTF8(STRING_ELT(dest_dir, 0));
-
             util::exceptions_to_errors([&]() {
-                rproj::save_to_project_folder_worker(blob_id, fs::u8path(prj_name), fs::u8path(d_dir), fs::u8path(t_dir));
+                fs::path path_prj_name = rhost::util::path_from_string_elt(STRING_ELT(project_name, 0));
+                fs::path path_dest_dir = rhost::util::path_from_string_elt(STRING_ELT(dest_dir, 0));
+                fs::path path_temp_dir = rhost::util::path_from_string_elt(STRING_ELT(temp_dir, 0)); 
+
+                rproj::save_to_project_folder_worker(blob_id, path_prj_name, path_dest_dir, path_temp_dir);
             });
 
             return R_NilValue;

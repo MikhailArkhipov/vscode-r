@@ -21,11 +21,9 @@
  * ***************************************************************************/
 
 #include "stdafx.h"
-#include "msvcrt.h"
 #include "log.h"
 #include "r_util.h"
 #include "host.h"
-#include "Rapi.h"
 #include "util.h"
 #include "eval.h"
 #include "detours.h"
@@ -39,12 +37,17 @@ using namespace rhost::log;
 using namespace rhost::util;
 namespace po = boost::program_options;
 
+typedef void (*ptr_RHOST_WriteConsoleEx)(const char *, int, int);
+
 namespace rhost {
+    using namespace rapi;
+#ifdef _WIN32
     // ID for the timer 
     const UINT_PTR IDT_RESET_TIMER = 1;
+#endif
 
     struct command_line_args {
-        fs::path log_dir, rdata;
+        fs::path log_dir, rdata, r_dir;
         std::string name;
         log::log_verbosity log_level;
         std::chrono::seconds idle_timeout;
@@ -76,10 +79,12 @@ namespace rhost {
             suppress_ui("rhost-suppress-ui", new po::untyped_value(true),
                 "Suppress any UI (e.g., Message Box) from this host instance."),
             is_interactive("rhost-interactive", new po::untyped_value(true),
-                "This R is configured to start in interactive mode.");
+                "This R is configured to start in interactive mode."),
+            r_dir("rhost-r-dir", po::value<std::string>(), 
+                "Directory to load R.");
 
         po::options_description desc;
-        for (auto&& opt : { help, name, log_level, log_dir, rdata, idle_timeout, suppress_ui, is_interactive }) {
+        for (auto&& opt : { help, name, log_level, log_dir, rdata, idle_timeout, suppress_ui, is_interactive, r_dir }) {
             boost::shared_ptr<po::option_description> popt(new po::option_description(opt));
             desc.add(popt);
         }
@@ -134,6 +139,11 @@ namespace rhost {
         args.suppress_ui = vm.count(suppress_ui.long_name()) != 0;
         args.is_interactive = vm.count(is_interactive.long_name()) != 0;
 
+        auto r_dir_arg = vm.find(r_dir.long_name());
+        if (r_dir_arg != vm.end()) {
+            args.r_dir = r_dir_arg->second.as<std::string>();
+        }
+
         args.argv.push_back(argv[0]);
         for (auto& s : args.unrecognized) {
             args.argv.push_back(&s[0]);
@@ -145,7 +155,7 @@ namespace rhost {
     }
 
     void set_memory_limit() {
-#ifdef WIN32
+#ifdef _WIN32
         MEMORYSTATUSEX ms = {};
         ms.dwLength = sizeof ms;
         if (!GlobalMemoryStatusEx(&ms)) {
@@ -157,7 +167,7 @@ namespace rhost {
 
         double old_limit = 0;
         r_top_level_exec([&] {
-            old_limit = *REAL(in_memsize(R_LogicalNAValue));
+            old_limit = *REAL(in_memsize(Rf_ScalarLogical(NA_LOGICAL)));
         });
         if (old_limit >= new_limit) {
             return;
@@ -173,10 +183,18 @@ namespace rhost {
 #endif
     }
 
-    int run(command_line_args& args) {
+#ifdef _WIN32
+    int run_r_windows(command_line_args& args) {
         init_log(args.name, args.log_dir, args.log_level, args.suppress_ui);
         transport::initialize();
         
+        if (args.r_dir.empty()) {
+            logf(log_verbosity::minimal, "--rhost-r-dir is a required argument");
+            return 0;
+        }
+
+        rhost::rapi::load_r_apis(args.r_dir);
+
         R_setStartTime();
         structRstart rp = {};
         R_DefParams(&rp);
@@ -202,13 +220,13 @@ namespace rhost {
         GA_initapp(0, 0);
         readconsolecfg();
 
-        CharacterMode = LinkDLL;
+        (*rhost::rapi::RHOST_RAPI_PTR(CharacterMode)) = LinkDLL;
         setup_Rmainloop();
-        CharacterMode = RGui;
+        (*rhost::rapi::RHOST_RAPI_PTR(CharacterMode)) = RGui;
 
         DllInfo *dll = R_getEmbeddingDllInfo();
         rhost::r_util::init(dll);
-        rhost::grdevices::xaml::init(dll);
+        //rhost::grdevices::xaml::init(dll);
         rhost::grdevices::ide::init(dll);
         rhost::exports::register_all(dll);
 
@@ -235,22 +253,89 @@ namespace rhost {
 
         run_Rmainloop();
 
-        Rf_endEmbeddedR(0);
         return EXIT_SUCCESS;
     }
 
+#else // POSIX
+    int run_r_posix(command_line_args& args) {
+        init_log(args.name, args.log_dir, args.log_level, args.suppress_ui);
+        transport::initialize();
+        
+        R_running_as_main_program = 1;
+        
+        ptr_R_ShowMessage = rhost::host::ShowMessage;
+
+        char argv0[] = "Microsoft.R.Host";
+        char argv1[] = "--interactive";
+        char *argv[] = { argv0, argv1 };
+        int argc = sizeof(argv)/sizeof(argv[0]);
+        int res = Rf_initialize_R(argc, argv);
+
+        structRstart rp = {};
+        R_DefParams(&rp);
+        rp.R_Quiet = R_FALSE;
+        rp.R_Interactive = args.is_interactive ? R_TRUE : R_FALSE;
+        rp.RestoreAction = SA_NORESTORE;
+        rp.SaveAction = SA_NOSAVE;
+
+        rhost::host::initialize(rp, args.rdata, args.idle_timeout);
+
+        R_set_command_line_arguments(args.argc, args.argv.data());
+        R_common_command_line(&args.argc, args.argv.data(), &rp);
+        R_SetParams(&rp);
+        
+        // This is a exported static library member Rf_initialize_R sets it to TRUE
+        R_Interactive_ = args.is_interactive ? R_TRUE : R_FALSE;
+        R_Consolefile = nullptr;
+        R_Outputfile = nullptr;
+
+        DllInfo *dll = R_getEmbeddingDllInfo();
+        rhost::r_util::init(dll);
+        //rhost::grdevices::xaml::init(dll);
+        rhost::grdevices::ide::init(dll);
+        rhost::exports::register_all(dll);
+
+        rhost::host::set_callbacks_posix();
+
+        if (!args.rdata.empty()) {
+            std::string s = args.rdata.string();
+            log::logf(log_verbosity::minimal, "Loading workspace from file %s\n", s.c_str());
+
+            bool ok = r_top_level_exec([&] {
+                R_RestoreGlobalEnvFromFile(s.c_str(), R_FALSE);
+            });
+
+            log::logf(log_verbosity::minimal, ok ? "Workspace loaded successfully.\n" : "Failed to load workspace.\n");
+        }
+
+        Rf_mainloop();
+
+        return 0;
+    }
+#endif
+
     int run(int argc, char** argv) {
-        return rhost::run(rhost::parse_command_line(argc, argv));
+        auto args = rhost::parse_command_line(argc, argv);
+#ifdef _WIN32
+        return rhost::run_r_windows(args);
+#else
+        return rhost::run_r_posix(args);
+#endif 
     }
 }
 
+#ifdef _WIN32
+// This is needed to force MinGW to generate a relocation table when -dynamicbase (ASLR) is used.
+__declspec(dllexport)
+#endif
 int main(int argc, char** argv) {
-    //MessageBox(0, 0, 0, 0);
     setlocale(LC_NUMERIC, "C");
-    __try {
-        return rhost::run(argc, argv);
-    } __finally {
+    
+    SCOPE_WARDEN(_main_exit, {
         flush_log();
         rhost::detours::terminate_ui_detours();
-    }
+        rhost::rapi::unload_r_apis();
+    });
+
+    return rhost::run(argc, argv);
 }

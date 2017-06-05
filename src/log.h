@@ -21,7 +21,6 @@
  * ***************************************************************************/
 
 #pragma once
-#include "stdafx.h"
 
 namespace rhost {
     namespace log {
@@ -47,7 +46,7 @@ namespace rhost {
             va_list va;
             va_start(va, format);
             vlogf(verbosity, message_type, format, va);
-            va_end(format);
+            va_end(va);
         }
 
         inline void vlogf(log_verbosity verbosity, const char* format, va_list va) {
@@ -58,15 +57,15 @@ namespace rhost {
             va_list va;
             va_start(va, format);
             vlogf(verbosity, format, va);
-            va_end(format);
+            va_end(va);
         }
 
         void indent_log(int n);
 
         void flush_log();
 
-        __declspec(noreturn) void terminate(const char* format, ...);
+        RHOST_NORETURN void terminate(const char* format, ...);
 
-        __declspec(noreturn) void fatal_error(const char* format, ...);
+        RHOST_NORETURN void fatal_error(const char* format, ...);
     }
 }

@@ -20,16 +20,17 @@
  *
  * ***************************************************************************/
 
-#pragma once
+#include "stdafx.h"
 #include "log.h"
-#include "Rapi.h"
+#include "r_api.h"
 
 using namespace std::literals;
+using namespace rhost::rapi;
 
 namespace rhost {
     namespace log {
         namespace {
-#ifdef WIN32
+#ifdef _MSC_VER
             const MINIDUMP_TYPE fulldump_type = MINIDUMP_TYPE(
                 MiniDumpWithFullMemory |
                 MiniDumpWithDataSegs |
@@ -58,7 +59,7 @@ namespace rhost {
             }
         }
 
-#ifdef WIN32
+#ifdef _MSC_VER
         void create_minidump(_EXCEPTION_POINTERS* ei) {
             // Don't let another thread interrupt us by terminating while we're doing this.
             std::lock_guard<std::mutex> terminate_lock(terminate_mutex);
@@ -123,10 +124,13 @@ namespace rhost {
                 time(&t);
 
                 tm tm;
+#ifdef _WIN32
                 localtime_s(&tm, &t);
-
+#else
+                localtime_r(&t, &tm);
+#endif
                 size_t len = filename.size();
-                filename.resize(len + 1 + MAX_PATH);
+                filename.resize(len + 1 + RHOST_MAX_PATH);
                 auto it = filename.begin() + len;
                 strftime(&*it, filename.end() - it, "%Y%m%d_%H%M%S", &tm);
                 filename.resize(strlen(filename.c_str()));
@@ -139,8 +143,12 @@ namespace rhost {
                 stackdump_filename = log_dir / (filename + ".stack.dmp");
                 fulldump_filename = log_dir / (filename + ".full.dmp");
             }
-        
+
+#ifdef _MSC_VER
             logfile = _fsopen(log_filename.make_preferred().string().c_str(), "wc", _SH_DENYWR);
+#else
+            logfile = fopen(log_filename.make_preferred().string().c_str(), "w");
+#endif
             if (logfile) {
                 // Logging happens often, so use a large buffer to avoid hitting the disk all the time.
                 setvbuf(logfile, nullptr, _IOFBF, 0x100000);
@@ -153,11 +161,13 @@ namespace rhost {
                 fputs(error.c_str(), stderr);
                 
                 if (!suppress_ui) {
+#ifdef _WIN32
                     MessageBoxA(HWND_DESKTOP, error.c_str(), "Microsoft R Host", MB_OK | MB_ICONWARNING);
+#endif
                 }
             }
 
-#ifdef WIN32
+#ifdef _MSC_VER
             SetUnhandledExceptionFilter(unhandled_exception_filter);
 #endif
         }
@@ -211,12 +221,11 @@ namespace rhost {
         }
 
 
-        void terminate(bool unexpected, const char* format, va_list va) {
+        RHOST_NORETURN void terminate(bool unexpected, const char* format, va_list va) {
             std::lock_guard<std::mutex> terminate_lock(terminate_mutex);
 
             char message[0xFFFF];
             vsprintf_s(message, format, va);
-
             if (unexpected) {
                 logf(log_verbosity::minimal, "Fatal error: ");
             }
@@ -225,7 +234,7 @@ namespace rhost {
 
             if (unexpected) {
                 std::string msgbox_text;
-                for (int i = 0; i < strlen(message); ++i) {
+                for (size_t i = 0; i < strlen(message); ++i) {
                     char c = message[i];
                     if (c == '\n') {
                         msgbox_text += '\r';
@@ -233,6 +242,7 @@ namespace rhost {
                     msgbox_text += c;
                 }
                 
+#ifdef _MSC_VER
                 // Raise and catch an exception so that minidump with a stacktrace can be produced from it.
                 [&] {
                     terminate_mutex.unlock();
@@ -242,23 +252,27 @@ namespace rhost {
                     }
                     terminate_mutex.lock();
                 }();
+#endif
             }
             
             R_CleanUp(SA_NOSAVE, (unexpected ? EXIT_FAILURE : EXIT_SUCCESS), 0);
+
+            // We should never get here, but R_CleanUp is not marked as noreturn, so make compiler happy.
+            std::terminate();
         }
 
         void terminate(const char* format, ...) {
             va_list va;
             va_start(va, format);
             terminate(false, format, va);
-            va_end(format);
+            va_end(va);
         }
 
         void fatal_error(const char* format, ...) {
             va_list va;
             va_start(va, format);
             terminate(true, format, va);
-            va_end(format);
+            va_end(va);
         }
     }
 }
