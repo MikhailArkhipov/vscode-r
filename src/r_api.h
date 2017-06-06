@@ -61,6 +61,7 @@ extern "C" {
     extern SEXP Rf_deparse1line(SEXP, Rboolean);
     extern SEXP Rf_NewEnvironment(SEXP, SEXP, SEXP);
     extern void R_CleanUp(SA_TYPE, int, int);
+    extern void run_Rmainloop(void);
     typedef SEXP(*CCODE)(SEXP, SEXP, SEXP, SEXP);
 
     enum {

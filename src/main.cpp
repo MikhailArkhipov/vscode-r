@@ -185,16 +185,6 @@ namespace rhost {
 
 #ifdef _WIN32
     int run_r_windows(command_line_args& args) {
-        init_log(args.name, args.log_dir, args.log_level, args.suppress_ui);
-        transport::initialize();
-        
-        if (args.r_dir.empty()) {
-            logf(log_verbosity::minimal, "--rhost-r-dir is a required argument");
-            return 0;
-        }
-
-        rhost::rapi::load_r_apis(args.r_dir);
-
         R_setStartTime();
         structRstart rp = {};
         R_DefParams(&rp);
@@ -258,9 +248,6 @@ namespace rhost {
 
 #else // POSIX
     int run_r_posix(command_line_args& args) {
-        init_log(args.name, args.log_dir, args.log_level, args.suppress_ui);
-        transport::initialize();
-        
         R_running_as_main_program = 1;
         
         ptr_R_ShowMessage = rhost::host::ShowMessage;
@@ -284,6 +271,8 @@ namespace rhost {
         R_common_command_line(&args.argc, args.argv.data(), &rp);
         R_SetParams(&rp);
         
+        setup_Rmainloop();
+
         // This is a exported static library member Rf_initialize_R sets it to TRUE
         R_Interactive_ = args.is_interactive ? R_TRUE : R_FALSE;
         R_Consolefile = nullptr;
@@ -308,7 +297,7 @@ namespace rhost {
             log::logf(log_verbosity::minimal, ok ? "Workspace loaded successfully.\n" : "Failed to load workspace.\n");
         }
 
-        Rf_mainloop();
+        run_Rmainloop();
 
         return 0;
     }
@@ -316,6 +305,16 @@ namespace rhost {
 
     int run(int argc, char** argv) {
         auto args = rhost::parse_command_line(argc, argv);
+        init_log(args.name, args.log_dir, args.log_level, args.suppress_ui);
+        transport::initialize();
+
+        if (args.r_dir.empty()) {
+            logf(log_verbosity::minimal, "--rhost-r-dir is a required argument");
+            return 0;
+        }
+
+        rhost::rapi::load_r_apis(args.r_dir);
+
 #ifdef _WIN32
         return rhost::run_r_windows(args);
 #else
