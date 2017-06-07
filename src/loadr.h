@@ -118,7 +118,9 @@ macro(Rf_selectDevice) \
 macro(R_interrupts_suspended) \
 macro(R_interrupts_pending) \
 macro(R_CheckDeviceAvailable) \
-macro(GEcopyDisplayList)
+macro(GEcopyDisplayList) \
+macro(run_Rmainloop) \
+macro(setup_Rmainloop)
 
 #define RHOST_GD_SET(macro) \
 macro(Rf_desc2GEDesc) \
@@ -143,9 +145,7 @@ macro(R_setStartTime) \
 macro(R_WaitEvent) \
 macro(readconsolecfg) \
 macro(Rf_utf8towcs) \
-macro(Rf_wtransChar) \
-macro(run_Rmainloop) \
-macro(setup_Rmainloop)
+macro(Rf_wtransChar)
 
 #define RHOST_RGRAPHAPPAPI_SET(macro) \
 macro(GA_initapp)
@@ -165,8 +165,7 @@ macro(ptr_R_WriteConsoleEx) \
 macro(R_Consolefile) \
 macro(R_Interactive) \
 macro(R_Outputfile) \
-macro(Rf_initialize_R) \
-macro(Rf_mainloop)
+macro(Rf_initialize_R)
 
 #define RHOST_RAPI_SET(macro) \
 RHOST_RAPI_SET_COMMON(macro) \
@@ -279,11 +278,13 @@ namespace rhost {
 #define Rf_selectDevice rhost::rapi::RHOST_RAPI_PTR(Rf_selectDevice)
 #define Rf_translateCharUTF8 rhost::rapi::RHOST_RAPI_PTR(Rf_translateCharUTF8)
 #define Rf_unprotect rhost::rapi::RHOST_RAPI_PTR(Rf_unprotect)
+#define run_Rmainloop rhost::rapi::RHOST_RAPI_PTR(run_Rmainloop)
 #define SET_RDEBUG rhost::rapi::RHOST_RAPI_PTR(SET_RDEBUG)
 #define SET_STRING_ELT rhost::rapi::RHOST_RAPI_PTR(SET_STRING_ELT)
 #define SET_TYPEOF rhost::rapi::RHOST_RAPI_PTR(SET_TYPEOF)
 #define SET_VECTOR_ELT rhost::rapi::RHOST_RAPI_PTR(SET_VECTOR_ELT)
 #define SETCAR rhost::rapi::RHOST_RAPI_PTR(SETCAR)
+#define setup_Rmainloop rhost::rapi::RHOST_RAPI_PTR(setup_Rmainloop)
 #define STRING_ELT rhost::rapi::RHOST_RAPI_PTR(STRING_ELT)
 #define TYPEOF rhost::rapi::RHOST_RAPI_PTR(TYPEOF)
 #define VECTOR_ELT rhost::rapi::RHOST_RAPI_PTR(VECTOR_ELT)
@@ -301,8 +302,6 @@ namespace rhost {
 #define readconsolecfg rhost::rapi::RHOST_RAPI_PTR(readconsolecfg)
 #define Rf_utf8towcs rhost::rapi::RHOST_RAPI_PTR(Rf_utf8towcs)
 #define Rf_wtransChar rhost::rapi::RHOST_RAPI_PTR(Rf_wtransChar)
-#define run_Rmainloop rhost::rapi::RHOST_RAPI_PTR(run_Rmainloop)
-#define setup_Rmainloop rhost::rapi::RHOST_RAPI_PTR(setup_Rmainloop)
 
 #define GA_initapp rhost::rapi::RHOST_RAPI_PTR(GA_initapp)
 
@@ -317,7 +316,6 @@ namespace rhost {
 #define R_Interactive_ (*rhost::rapi::RHOST_RAPI_PTR(R_Interactive))
 #define R_Outputfile (*rhost::rapi::RHOST_RAPI_PTR(R_Outputfile))
 #define Rf_initialize_R rhost::rapi::RHOST_RAPI_PTR(Rf_initialize_R)
-#define Rf_mainloop rhost::rapi::RHOST_RAPI_PTR(Rf_mainloop)
 
 #endif 
 
