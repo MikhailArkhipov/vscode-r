@@ -14,6 +14,9 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
 
 file(GLOB src "src/*.h" "src/*.cpp" "src/*.rc")
 
+# Workaround for https://sourceforge.net/p/mingw-w64/bugs/622/
+set_property(SOURCE "src/detours.cpp" APPEND_STRING PROPERTY COMPILE_FLAGS "-O")
+
 add_executable(Microsoft.R.Host ${src})
 
 set_target_properties(Microsoft.R.Host PROPERTIES LINK_FLAGS "-static-libgcc -static-libstdc++")
