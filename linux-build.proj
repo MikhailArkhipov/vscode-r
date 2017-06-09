@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0"
+         DefaultTargets="Build"
+         xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <PropertyGroup>
+    <RHostName Condition=" '$(RHostName)'=='' ">Microsoft.R.Host</RHostName>
+    <RootDirectory Condition=" '$(RootDirectory)'=='' ">$(SolutionDir)..\</RootDirectory>
+    <OutputDirectory Condition=" '$(OutputDirectory)'=='' ">$(RootDirectory)bin\</OutputDirectory>
+    <IntermediateOutputDirectory Condition=" '$(IntermediateOutputDirectory)'=='' ">$(RootDirectory)obj\$(Configuration)\$(RHostName)\$(Platform)\</IntermediateOutputDirectory>
+    <SourceDirectory Condition=" '$(SourceDirectory)'=='' ">$(MSBuildThisFileDirectory)src\</SourceDirectory>
+
+    <Year Condition="'$(Year)' == ''">$([System.DateTime]::Now.Year)</Year>
+    <Date Condition="'$(Date)' == ''">$([System.DateTime]::Now.ToString("MMdd"))</Date>
+    <Time Condition="'$(Time)' == ''">$([System.DateTime]::Now.ToString("HHmm"))</Time>
+
+    <RHostDirectory Condition="'$(RHostDirectory)' == ''">$(MSBuildThisFileDirectory)</RHostDirectory>
+    <RHostSH Condition="'$(RHostSH)' == ''">$(RHostDirectory)build.sh</RHostSH>
+  </PropertyGroup>
+
+  <Target Name="Restore">
+  </Target> 
+
+  <Target Name="Clean">
+    <Delete Files="$(OutputDirectory)$(RHostName)" />
+  </Target>
+
+  <Target Name="Rebuild" DependsOnTargets="Clean;Build">
+  </Target>
+
+  <Target Name="Build">
+    <Exec WorkingDirectory="$(RHostDirectory)" Command="$(RHostSH) -t '$(Configuration)' -a '$(Platform)' -o '$(OutputDirectory)' -i '$(IntermediateOutputDirectory)'"/>
+  </Target>  
+</Project>
