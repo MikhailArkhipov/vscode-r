@@ -183,6 +183,37 @@ namespace rhost {
 #endif
     }
 
+    void add_dir_to_loader_path(fs::path &r_dir) {
+#ifdef _WIN32
+        wchar_t buff[32767] = {}; // max buffer size for environment variable values on windows.
+        int nchars = GetEnvironmentVariable(L"PATH", buff, ARRAYSIZE(buff));
+        HRESULT err = S_OK;
+        if (nchars == 0) {
+            err = HRESULT_FROM_WIN32(GetLastError());
+            if (err == HRESULT_FROM_WIN32(ERROR_ENVVAR_NOT_FOUND)) {
+                buff[0] = '\0';
+            } else {
+                fatal_error("Failed to get PATH environment variable [GetEnvironmentVariable]: %x\n", err);
+            }
+        }
+
+        std::wstring old_path_env(buff);
+        std::wstring new_path_env = r_dir.make_preferred().wstring() + L";" + old_path_env;
+        if (SetEnvironmentVariableW(L"PATH", new_path_env.c_str()) == 0) {
+            err = HRESULT_FROM_WIN32(GetLastError());
+            fatal_error("Failed to set PATH environment variable [SetEnvironmentVariable]: %x\n", err);
+        }
+#else
+        char *path_env = std::getenv("LD_LIBRARY_PATH");
+        std::string old_path_env = path_env ? std::string(path_env) : std::string();
+        std::string new_path_env = r_dir.make_preferred().string() + ":" + old_path_env;
+        if (setenv("LD_LIBRARY_PATH", new_path_env.c_str(), 1) == -1) {
+            int err = errno;
+            fatal_error("Failed to set LD_LIBRARY_PATH environment variable [setenv]: %d %s\n", err, strerror(err));
+        }
+#endif
+    }
+
 #ifdef _WIN32
     int run_r_windows(command_line_args& args) {
         R_setStartTime();
@@ -312,7 +343,8 @@ namespace rhost {
             logf(log_verbosity::minimal, "--rhost-r-dir is a required argument");
             return 0;
         }
-
+        
+        add_dir_to_loader_path(args.r_dir);
         rhost::rapi::load_r_apis(args.r_dir);
 
 #ifdef _WIN32
