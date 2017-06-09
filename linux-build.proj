@@ -5,11 +5,10 @@
 
   <PropertyGroup>
     <RHostName Condition=" '$(RHostName)'=='' ">Microsoft.R.Host</RHostName>
-    <RootDirectory Condition=" '$(RootDirectory)'=='' ">$(MSBuildThisFileDirectory)..\..\..\</RootDirectory>
+    <RootDirectory Condition=" '$(RootDirectory)'=='' ">$(SolutionDir)..\</RootDirectory>
     <OutputDirectory Condition=" '$(OutputDirectory)'=='' ">$(RootDirectory)bin\</OutputDirectory>
-    <IntermediateOutputDirectory Condition=" '$(IntermediateOutputDirectory)'=='' ">$(RootDirectory)obj\$(RHostName)\</IntermediateOutputDirectory>
+    <IntermediateOutputDirectory Condition=" '$(IntermediateOutputDirectory)'=='' ">$(RootDirectory)obj\$(Configuration)\$(RHostName)\$(Platform)\</IntermediateOutputDirectory>
     <SourceDirectory Condition=" '$(SourceDirectory)'=='' ">$(MSBuildThisFileDirectory)src\</SourceDirectory>
-    
 
     <Year Condition="'$(Year)' == ''">$([System.DateTime]::Now.Year)</Year>
     <Date Condition="'$(Date)' == ''">$([System.DateTime]::Now.ToString("MMdd"))</Date>
@@ -17,16 +16,6 @@
 
     <RHostDirectory Condition="'$(RHostDirectory)' == ''">$(MSBuildThisFileDirectory)</RHostDirectory>
     <RHostSH Condition="'$(RHostSH)' == ''">$(RHostDirectory)build.sh</RHostSH>
-    <SolutionProperties Condition="'$(SolutionProperties)' == ''">
-      Configuration=$(Configuration);
-      Platform=$(Platform);
-      GenerateAssemblyVersionInfo=true;
-      Year=$(Year);Date=$(Date);Time=$(Time);
-      SolutionDir=$(SourceDirectory);
-      BinDirectory=$(OutputDirectory);
-      ObjDirectory=$(IntermediateOutputDirectory);
-      LibDirectory=$(LibDirectory);
-    </SolutionProperties>
   </PropertyGroup>
 
   <Target Name="Restore">
@@ -36,13 +25,10 @@
     <Delete Files="$(OutputDirectory)$(RHostName)" />
   </Target>
 
-  <Target Name="Rebuild">
-    <Exec Command="cd $(RHostDirectory)"/>
-    <Exec Command="$(RHostSH) -t '$(Configuration)' -a '$(Platform)' -o '$(OutputDirectory)' -i '$(IntermediateOutputDirectory)'"/>
+  <Target Name="Rebuild" DependsOnTargets="Clean;Build">
   </Target>
 
   <Target Name="Build">
-    <Exec Command="cd $(RHostDirectory)"/>
-    <Exec Command="$(RHostSH) -t '$(Configuration)' -a '$(Platform)' -o '$(OutputDirectory)' -i '$(IntermediateOutputDirectory)'"/>
+    <Exec WorkingDirectory="$(RHostDirectory)" Command="$(RHostSH) -t '$(Configuration)' -a '$(Platform)' -o '$(OutputDirectory)' -i '$(IntermediateOutputDirectory)'"/>
   </Target>  
 </Project>
