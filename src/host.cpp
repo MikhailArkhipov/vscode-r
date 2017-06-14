@@ -851,9 +851,16 @@ namespace rhost {
                         // we don't want them to bubble up here, so run these in a fresh execution context.
 #ifdef _WIN32
                         R_WaitEvent();
-#endif
                         is_waiting_for_wm = false;
                         R_ProcessEvents();
+#else
+                        if (ptr_R_ProcessEvents != nullptr) {
+                            ptr_R_ProcessEvents();
+                        }
+                        is_waiting_for_wm = false;
+                        R_runHandlers(R_InputHandlers, R_checkActivity(0, 1));
+#endif
+                        
                     }, nullptr);
 
                     // In case anything in R_WaitEvent failed and unwound the context before we could reset.

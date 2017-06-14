@@ -48,6 +48,7 @@
 #undef class
 #undef private
 
+#include "R_ext/eventloop.h"
 #include "R_ext/Rdynload.h"
 #include "R_ext/RStartup.h"
 #include "R_ext/Parse.h"
