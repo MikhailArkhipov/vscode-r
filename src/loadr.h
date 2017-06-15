@@ -158,13 +158,17 @@ RHOST_RAPI_SET_WINDOWS(macro)
 
 #define RHOST_RAPI_SET_POSIX(macro) \
 macro(ptr_R_Busy) \
+macro(ptr_R_ProcessEvents) \
 macro(ptr_R_ReadConsole) \
 macro(ptr_R_ShowMessage) \
 macro(ptr_R_WriteConsole) \
 macro(ptr_R_WriteConsoleEx) \
+macro(R_checkActivity) \
 macro(R_Consolefile) \
+macro(R_InputHandlers) \
 macro(R_Interactive) \
 macro(R_Outputfile) \
+macro(R_runHandlers) \
 macro(Rf_initialize_R)
 
 #define RHOST_RAPI_SET(macro) \
@@ -308,13 +312,17 @@ namespace rhost {
 #else // POSIX
 
 #define ptr_R_Busy (*rhost::rapi::RHOST_RAPI_PTR(ptr_R_Busy))
+#define ptr_R_ProcessEvents (*rhost::rapi::RHOST_RAPI_PTR(ptr_R_ProcessEvents))
 #define ptr_R_ReadConsole (*rhost::rapi::RHOST_RAPI_PTR(ptr_R_ReadConsole))
 #define ptr_R_ShowMessage (*rhost::rapi::RHOST_RAPI_PTR(ptr_R_ShowMessage))
 #define ptr_R_WriteConsole (*rhost::rapi::RHOST_RAPI_PTR(ptr_R_WriteConsole))
 #define ptr_R_WriteConsoleEx (*rhost::rapi::RHOST_RAPI_PTR(ptr_R_WriteConsoleEx))
+#define R_checkActivity rhost::rapi::RHOST_RAPI_PTR(R_checkActivity)
 #define R_Consolefile (*rhost::rapi::RHOST_RAPI_PTR(R_Consolefile))
+#define R_InputHandlers (*rhost::rapi::RHOST_RAPI_PTR(R_InputHandlers))
 #define R_Interactive_ (*rhost::rapi::RHOST_RAPI_PTR(R_Interactive))
 #define R_Outputfile (*rhost::rapi::RHOST_RAPI_PTR(R_Outputfile))
+#define R_runHandlers rhost::rapi::RHOST_RAPI_PTR(R_runHandlers)
 #define Rf_initialize_R rhost::rapi::RHOST_RAPI_PTR(Rf_initialize_R)
 
 #endif 
