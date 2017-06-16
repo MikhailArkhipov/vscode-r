@@ -66,8 +66,14 @@ namespace rhost {
                 T ptr = nullptr;
 #ifdef _WIN32
                 ptr = reinterpret_cast<T>(GetProcAddress(module, proc_name));
+                if (!ptr) {
+                    log::fatal_error("Error failed to get address of %s: %d", proc_name, GetLastError());
+                }
 #else
                 ptr = reinterpret_cast<T>(dlsym(module, proc_name));
+                if (!ptr) {
+                    log::fatal_error("Error failed to get address of %s: %s", proc_name, dlerror());
+                }
 #endif
                 return ptr;
             }
@@ -113,11 +119,22 @@ namespace rhost {
             fs::path rgraphapp_path = r_dll_dir / "rgraphapp.dll";
 
             r_module = LoadLibraryEx(r_path.make_preferred().wstring().c_str(), nullptr, LOAD_WITH_ALTERED_SEARCH_PATH);
+            if (!r_module) {
+                log::fatal_error("Error r module failed to load: %d", GetLastError());
+            }
+
             rgraphapp_module = LoadLibraryEx(rgraphapp_path.make_preferred().wstring().c_str(), nullptr, LOAD_WITH_ALTERED_SEARCH_PATH);
+            if (!rgraphapp_module) {
+                log::fatal_error("Error rgraphapp module failed to load: %d", GetLastError());
+            }
+
             internal_load_rgraphapp_apis();
 #else // POSIX
             fs::path r_path = r_dll_dir / "libR.so";
             r_module = dlopen(r_path.make_preferred().string().c_str(), RTLD_LOCAL | RTLD_LAZY);
+            if (!r_module) {
+                log::fatal_error("Error r module failed to load: %s", dlerror());
+            }
 #endif
             internal_load_r_apis();
 
