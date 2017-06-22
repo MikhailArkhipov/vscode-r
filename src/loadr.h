@@ -60,7 +60,6 @@ macro(R_ProcessEvents) \
 macro(R_registerRoutines) \
 macro(R_ReleaseObject) \
 macro(R_RestoreGlobalEnvFromFile) \
-macro(R_running_as_main_program) \
 macro(R_SaveGlobalEnvToFile) \
 macro(R_set_command_line_arguments) \
 macro(R_SetParams) \
@@ -163,6 +162,7 @@ macro(ptr_R_ReadConsole) \
 macro(ptr_R_ShowMessage) \
 macro(ptr_R_WriteConsole) \
 macro(ptr_R_WriteConsoleEx) \
+macro(R_running_as_main_program) \
 macro(R_checkActivity) \
 macro(R_Consolefile) \
 macro(R_InputHandlers) \
@@ -236,7 +236,6 @@ namespace rhost {
 #define R_registerRoutines rhost::rapi::RHOST_RAPI_PTR(R_registerRoutines)
 #define R_ReleaseObject rhost::rapi::RHOST_RAPI_PTR(R_ReleaseObject)
 #define R_RestoreGlobalEnvFromFile rhost::rapi::RHOST_RAPI_PTR(R_RestoreGlobalEnvFromFile)
-#define R_running_as_main_program (*rhost::rapi::RHOST_RAPI_PTR(R_running_as_main_program))
 #define R_SaveGlobalEnvToFile rhost::rapi::RHOST_RAPI_PTR(R_SaveGlobalEnvToFile)
 #define R_set_command_line_arguments rhost::rapi::RHOST_RAPI_PTR(R_set_command_line_arguments)
 #define R_SetParams rhost::rapi::RHOST_RAPI_PTR(R_SetParams)
@@ -317,6 +316,7 @@ namespace rhost {
 #define ptr_R_ShowMessage (*rhost::rapi::RHOST_RAPI_PTR(ptr_R_ShowMessage))
 #define ptr_R_WriteConsole (*rhost::rapi::RHOST_RAPI_PTR(ptr_R_WriteConsole))
 #define ptr_R_WriteConsoleEx (*rhost::rapi::RHOST_RAPI_PTR(ptr_R_WriteConsoleEx))
+#define R_running_as_main_program (*rhost::rapi::RHOST_RAPI_PTR(R_running_as_main_program))
 #define R_checkActivity rhost::rapi::RHOST_RAPI_PTR(R_checkActivity)
 #define R_Consolefile (*rhost::rapi::RHOST_RAPI_PTR(R_Consolefile))
 #define R_InputHandlers (*rhost::rapi::RHOST_RAPI_PTR(R_InputHandlers))
