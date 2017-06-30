@@ -84,7 +84,8 @@ namespace rhost {
             size_t cch = strlen(buf);
             if (cch > 0) {
                 ws.resize(cch);
-                RString2Unicode(&ws[0], (char*)buf, len);
+                int nc = RString2Unicode(&ws[0], (char*)buf, len);
+                ws.resize(nc);
             }
             // Now convert Unicode to UTF-8 for passing over to the host.
             return boost::locale::conv::utf_to_utf<char>(ws);
