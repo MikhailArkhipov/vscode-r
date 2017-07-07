@@ -28,11 +28,12 @@ using namespace rhost::protocol;
 namespace rhost {
     namespace transport {
         namespace {
-            const char devNull[] =
+            const int pipeSize = 4096;
 #ifdef _WIN32
-                "NUL";
+            typedef int ssize_t;
+            const char devNull[] = "NUL";
 #else
-                "/dev/null";
+            const char devNull[] = "/dev/null";
 #endif
 
             std::atomic<bool> connected;
@@ -85,6 +86,53 @@ namespace rhost {
 
                 disconnect();
             }
+
+            void read_stream_to_message(int fdr, const std::string& message_name) {
+                char line[pipeSize];
+                size_t len = pipeSize;
+                ssize_t nread;
+
+                for(;;) {
+#ifdef _WIN32
+                    nread = _read(fdr, line, pipeSize);
+#else
+                    nread = read(fdr, line, pipeSize);
+#endif
+
+                    if (nread == -1) {
+                        break;
+                    }
+
+                    if (nread > 0) {
+                        picojson::array json;
+                        json.push_back(picojson::value(std::string(line, nread)));
+                        message msg(0, message_name, json, blobs::blob());
+                        send_message(msg);
+                    }
+                }
+            }
+
+            void stdouterr_to_message() {
+                int stdout_fd[2] = {}, stderr_fd[2] = {};
+#ifdef _WIN32
+                _pipe(stdout_fd, pipeSize, _O_TEXT);
+                _pipe(stderr_fd, pipeSize, _O_TEXT);
+#else
+                pipe(stdout_fd);
+                pipe(stderr_fd);
+#endif
+
+                dup2(stdout_fd[1], fileno(stdout));
+                dup2(stderr_fd[1], fileno(stderr));
+
+                std::thread([stdout_fd]() {
+                    read_stream_to_message(stdout_fd[0], "!");
+                }).detach();
+
+                std::thread([stderr_fd]() {
+                    read_stream_to_message(stderr_fd[0], "!!");
+                }).detach();
+            }
         }
 
         boost::signals2::signal<void(const protocol::message&)> message_received;
@@ -105,10 +153,12 @@ namespace rhost {
             output = fdopen(dup(fileno(stdout)), "wb");
             setvbuf(output, NULL, _IONBF, 0);
 
-            // Redirect stdin and stdout to the null device, so that any code trying to write directly
-            // to them (instead of via R_WriteConsole) will not interfere with the protocol.
+            // Redirect stdin null device, so that it will not interfere with the protocol.
             freopen(devNull, "rb", stdin);
-            freopen(devNull, "wb", stdout);
+
+            // This is needed to redirect any code that writes to stdout or stderr directly (instead of 
+            // via R_WriteConsole) will be sent to client as a message.
+            stdouterr_to_message();
 
             connected = true;
             std::thread(receive_worker).detach();
