@@ -49,6 +49,7 @@ namespace rhost {
         boost::signals2::signal<void()> callback_started;
         boost::signals2::signal<void()> readconsole_done;
         boost::signals2::signal<void()> disconnected;
+        static boost::uuids::random_generator uuid_generator;
 
         fs::path rdata;
         std::atomic<bool> shutdown_requested(false);
@@ -326,7 +327,8 @@ namespace rhost {
 
 
         void compress_data(blob& compressed_blob, void* data, size_t length) {
-            fs::path temp_archive = std::tmpnam(nullptr);
+            boost::uuids::uuid tmp_file_uuid = uuid_generator();
+            fs::path temp_archive = (fs::temp_directory_path() / boost::uuids::to_string(tmp_file_uuid)).replace_extension(".zip");
 
             {   // scoping for zip archiver
                 // Open ZIP archive file
