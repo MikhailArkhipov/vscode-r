@@ -219,7 +219,7 @@ namespace rhost {
 #define R_FunTab (*rhost::rapi::RHOST_RAPI_PTR(R_FunTab))
 #define R_GE_getVersion rhost::rapi::RHOST_RAPI_PTR(R_GE_getVersion)
 #define R_getEmbeddingDllInfo rhost::rapi::RHOST_RAPI_PTR(R_getEmbeddingDllInfo)
-#define R_GlobalContext rhost::rapi::RHOST_RAPI_PTR(R_GlobalContext)
+#define R_GlobalContext (*rhost::rapi::RHOST_RAPI_PTR(R_GlobalContext))
 #define R_GlobalEnv (*rhost::rapi::RHOST_RAPI_PTR(R_GlobalEnv))
 #define R_interrupts_pending (*rhost::rapi::RHOST_RAPI_PTR(R_interrupts_pending))
 #define R_interrupts_suspended (*rhost::rapi::RHOST_RAPI_PTR(R_interrupts_suspended))
