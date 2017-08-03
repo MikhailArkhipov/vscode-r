@@ -24,7 +24,7 @@
     <OutDir>$(BinDirectory)$(Configuration)</OutDir>
     <IntDir>$(ObjDirectory)$(Configuration)\$(TargetName)\$(Platform)\Microsoft.R.Host</IntDir>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(OS)' == 'Windows_NT'">
+  <PropertyGroup Condition="(('$(OS)' == 'Windows_NT') Or ('$(OS)' == 'Windows'))">
     <NuGetPackageRoot Condition=" '$(NuGetPackageRoot)' == '' ">$(UserProfile)\.nuget\packages\</NuGetPackageRoot>
   </PropertyGroup>
   <PropertyGroup Condition="'$(OS)' == 'Unix'">
