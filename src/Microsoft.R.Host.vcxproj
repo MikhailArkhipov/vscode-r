@@ -152,4 +152,7 @@
   </ImportGroup>
   <Import Project="$(SolutionDir)\R.Build.Version.targets" />
   <Target Name="CreateManifestResourceNames" />
+  <Target Name="AfterBuild" AfterTargets="Build">
+    <Message Text="Output: $(NMakeOutput)"/>
+  </Target>
 </Project>
