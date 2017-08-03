@@ -155,4 +155,5 @@
   <Target Name="AfterBuild" AfterTargets="Build">
     <Message Text="Output: $(NMakeOutput)"/>
   </Target>
+  <Import Project="$(NuGetPackageRoot)microbuild.core\0.2.0\build\MicroBuild.Core.targets" Condition="Exists('$(NuGetPackageRoot)microbuild.core\0.2.0\build\MicroBuild.Core.targets')" />
 </Project>
