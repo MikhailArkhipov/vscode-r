@@ -24,6 +24,12 @@
     <OutDir>$(BinDirectory)$(Configuration)</OutDir>
     <IntDir>$(ObjDirectory)$(Configuration)\$(TargetName)\$(Platform)\Microsoft.R.Host</IntDir>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(OS)' == 'Windows_NT'">
+    <NuGetPackageRoot Condition=" '$(NuGetPackageRoot)' == '' ">$(UserProfile)\.nuget\packages\</NuGetPackageRoot>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(OS)' == 'Unix'">
+    <NuGetPackageRoot Condition=" '$(NuGetPackageRoot)' == '' ">~\.nuget\packages\</NuGetPackageRoot>
+  </PropertyGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{DBBED91F-BF32-4C77-9445-8666532225BC}</ProjectGuid>
@@ -55,6 +61,7 @@
   <ImportGroup Label="ExtensionSettings">
   </ImportGroup>
   <ImportGroup Label="Shared">
+    <Import Project="$(NuGetPackageRoot)microbuild.core\0.2.0\build\MicroBuild.Core.props" Condition="Exists('$(NuGetPackageRoot)microbuild.core\0.2.0\build\MicroBuild.Core.props')" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
