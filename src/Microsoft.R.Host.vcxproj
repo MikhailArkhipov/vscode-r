@@ -1,5 +1,5 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" InitialTargets="ShowProperties">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
       <Configuration>Debug</Configuration>
@@ -23,14 +23,20 @@
     <ObjDirectory Condition="'$(ObjDirectory)' == ''">$(SolutionDir)..\obj\</ObjDirectory>
     <OutDir>$(BinDirectory)$(Configuration)</OutDir>
     <IntDir>$(ObjDirectory)$(Configuration)\$(TargetName)\$(Platform)\Microsoft.R.Host</IntDir>
-    <NuGetPackageRoot Condition=" '$(NuGetPackageRoot)' == '' ">$(UserProfile)\.nuget\packages\</NuGetPackageRoot>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(OS)' == 'Windows_NT'"> 
+    <NuGetPackageRoot Condition=" '$(NuGetPackageRoot)' == '' ">$(UserProfile)\.nuget\packages\</NuGetPackageRoot> 
+  </PropertyGroup> 
+  <PropertyGroup Condition="'$(OS)' != 'Windows_NT'"> 
+    <NuGetPackageRoot Condition=" '$(NuGetPackageRoot)' == '' ">~\.nuget\packages\</NuGetPackageRoot> 
+  </PropertyGroup> 
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{DBBED91F-BF32-4C77-9445-8666532225BC}</ProjectGuid>
     <Keyword>MakeFileProj</Keyword>
     <MSYSPath>c:\msys64</MSYSPath>
   </PropertyGroup>
+  <Import Project="$(NuGetPackageRoot)microbuild.core\0.2.0\build\MicroBuild.Core.props" Condition="Exists('$(NuGetPackageRoot)microbuild.core\0.2.0\build\MicroBuild.Core.props')" />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Makefile</ConfigurationType>
@@ -54,9 +60,6 @@
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
-  </ImportGroup>
-  <ImportGroup Label="Shared">
-    <Import Project="$(NuGetPackageRoot)microbuild.core\0.2.0\build\MicroBuild.Core.props" Condition="Exists('$(NuGetPackageRoot)microbuild.core\0.2.0\build\MicroBuild.Core.props')" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
@@ -134,10 +137,16 @@
     <ClInclude Include="xamlbuilder.h" />
   </ItemGroup>
   <ItemGroup>
-    <FilesToSign Include="$(OutDir)\Microsoft.R.Host.exe">
+    <FilesToSign Include="$(OutDir)Microsoft.R.Host.exe">
       <Authenticode>Microsoft</Authenticode>
     </FilesToSign>
   </ItemGroup>
+  <Target Name="ShowProperties">
+    <Message Text="OS: $(OS)" Importance="high" />
+    <Message Text="IntDir: $(IntDir)" Importance="high" />
+    <Message Text="OutDir: $(OutDir)" Importance="high" />
+    <Message Text="NuGetPackageRoot: $(NuGetPackageRoot)" Importance="high" />
+  </Target>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
