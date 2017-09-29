@@ -140,9 +140,7 @@ namespace rhost {
 
                 for (zip_int64_t i = 0; i < nfiles; ++i) {
                     // Follow the ZIP specification and expect CP-437 encoded names in the ZIP archive(except if they are explicitly marked as UTF-8).
-                    // Convert it to UTF-8.
-                    std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> cvt;
-                    fs::path file_name(cvt.from_bytes(zip_get_name(archive, i, ZIP_FL_ENC_STRICT)));
+                    fs::path file_name(zip_get_name(archive, i, ZIP_FL_ENC_STRICT));
 
                     zip_file_t* zf = nullptr;
                     SCOPE_WARDEN(zf_close, {
@@ -167,6 +165,11 @@ namespace rhost {
                     }
 
                     FILE* f = std::fopen(temp_file_name.make_preferred().string().c_str(), "wb");
+                    if (!f) {
+                        std::string errmsg("Error while openings file: ");
+                        errmsg.append(temp_file_name.string());
+                        throw std::runtime_error(errmsg.c_str());
+                    }
                     SCOPE_WARDEN(f_close, {
                         if (f) {
                             std::fclose(f);
