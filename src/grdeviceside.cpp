@@ -663,13 +663,13 @@ namespace rhost {
                     auto device_name(boost::uuids::to_string(_device_id));
                     auto msg = rhost::host::send_request_and_get_response("?Locator", rhost::util::to_utf8_json(device_name.c_str()));
                     auto args = msg.json();
-                    if (args.size() != 3 || !args[0].is<bool>() || !args[1].is<double>() || !args[2].is<double>()) {
+                    if (args.size() != 3 || !args[0].template is<bool>() || !args[1].template is<double>() || !args[2].template is<double>()) {
                         rhost::log::fatal_error("Locator response is malformed. It must have 3 elements: bool, double, double.");
                     }
 
-                    auto& result_clicked = args[0].get<bool>();
-                    auto& result_x = args[1].get<double>();
-                    auto& result_y = args[2].get<double>();
+                    auto& result_clicked = args[0].template get<bool>();
+                    auto& result_x = args[1].template get<double>();
+                    auto& result_y = args[2].template get<double>();
                     *x = result_x;
                     *y = result_y;
                     clicked = result_clicked ? R_TRUE : R_FALSE;

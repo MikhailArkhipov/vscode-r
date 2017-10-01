@@ -130,7 +130,12 @@ namespace rhost {
 
             internal_load_rgraphapp_apis();
 #else // POSIX
+#ifdef _APPLE
+            fs::path r_path = r_dll_dir / "lib/libR.dylib";
+
+#else
             fs::path r_path = r_dll_dir / "libR.so";
+#endif
             r_module = dlopen(r_path.make_preferred().string().c_str(), RTLD_LOCAL | RTLD_LAZY);
             if (!r_module) {
                 log::fatal_error("Error r module failed to load: %s", dlerror());
