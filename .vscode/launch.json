@@ -5,8 +5,7 @@
             "name": "C++ Launch",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceRoot}/bin/Debug/Microsoft.R.Host.exe",
-            "args": ["--rhost-r-dir", "C:\\Program Files\\R\\R-3.4.0\\bin\\x64"],
+
             "stopAtEntry": false,
             "cwd": "${workspaceRoot}",
             "environment": [],
@@ -22,9 +21,13 @@
                 ]
             },
             "osx": {
+                "program": "${workspaceRoot}/bin/Debug/Microsoft.R.Host",
+                "args": ["--rhost-r-dir", "/Library/Frameworks/R.framework/Resources"],
                 "MIMode": "lldb"
             },
             "windows": {
+                "program": "${workspaceRoot}/bin/Debug/Microsoft.R.Host.exe",
+                "args": ["--rhost-r-dir", "C:\\Program Files\\R\\R-3.4.0\\bin\\x64"],
                 "MIMode": "gdb",
                 "miDebuggerPath": "C:/msys64/mingw64/bin/gdb.exe",
                 "setupCommands": [
