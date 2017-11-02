@@ -103,6 +103,7 @@
 #else // linux
 #include <unistd.h>
 #include <dlfcn.h>
+#include <signal.h>
 #endif
 
 namespace fs = boost::filesystem;
