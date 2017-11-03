@@ -760,6 +760,9 @@ namespace rhost {
             if (canceling_eval) {
                 // Spin the loop in send_request_and_get_response so that it gets a chance to run cancel checks.
                 unblock_message_loop();
+#ifndef _WIN32
+                raise(SIGINT);
+#endif
             } else {
                 // If we didn't find the target eval in the stack, it must have completed already, and we've
                 // got a belated cancelation request for it, which we can simply ignore.
