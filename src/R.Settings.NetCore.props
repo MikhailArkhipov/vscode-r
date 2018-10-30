@@ -1,0 +1,34 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <!-- Common Build Settings and Configurations -->
+  <!-- Validate that AssemblyName is defined -->
+  <Target Name = "ValidateAssemblyName" >
+    <Error Condition = " '$(AssemblyName)'=='' " Text = "AssemblyName property must be specified before R.Settings.NetCore.props is referenced" />
+  </Target>
+  
+  <PropertyGroup>
+    <RootDirectory Condition="'$(RootDirectory)' == ''">$(MSBuildThisFileDirectory)..\</RootDirectory>
+    <ObjDirectory Condition="'$(ObjDirectory)' == ''">$(RootDirectory)obj\</ObjDirectory>
+    <BaseIntermediateOutputPath>$(ObjDirectory)\$(AssemblyName)\</BaseIntermediateOutputPath>
+    <IntermediateOutputPath>$(BaseIntermediateOutputPath)\$(Configuration)\</IntermediateOutputPath>
+    <MicroBuild_DoNotStrongNameSign>true</MicroBuild_DoNotStrongNameSign>
+    <BuildDependsOn>ValidateAssemblyName;$(BuildDependsOn)</BuildDependsOn>
+    <LibuvVersion>1.10.0</LibuvVersion>
+    <DebugType>portable</DebugType>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net461'">
+    <Desktop>true</Desktop>
+    <DefineConstants>DESKTOP;$(DefineConstants)</DefineConstants>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+  </PropertyGroup>
+  
+  <ItemGroup Condition="'$(TargetFramework)' == 'net461'">
+    <PackageReference Include="NETStandard.Library" Version="2.0.0" />
+  </ItemGroup>
+
+  <PropertyGroup Condition="'$(DotNetPublish)' != ''">
+    <NonShipping>true</NonShipping>
+    <GenerateLCE>false</GenerateLCE>
+    <MicroBuild_SigningEnabled>false</MicroBuild_SigningEnabled>
+  </PropertyGroup>
+</Project>

@@ -1,0 +1,33 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <AssemblyName>Microsoft.R.Components</AssemblyName>
+    <RootNamespace>Microsoft.R.Components</RootNamespace>
+  </PropertyGroup>
+  <PropertyGroup>
+    <DebugType>portable</DebugType>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="System.Collections.Immutable" Version="1.3.1" />
+    <PackageReference Include="System.Net.Http" Version="4.3.3" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="Containers\Implementation\Dockerfile">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Dockerfile Include="Containers\Implementation\Dockerfile" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Languages\Core\Impl\Microsoft.Languages.Core.csproj" />
+    <ProjectReference Include="..\..\..\Common\Core\Impl\Microsoft.R.Common.Core.csproj" />
+    <ProjectReference Include="..\..\..\Containers\Impl\Microsoft.R.Containers.csproj" />
+    <ProjectReference Include="..\..\..\Host\Protocol\Impl\Microsoft.R.Host.Protocol.csproj" />
+    <ProjectReference Include="..\..\Platform\Impl\Microsoft.R.Platform.csproj" />
+    <ProjectReference Include="..\..\..\Host\Client\Impl\Microsoft.R.Host.Client.csproj" />
+  </ItemGroup>
+  <Target Name="AfterBuild">
+    <Copy SourceFiles="@(Dockerfile)" DestinationFolder="$(BinDirectory)\$(Configuration)" />
+  </Target>
+</Project>

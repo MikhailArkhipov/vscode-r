@@ -1,0 +1,5 @@
+This code is based on Microsoft R Tools for Visual Studio aka RTVS.
+Please visit https://github.com/microsoft/rtvs for more information.
+Prototype extension to VS Code can be found at RTVS repo. This project
+is a personal effort and although it builds upon RTVS, it is not
+supported by Microsoft. I only work on this occasionally in my spare time.

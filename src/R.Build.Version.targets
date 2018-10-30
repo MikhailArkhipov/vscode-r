@@ -1,0 +1,104 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <AssemblyVersionInfoPath>$(MSBuildThisFileDirectory)\AssemblyVersionInfo.cs</AssemblyVersionInfoPath>
+    <!-- Suppress automatic generation of version information. We generate it ourselves
+      since we need it for both .NET Core and .NET Desktop -->
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <!-- By default assemblies are not versioned -->
+    <GenerateAssemblyVersionInfo Condition="'$(GenerateAssemblyVersionInfo)' == '' AND Exists('$(AssemblyVersionInfoPath)')">false</GenerateAssemblyVersionInfo>
+    <GenerateAssemblyVersionInfo Condition="'$(GenerateAssemblyVersionInfo)' == '' AND !Exists('$(AssemblyVersionInfoPath)')">true</GenerateAssemblyVersionInfo>
+  </PropertyGroup>
+
+  <PropertyGroup>
+      <NativeVersionInfoPath>$(MSBuildProjectDirectory)\GeneratedVersion.h</NativeVersionInfoPath>
+      <GenerateNativeVersionInfo Condition="'$(GenerateNativeVersionInfo)' == '' AND Exists('$(NativeVersionInfoPath)')">false</GenerateNativeVersionInfo>
+      <GenerateNativeVersionInfo Condition="'$(GenerateNativeVersionInfo)' == '' AND !Exists('$(NativeVersionInfoPath)')">true</GenerateNativeVersionInfo>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)' != 'Debug'">
+    <!-- 0.1.YMMDD.HHMM -->
+    <Year Condition="'$(Year)' == ''">$([System.DateTime]::Now.Year)</Year>
+    <YearMinus4>$([MSBuild]::Subtract($(Year), 4))</YearMinus4>
+    <YearMinus4String>$(YearMinus4.ToString())</YearMinus4String>
+    <LastDigitOfYear>$(YearMinus4String.Substring(3,1))</LastDigitOfYear>
+    <Date Condition="'$(Date)' == ''">$([System.DateTime]::Now.ToString("MMdd"))</Date>
+    <Time Condition="'$(Time)' == ''">$([System.DateTime]::Now.ToString("HHmm"))</Time>
+
+    <MajorVersion>1</MajorVersion>
+    <MinorVersion>4</MinorVersion>
+    <Build>$(LastDigitOfYear)$(Date)</Build>
+    <Revision>$(Time)</Revision>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+    <MajorVersion>1</MajorVersion>
+    <MinorVersion>0</MinorVersion>
+    <Build>0</Build>
+    <Revision>0</Revision>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <BuildNumber Condition="'$(BuildNumber)' == ''">$(Build).$(Revision)</BuildNumber>
+    <AssemblyVersion>$(MajorVersion).$(MinorVersion).$(BuildNumber)</AssemblyVersion>
+    <BuildVersion>$(MajorVersion).$(MinorVersion).$(Build).$(Revision)</BuildVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <AssemblyVersionAttribute Include="System.Reflection.AssemblyVersionAttribute">
+      <_Parameter1>$(AssemblyVersion)</_Parameter1>
+    </AssemblyVersionAttribute>
+    <AssemblyVersionAttribute Include="System.Reflection.AssemblyFileVersionAttribute">
+      <_Parameter1>$(BuildVersion)</_Parameter1>
+    </AssemblyVersionAttribute>
+    <AssemblyVersionAttribute Include="System.Reflection.AssemblyInformationalVersionAttribute">
+      <_Parameter1>$(BuildVersion)</_Parameter1>
+    </AssemblyVersionAttribute>
+  </ItemGroup>
+
+  <!-- C# -->
+  <!--<Target Name="DeleteVersionInfoFile" BeforeTargets="GenerateAssemblyInfoFile" Condition="$(GenerateAssemblyVersionInfo)">
+    <Delete Files="$(AssemblyVersionInfoPath)" />
+  </Target>-->
+
+  <Target Name="GenerateAssemblyInfoFile"
+          Condition="'$(MSBuildProjectExtension)'!='.vcxproj' AND 
+                     '$(MSBuildProjectExtension)'!='.wixproj' AND 
+                     '$(GenerateAssemblyVersionInfo)' == 'true' AND
+                     '$(DesignTimeBuild)' != 'true'"
+          Inputs="$(MSBuildProjectFullPath)"
+          Outputs="$(AssemblyVersionInfoPath)">
+    <WriteCodeFragment AssemblyAttributes="@(AssemblyVersionAttribute)"
+                       Language="C#"
+                       OutputFile="$(AssemblyVersionInfoPath)">
+      <Output TaskParameter="OutputFile" ItemName="FileWrites" />
+    </WriteCodeFragment>
+  </Target>
+  
+  <PropertyGroup Condition="$(GenerateAssemblyVersionInfo)">
+    <!--<CompileDependsOn>DeleteVersionInfoFile;$(CompileDependsOn)</CompileDependsOn>-->
+    <CompileDependsOn>GenerateAssemblyInfoFile;$(CompileDependsOn)</CompileDependsOn>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="$(GenerateNativeVersionInfo)">
+      <CompileDependsOn>GenerateNativeVersionInfoFile;$(CompileDependsOn)</CompileDependsOn>
+  </PropertyGroup>
+    
+  <Target Name="GenerateAssemblyInfoFileNetCore" BeforeTargets="PreBuildEvent">
+    <CallTarget Targets="GenerateAssemblyInfoFile" />
+  </Target>
+
+  <!-- C++ -->
+  <Target Name="GenerateNativeVersionInfoFile"
+          Condition="'$(MSBuildProjectExtension)'=='.vcxproj' AND '$(GenerateNativeVersionInfo)' == true"
+          Inputs="$(MSBuildProjectFullPath)"
+          Outputs="$(NativeVersionInfoPath)"
+          BeforeTargets="PrepareForBuild">
+    <WriteLinesToFile File="$(NativeVersionInfoPath)"
+                      Overwrite="true"
+                      Lines="#define VER_FILEVERSION $(MajorVersion),$(MinorVersion),$(Build),$(Revision);
+                             #define VER_FILEVERSION_STR &quot;$(BuildVersion)\0&quot;;
+                             #define VER_PRODUCTVERSION $(MajorVersion),$(MinorVersion),$(Build),$(Revision);
+                             #define VER_PRODUCTVERSION_STR &quot;$(BuildVersion)\0&quot;">
+    </WriteLinesToFile>
+  </Target>
+</Project>

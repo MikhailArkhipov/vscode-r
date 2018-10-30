@@ -1,0 +1,23 @@
+Generating R lib files
+---------------------------------------------------------------------------------
+
+1. Open Visual Studio Native Command line specific to the architecture x86 or x64
+2. Go to x86 or x64 directory.
+3. Run the following commands:
+   lib /DEF:R.def
+   lib /DEF:Rgraphapp.def
+
+This should generate R.lib, R.exp, Rgraphapp.lib, Rgraphapp.exp
+
+
+Generating Def files
+---------------------------------------------------------------------------------
+Def files are checked in for convenience. If they have to updated then follow
+these steps.
+
+1. Open Visual Studio Native Command line
+2. Find the DLL's you want to export. 
+3. Run this command to extract the exports:
+   link /dump /exports R.dll > Rexports.txt
+   link /dump /exports Rgraphapp.dll > RGAexports.txt
+4. Edit the generated files to follow the DEF file format and save as .DEF file.

@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "atomic": "cpp",
+        "*.ipp": "cpp"
+    },
+    "cmake.configureOnOpen": true
+}
