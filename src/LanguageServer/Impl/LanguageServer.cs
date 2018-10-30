@@ -1,9 +1,13 @@
-﻿using System;
+﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Common.Core;
 using Microsoft.Common.Core.Services;
 using Microsoft.R.Components.InteractiveWorkflow;
 using Microsoft.R.Editor.Functions;
@@ -11,10 +15,11 @@ using Microsoft.R.LanguageServer.Commands;
 using Microsoft.R.LanguageServer.Diagnostics;
 using Microsoft.R.LanguageServer.Documents;
 using Microsoft.R.LanguageServer.InteractiveWorkflow;
-using Microsoft.R.LanguageServer.Server.Settings;
+using Microsoft.R.LanguageServer.Server;
 using Microsoft.R.LanguageServer.Services;
 using Microsoft.R.LanguageServer.Threading;
 using Microsoft.R.Platform.Interpreters;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using StreamJsonRpc;
 
@@ -94,9 +99,9 @@ namespace Microsoft.R.LanguageServer {
 
             IdleTimeNotification.NotifyUserActivity();
 
-            var p = token.ToObject<DidChangeTextDocumentParams>();
             using (new DebugMeasureTime("textDocument/didChange")) {
                 await MainThreadPriority.SendAsync(async () => {
+                    var p = token.ToObject<DidChangeTextDocumentParams>();
                     var doc = Documents.GetDocument(p.textDocument.uri);
                     if (doc != null) {
                         await doc.ProcessChangesAsync(p.contentChanges);
@@ -134,9 +139,12 @@ namespace Microsoft.R.LanguageServer {
             if (item.kind != CompletionItemKind.Function) {
                 return item;
             }
-            var info = await FunctionIndex.GetFunctionInfoAsync(item.Label, item.Data.Type == JTokenType.String ? (string)item.Data : null);
+            var info = await FunctionIndex.GetFunctionInfoAsync(item.label, ((JToken)item.data).Type == JTokenType.String ? (string)item.data : null);
             if (info != null) {
-                item.documentation = info.Description.RemoveLineBreaks();
+                item.documentation = new MarkupContent {
+                    kind = "plaintext",
+                    value = info.Description.RemoveLineBreaks()
+                };
             }
             return item;
         }
@@ -144,8 +152,8 @@ namespace Microsoft.R.LanguageServer {
         [JsonRpcMethod("textDocument/formatting")]
         public Task<TextEdit[]> formatting(JToken token, CancellationToken ct) {
             using (new DebugMeasureTime("textDocument/formatting")) {
-                var p = token.ToObject<DocumentFormattingParams>();
                 return MainThreadPriority.SendAsync(async () => {
+                    var p = token.ToObject<DocumentFormattingParams>();
                     var doc = Documents.GetDocument(p.textDocument.uri);
                     var result = doc != null ? await doc.FormatAsync() : new TextEdit[0];
                     _ignoreNextChange = !IsEmptyChange(result);
@@ -170,8 +178,8 @@ namespace Microsoft.R.LanguageServer {
         [JsonRpcMethod("textDocument/onTypeFormatting")]
         public Task<TextEdit[]> onTypeFormatting(JToken token, CancellationToken ct) {
             using (new DebugMeasureTime("textDocument/onTypeFormatting")) {
-                var p = token.ToObject<DocumentOnTypeFormattingParams>();
                 return MainThreadPriority.SendAsync(async () => {
+                    var p = token.ToObject<DocumentOnTypeFormattingParams>();
                     var doc = Documents.GetDocument(p.textDocument.uri);
                     var result = await doc.AutoformatAsync(p.position, p.ch);
                     _ignoreNextChange = !IsEmptyChange(result);
@@ -181,17 +189,75 @@ namespace Microsoft.R.LanguageServer {
         }
 
         [JsonRpcMethod("textDocument/documentSymbol")]
-        public SymbolInformation[] documentSymbol(JToken token, CancellationToken ct) {
+        public Task<SymbolInformation[]> documentSymbol(JToken token, CancellationToken ct) {
             using (new DebugMeasureTime("textDocument/documentSymbol")) {
-                var p = token.ToObject<TextDocumentIdentifier>();
-                var doc = Documents.GetDocument(p.uri);
-                return doc != null ? doc.GetSymbols(p.uri) : new SymbolInformation[0];
+                return MainThreadPriority.SendAsync(() => {
+                    var p = token.ToObject<DocumentSymbolParams>();
+                    var doc = Documents.GetDocument(p.textDocument.uri);
+                    return doc != null ? doc.GetSymbols(p.textDocument.uri) : new SymbolInformation[0];
+                });
             }
         }
 
         [JsonRpcMethod("workspace/didChangeConfiguration")]
-        public void didChangeConfiguration(JToken token, CancellationToken ct) {
-            _services.GetService<ISettingsManager>().UpdateSettings(settings.R);
+        public Task didChangeConfiguration(JToken token, CancellationToken ct) {
+            return MainThreadPriority.SendAsync(() => {
+                var settings = new LanguageServerSettings();
+
+                var rootSection = token["settings"];
+                var r = rootSection?["R"];
+                if (r == null) {
+                    return;
+                }
+
+                settings.Interpreter = GetSetting(r, "interpreter", 0);
+
+                var editor = r["editor"];
+                settings.Editor.BreakMultipleStatements = GetSetting<bool>(editor, "breakMultipleStatements", true);
+                settings.Editor.FormatScope = GetSetting<bool>(editor, "formatScope", true);
+                settings.Editor.SpaceAfterKeyword = GetSetting<bool>(editor, "spaceAfterKeyword", true);
+                settings.Editor.SpacesAroundEquals = GetSetting<bool>(editor, "spacesAroundEquals", true);
+                settings.Editor.SpaceBeforeCurly = GetSetting<bool>(editor, "spaceBeforeCurly", true);
+                settings.Editor.TabSize = GetSetting<int>(editor, "tabSize", 4);
+
+                var linting = r["linting"];
+                settings.Linting.Enabled = GetSetting<bool>(linting, "enabled", false);
+                settings.Linting.CamelCase = GetSetting<bool>(linting, "camelCase", true);
+                settings.Linting.SnakeCase = GetSetting<bool>(linting, "snakeCase", false);
+                settings.Linting.PascalCase = GetSetting<bool>(linting, "pascalCase", false);
+                settings.Linting.UpperCase = GetSetting<bool>(linting, "upperCase", false);
+                settings.Linting.MultipleDots = GetSetting<bool>(linting, "multipleDots", true);
+                settings.Linting.NameLength = GetSetting<bool>(linting, "nameLength", true);
+                settings.Linting.MaxNameLength = GetSetting<int>(linting, "maxNameLength", 32);
+                settings.Linting.TrueFalseNames = GetSetting<bool>(linting, "trueFalseNames", true);
+                settings.Linting.AssignmentType = GetSetting<bool>(linting, "assignmentType", true);
+                settings.Linting.SpacesAroundComma = GetSetting<bool>(linting, "spacesAroundComma", true);
+                settings.Linting.SpacesAroundOperators = GetSetting<bool>(linting, "spacesAroundOperators", true);
+                settings.Linting.CloseCurlySeparateLine = GetSetting<bool>(linting, "closeCurlySeparateLine", true);
+                settings.Linting.SpaceBeforeOpenBrace = GetSetting<bool>(linting, "spaceBeforeOpenBrace", true);
+                settings.Linting.SpacesInsideParenthesis = GetSetting<bool>(linting, "spacesInsideParenthesis", true);
+                settings.Linting.NoSpaceAfterFunctionName = GetSetting<bool>(linting, "noSpaceAfterFunctionName", true);
+                settings.Linting.OpenCurlyPosition = GetSetting<bool>(linting, "openCurlyPosition", true);
+                settings.Linting.NoTabs = GetSetting<bool>(linting, "noTabs", true);
+                settings.Linting.TrailingWhitespace = GetSetting<bool>(linting, "trailingWhitespace", true);
+                settings.Linting.TrailingBlankLines = GetSetting<bool>(linting, "trailingBlankLines", true);
+                settings.Linting.DoubleQuotes = GetSetting<bool>(linting, "doubleQuotes", true);
+                settings.Linting.LineLength = GetSetting<bool>(linting, "lineLength", false);
+                settings.Linting.MaxLineLength = GetSetting<int>(linting, "maxLineLength", 132);
+                settings.Linting.Semicolons = GetSetting<bool>(linting, "semicolons", true);
+                settings.Linting.MultipleStatements = GetSetting<bool>(linting, "multipleStatements", true);
+
+                _services.GetService<ISettingsManager>().UpdateSettings(settings);
+            });
+        }
+
+        private T GetSetting<T>(JToken section, string settingName, T defaultValue) {
+            var value = section?[settingName];
+            try {
+                return value != null ? value.ToObject<T>() : defaultValue;
+            } catch (JsonException) {
+            }
+            return defaultValue;
         }
 
         [JsonRpcMethod("workspace/executeCommand")]

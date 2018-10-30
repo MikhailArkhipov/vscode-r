@@ -1,18 +1,5 @@
-﻿// Python Tools for Visual Studio
-// Copyright(c) Microsoft Corporation
-// All rights reserved.
-//
-// Licensed under the Apache License, Version 2.0 (the License); you may not use
-// this file except in compliance with the License. You may obtain a copy of the
-// License at http://www.apache.org/licenses/LICENSE-2.0
-//
-// THIS CODE IS PROVIDED ON AN  *AS IS* BASIS, WITHOUT WARRANTIES OR CONDITIONS
-// OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION ANY
-// IMPLIED WARRANTIES OR CONDITIONS OF TITLE, FITNESS FOR A PARTICULAR PURPOSE,
-// MERCHANTABLITY OR NON-INFRINGEMENT.
-//
-// See the Apache Version 2.0 License for specific language governing
-// permissions and limitations under the License.
+﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -84,14 +71,12 @@ namespace Microsoft.R.LanguageServer {
     }
 
     [Serializable]
-    public struct TextDocumentIdentifier {
+    public class TextDocument {
         public Uri uri;
-
-        public static implicit operator TextDocumentIdentifier(Uri uri) => new TextDocumentIdentifier { uri = uri };
     }
 
     [Serializable]
-    public struct TextDocumentItem {
+    public class TextDocumentItem {
         public Uri uri;
         public string languageId;
         public int version;
@@ -573,5 +558,11 @@ namespace Microsoft.R.LanguageServer {
         Warning = 2,
         Information = 3,
         Hint = 4
+    }
+
+    [Serializable]
+    public class PublishDiagnosticsParams {
+        public Uri uri;
+        public Diagnostic[] diagnostics;
     }
 }

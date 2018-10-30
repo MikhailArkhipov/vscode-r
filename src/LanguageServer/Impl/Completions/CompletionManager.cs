@@ -60,11 +60,17 @@ namespace Microsoft.R.LanguageServer.Completions
                     label = c.DisplayText,
                     insertText = c.InsertionText,
                     kind = (CompletionItemKind)c.ImageSource,
-                    documentation = c.Description,
+                    documentation = new MarkupContent {
+                        kind = "plaintext",
+                        value = c.Description
+                    },
                     data = c.Data is string ? JToken.FromObject((string)c.Data) : null
                 }).ToList();
 
-            return new CompletionList(items);
+            return new CompletionList{
+                isIncomplete = true,
+                items = items.ToArray()
+            };
         }
 
         private static string GetFilterPrefix(IRIntellisenseContext context) {

@@ -75,7 +75,7 @@ namespace Microsoft.R.LanguageServer.Completions {
 
             return new SignatureHelp {
                 signatures = sigInfos,
-                activeParameter = sigInfos.Count > 0 ? ComputeActiveParameter(context, signatures.First().SignatureInfo) : 0
+                activeParameter = sigInfos.Length > 0 ? ComputeActiveParameter(context, signatures.First().SignatureInfo) : 0
             };
         }
 

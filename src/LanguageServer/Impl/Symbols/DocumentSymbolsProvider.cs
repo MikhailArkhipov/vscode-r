@@ -69,10 +69,10 @@ namespace Microsoft.R.LanguageServer.Symbols {
 
             if (kind != SymbolKind.Field) {
                 p.Symbols.Add(new SymbolInformation {
-                    Kind = kind,
-                    Location = new Location {
-                        Uri = p.Uri,
-                        Range = node.ToLineRange(p.Snapshot)
+                    kind = kind,
+                    location = new Location {
+                        uri = p.Uri,
+                        range = node.ToLineRange(p.Snapshot)
                     }
                 });
             }

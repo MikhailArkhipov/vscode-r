@@ -39,9 +39,8 @@ namespace Microsoft.R.LanguageServer.Threading {
         public void Post(Action action)
             => Execute(action, ThreadPostPriority.Normal);
 
-
-        public IMainThreadAwaiter CreateMainThreadAwaiter(CancellationToken cancellationToken)
-            => throw new NotImplementedException();
+        public IMainThreadAwaiter CreateMainThreadAwaiter(CancellationToken cancellationToken) 
+            => new MainThreadAwaiter(this, cancellationToken);
         #endregion
 
         #region IMainThreadPriority
@@ -169,6 +168,29 @@ namespace Microsoft.R.LanguageServer.Threading {
 
             public override void Post(SendOrPostCallback d, object state) => _mainThread.Post(o => d(o), state);
             public override void Send(SendOrPostCallback d, object state) => _mainThread.Send(o => d(o), state);
+        }
+
+        class MainThreadAwaiter : IMainThreadAwaiter {
+            private readonly IMainThread _mainThread;
+            private readonly CancellationToken _cancellationToken;
+
+            public MainThreadAwaiter(IMainThread mainThread, CancellationToken cancellationToken) {
+                _mainThread = mainThread;
+                _cancellationToken = cancellationToken;
+            }
+
+            public bool IsCompleted => Thread.CurrentThread.ManagedThreadId == _mainThread.ThreadId;
+
+            public void GetResult() {
+                if (Thread.CurrentThread.ManagedThreadId != _mainThread.ThreadId) {
+                    _cancellationToken.ThrowIfCancellationRequested();
+                }
+            }
+
+            public void OnCompleted(Action continuation) {
+                _cancellationToken.ThrowIfCancellationRequested();
+                _mainThread.Post(() => continuation());
+            }
         }
     }
 }

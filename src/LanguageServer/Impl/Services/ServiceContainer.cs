@@ -17,6 +17,7 @@ using Microsoft.R.Components.InteractiveWorkflow;
 using Microsoft.R.Editor;
 using Microsoft.R.LanguageServer.Documents;
 using Microsoft.R.LanguageServer.InteractiveWorkflow;
+using Microsoft.R.LanguageServer.Server;
 using Microsoft.R.LanguageServer.Services.Editor;
 using Microsoft.R.LanguageServer.Text;
 using Microsoft.R.LanguageServer.Threading;
@@ -27,20 +28,21 @@ namespace Microsoft.R.LanguageServer.Services {
             var mt = new MainThread();
             SynchronizationContext.SetSynchronizationContext(mt.SynchronizationContext);
 
-             AddService<IActionLog>(s => new Logger("VSCode-R", Path.GetTempPath(), s))
-            .AddService(mt)
-            .AddService(new ContentTypeServiceLocator())
-            .AddService<ISettingsStorage, SettingsStorage>()
-            .AddService<ITaskService, TaskService>()
-            .AddService<IImageService, ImageService>()
-            .AddService(new Application())
-            .AddService<IRInteractiveWorkflowProvider, RInteractiveWorkflowProvider>()
-            .AddService(new IdleTimeService(this))
-            .AddService(new DocumentCollection(this))
-            .AddService(new ViewSignatureBroker())
-            .AddService(new EditorSupport())
-            .AddService(new REvalSession(this))
-            .AddEditorServices();
+            AddService<IActionLog>(s => new Logger("VSCode-R", Path.GetTempPath(), s))
+                .AddService(mt)
+                .AddService(new ContentTypeServiceLocator())
+                .AddService<ISettingsStorage, SettingsStorage>()
+                .AddService<ITaskService, TaskService>()
+                .AddService<IImageService, ImageService>()
+                .AddService(new Application())
+                .AddService<IRInteractiveWorkflowProvider, RInteractiveWorkflowProvider>()
+                .AddService(new IdleTimeService(this))
+                .AddService(new DocumentCollection(this))
+                .AddService(new ViewSignatureBroker())
+                .AddService(new EditorSupport())
+                .AddService(new REvalSession(this))
+                .AddService(new SettingsManager(this))
+                .AddEditorServices();
 
             AddPlatformSpecificServices();
         }
@@ -56,7 +58,7 @@ namespace Microsoft.R.LanguageServer.Services {
                 var tokenString = token != null && token.Length > 0 ? Encoding.ASCII.GetString(token) : "null";
                 var asmName = new AssemblyName($"{name}, Version={thisAssemblyName.Version}, Culture=neutral, PublicKeyToken={tokenString}");
                 assembly = Assembly.Load(asmName);
-            } catch(IOException) {
+            } catch (IOException) {
                 var thisAssemblyPath = thisAssembly.GetAssemblyPath();
                 var assemblyLoc = Path.GetDirectoryName(thisAssemblyPath);
                 var platformServicesAssemblyPath = Path.Combine(assemblyLoc, platformAssemblyName);

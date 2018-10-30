@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Microsoft.R.LanguageServer.Server.Settings {
+namespace Microsoft.R.LanguageServer.Server {
     /// <summary>
     /// Represents server than transforms VSCode settings to RTVS settings
     /// </summary>

@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Common.Core.Services;
 using Microsoft.Common.Core.Shell;
-using Microsoft.Common.Core.Threading;
 using Microsoft.Languages.Editor.Text;
 using Microsoft.R.Core.Parser;
 using Microsoft.R.Editor;
@@ -24,12 +23,13 @@ namespace Microsoft.R.LanguageServer.Validation {
         private readonly IMainThreadPriority _mainThread;
         private readonly IREditorSettings _settings;
         private readonly IIdleTimeService _idleTime;
+        private readonly IClient _client;
         private readonly Uri _documentUri;
         private IREditorDocument _document;
         private List<Diagnostic> _lastDiagnostic = new List<Diagnostic>();
 
         public DiagnosticsPublisher(IREditorDocument document, Uri documentUri, IServiceContainer services) {
-            _client = client;
+            _client = services.GetService<IClient>();
             _document = document;
             _documentUri = documentUri;
 
@@ -68,7 +68,7 @@ namespace Microsoft.R.LanguageServer.Validation {
 
             if (!diagnostic.SequenceEqual(_lastDiagnostic, new DiagnosticComparer())) {
                 _lastDiagnostic = diagnostic;
-                _mainThread.Post(() => _client.TextDocument.PublishDiagnostics(_documentUri, diagnostic), ThreadPostPriority.Idle);
+                _mainThread.Post(() => _client.PublishDiagnostics(_documentUri, diagnostic), ThreadPostPriority.Idle);
             }
         }
 
@@ -98,7 +98,7 @@ namespace Microsoft.R.LanguageServer.Validation {
         }
 
         private void ClearAllDiagnostic() {
-            _client.TextDocument.PublishDiagnostics(_documentUri, new Diagnostic[0]);
+            _client.PublishDiagnostics(_documentUri, Enumerable.Empty<Diagnostic>());
         }
 
         private void OnDocumentClosing(object sender, EventArgs e) {
@@ -113,10 +113,11 @@ namespace Microsoft.R.LanguageServer.Validation {
 
         private class DiagnosticComparer : IEqualityComparer<Diagnostic> {
             public bool Equals(Diagnostic x, Diagnostic y)
-                => x.range == y.range && x.message == y.message;
+                => x.range.start.line == y.range.start.line && x.range.start.character == y.range.start.character &&
+                   x.range.end.line == y.range.end.line && x.range.end.character == y.range.end.character &&
+                   x.message == y.message;
 
-            public int GetHashCode(Diagnostic obj)
-                => obj != null ? obj.GetHashCode() : 0;
+            public int GetHashCode(Diagnostic obj) => obj?.GetHashCode() ?? 0;
         }
     }
 }

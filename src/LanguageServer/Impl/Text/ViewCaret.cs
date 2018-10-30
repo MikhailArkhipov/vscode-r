@@ -18,6 +18,7 @@ namespace Microsoft.R.LanguageServer.Text {
         public bool InVirtualSpace => false;
         public IViewCaretPosition Position { get; }
 
+#pragma warning disable 67
         public event EventHandler PositionChanged;
         public void MoveTo(int point, int virtualSpaces) { }
     }

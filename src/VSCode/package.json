@@ -3,18 +3,18 @@
   "displayName": "R Tools",
   "description": "R Tools (powered by Microsoft RTVS)",
   "version": "0.0.1",
-  "author": "GrumpyR + Microsoft",
+  "author": "Mikhail Arkhipov & Microsoft",
   "icon": "images/rIcon.png",
-  "publisher": "grr-vscode",
+  "publisher": "Mikhail Arkhipov",
   "license": "MIT",
   "preview": true,
-  "homepage": "https://github.com/GrumpyR/vscode-r",
+  "homepage": "https://github.com/MikhailArkhipov/vscode-r",
   "bugs": {
-    "url": "https://github.com/GrumpyR/vscode-r"
+    "url": "https://github.com/MikhailArkhipov/vscode-r"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/GrumpyR/vscode-r"
+    "url": "https://github.com/MikhailArkhipov/vscode-r"
   },
   "keywords": [
     "R",

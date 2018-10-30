@@ -17,7 +17,7 @@ using Microsoft.R.Editor;
 using Microsoft.R.Editor.Validation.Lint;
 using Microsoft.R.LanguageServer.Settings;
 
-namespace Microsoft.R.LanguageServer.Server.Settings {
+namespace Microsoft.R.LanguageServer.Server {
     internal sealed class SettingsManager : ISettingsManager {
         private readonly REngineSettings _engineSettings = new REngineSettings();
         private readonly REditorSettings _editorSettings = new REditorSettings();

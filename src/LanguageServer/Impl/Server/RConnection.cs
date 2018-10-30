@@ -14,7 +14,7 @@ using Microsoft.R.Editor.Functions;
 using Microsoft.R.Host.Client;
 using Microsoft.R.Host.Client.Host;
 using Microsoft.R.LanguageServer.InteractiveWorkflow;
-using Microsoft.R.LanguageServer.Server.Settings;
+using Microsoft.R.LanguageServer.Server;
 using Microsoft.R.LanguageServer.Settings;
 using Microsoft.R.Platform.Interpreters;
 

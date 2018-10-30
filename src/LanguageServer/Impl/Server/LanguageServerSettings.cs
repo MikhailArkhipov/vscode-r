@@ -3,7 +3,7 @@
 
 using Microsoft.R.Editor.Validation.Lint;
 
-namespace Microsoft.R.LanguageServer.Server.Settings {
+namespace Microsoft.R.LanguageServer.Server {
     /// <summary>
     /// Settings that match 'configuration' section in package.json
     /// </summary>

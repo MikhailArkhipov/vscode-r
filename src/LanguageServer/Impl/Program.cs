@@ -2,7 +2,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 // Based on https://github.com/CXuesong/LanguageServer.NET
 
-// #define WAIT_FOR_DEBUGGER
+#define WAIT_FOR_DEBUGGER
 
 using System;
 using System.IO;
@@ -26,6 +26,7 @@ namespace Microsoft.R.LanguageServer.Server {
                 using (var server = new LanguageServer(services))
                 using (var rpc = new JsonRpc(cout, cin, server)) {
                     services.AddService(new UIService(rpc));
+                    services.AddService(new Client(rpc));
 
                     var token = server.Start();
                     rpc.StartListening();

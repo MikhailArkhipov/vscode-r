@@ -19,7 +19,7 @@ using System.Threading.Tasks;
 using StreamJsonRpc;
 
 namespace Microsoft.R.LanguageServer.Services {
-    public sealed class UIService : IUIService, ILogger {
+    public sealed class UIService : IUIService {
         private readonly JsonRpc _rpc;
         private MessageType _logLevel = MessageType.Error;
 

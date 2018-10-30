@@ -7,7 +7,7 @@ using Microsoft.Languages.Editor.Text;
 namespace Microsoft.R.LanguageServer.Extensions {
     internal static class EditorBufferExtensions {
         public static int ToStreamPosition(this IEditorBuffer editorBuffer, Position position)
-            => editorBuffer.CurrentSnapshot.ToStreamPosition(position.Line, position.Character);
+            => editorBuffer.CurrentSnapshot.ToStreamPosition(position.line, position.character);
 
         public static int ToStreamPosition(this IEditorBuffer editorBuffer, int lineNumber, int charNumber)
             => editorBuffer.CurrentSnapshot.ToStreamPosition(lineNumber, charNumber);

@@ -3,6 +3,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Common.Core.Services;
@@ -39,7 +40,7 @@ namespace Microsoft.R.LanguageServer.Documents {
 
             _completionManager = new CompletionManager(services);
             _signatureManager = new SignatureManager(services);
-            _diagnosticsPublisher = new DiagnosticsPublisher(services.GetService<IVsCodeClient>(), Document, uri, services);
+            _diagnosticsPublisher = new DiagnosticsPublisher(Document, uri, services);
             _formatter = new CodeFormatter(_services);
             _symbolsProvider = new DocumentSymbolsProvider();
         }
@@ -47,19 +48,15 @@ namespace Microsoft.R.LanguageServer.Documents {
         public async Task ProcessChangesAsync(TextDocumentContentChangedEvent[] contentChanges) {
             await _services.MainThread().SwitchToAsync();
 
-            foreach (var change in contentChanges) {
-                if (change.range == null) {
-                    continue;
-                }
-
-                var position = EditorBuffer.ToStreamPosition(change.Range.Start);
-                var range = new TextRange(position, change.rangeLength);
+            foreach (var change in contentChanges.Where(c => c.range.HasValue)) {
+                var position = EditorBuffer.ToStreamPosition(change.range.Value.start);
+                var range = new TextRange(position, change.rangeLength ?? 0);
                 if (!string.IsNullOrEmpty(change.text)) {
                     // Insert or replace
                     if (change.rangeLength == 0) {
-                        EditorBuffer.Insert(position, change.Text);
+                        EditorBuffer.Insert(position, change.text);
                     } else {
-                        EditorBuffer.Replace(range, change.Text);
+                        EditorBuffer.Replace(range, change.text);
                     }
                 } else {
                     EditorBuffer.Delete(range);

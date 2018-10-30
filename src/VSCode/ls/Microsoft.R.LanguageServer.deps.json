@@ -1,69 +1,33 @@
 {
   "runtimeTarget": {
     "name": ".NETCoreApp,Version=v2.1",
-    "signature": "9221624acaa9c967c130217bdc213f8bbe038155"
+    "signature": "d09d596d56539ba73d7538c410034e40c50565ba"
   },
   "compilationOptions": {},
   "targets": {
     ".NETCoreApp,Version=v2.1": {
       "Microsoft.R.LanguageServer/1.0.0": {
         "dependencies": {
-          "CXuesong.JsonRpc.Standard": "0.3.1",
-          "CXuesong.JsonRpc.Streams": "0.3.1",
-          "CXuesong.LanguageServer.VsCode": "0.1.2",
           "Microsoft.Extensions.Logging": "2.0.0",
           "Microsoft.Extensions.Logging.Debug": "2.0.0",
           "Microsoft.Languages.Core": "1.0.0",
           "Microsoft.Languages.Editor": "1.0.0",
           "Microsoft.R.Common.Core": "1.0.0",
           "Microsoft.R.Components": "1.0.0",
+          "Microsoft.R.Containers": "1.0.0",
           "Microsoft.R.Core": "1.0.0",
           "Microsoft.R.Editor": "1.0.0",
           "Microsoft.R.Host.Broker": "1.0.0",
           "Microsoft.R.Host.Client": "1.0.0",
+          "Microsoft.R.Host.Protocol": "1.0.0",
           "Microsoft.R.Platform": "1.0.0",
           "Microsoft.R.Platform.Unix": "1.0.0",
+          "StreamJsonRpc": "1.4.128",
           "System.Diagnostics.TraceSource": "4.3.0",
           "System.Runtime.Loader": "4.3.0"
         },
         "runtime": {
           "Microsoft.R.LanguageServer.dll": {}
-        }
-      },
-      "CXuesong.JsonRpc.Standard/0.3.1": {
-        "dependencies": {
-          "Microsoft.Extensions.Logging.Abstractions": "2.0.0",
-          "Newtonsoft.Json": "10.0.3",
-          "System.Reflection.Emit": "4.3.0"
-        },
-        "runtime": {
-          "lib/netstandard1.1/JsonRpc.Standard.dll": {
-            "assemblyVersion": "0.3.0.0",
-            "fileVersion": "0.3.0.0"
-          }
-        }
-      },
-      "CXuesong.JsonRpc.Streams/0.3.1": {
-        "dependencies": {
-          "CXuesong.JsonRpc.Standard": "0.3.1"
-        },
-        "runtime": {
-          "lib/netstandard1.1/JsonRpc.Streams.dll": {
-            "assemblyVersion": "0.3.0.0",
-            "fileVersion": "0.3.0.0"
-          }
-        }
-      },
-      "CXuesong.LanguageServer.VsCode/0.1.2": {
-        "dependencies": {
-          "CXuesong.JsonRpc.Standard": "0.3.1",
-          "Newtonsoft.Json": "10.0.3"
-        },
-        "runtime": {
-          "lib/netstandard1.1/LanguageServer.VsCode.dll": {
-            "assemblyVersion": "0.1.2.0",
-            "fileVersion": "0.1.2.0"
-          }
         }
       },
       "Libuv/1.10.0": {
@@ -110,7 +74,6 @@
           }
         }
       },
-      "MicroBuild.Core/0.2.0": {},
       "Microsoft.AspNetCore/2.0.0": {
         "dependencies": {
           "Microsoft.AspNetCore.Diagnostics": "2.0.0",
@@ -1309,6 +1272,107 @@
           }
         }
       },
+      "Microsoft.VisualStudio.Threading/15.3.20": {
+        "dependencies": {
+          "Microsoft.VisualStudio.Validation": "15.3.15"
+        },
+        "runtime": {
+          "lib/netstandard1.1/Microsoft.VisualStudio.Threading.dll": {
+            "assemblyVersion": "15.3.0.0",
+            "fileVersion": "15.3.20.23836"
+          }
+        },
+        "resources": {
+          "lib/netstandard1.1/cs/Microsoft.VisualStudio.Threading.resources.dll": {
+            "locale": "cs"
+          },
+          "lib/netstandard1.1/de/Microsoft.VisualStudio.Threading.resources.dll": {
+            "locale": "de"
+          },
+          "lib/netstandard1.1/es/Microsoft.VisualStudio.Threading.resources.dll": {
+            "locale": "es"
+          },
+          "lib/netstandard1.1/fr/Microsoft.VisualStudio.Threading.resources.dll": {
+            "locale": "fr"
+          },
+          "lib/netstandard1.1/it/Microsoft.VisualStudio.Threading.resources.dll": {
+            "locale": "it"
+          },
+          "lib/netstandard1.1/ja/Microsoft.VisualStudio.Threading.resources.dll": {
+            "locale": "ja"
+          },
+          "lib/netstandard1.1/ko/Microsoft.VisualStudio.Threading.resources.dll": {
+            "locale": "ko"
+          },
+          "lib/netstandard1.1/pl/Microsoft.VisualStudio.Threading.resources.dll": {
+            "locale": "pl"
+          },
+          "lib/netstandard1.1/pt-BR/Microsoft.VisualStudio.Threading.resources.dll": {
+            "locale": "pt-BR"
+          },
+          "lib/netstandard1.1/ru/Microsoft.VisualStudio.Threading.resources.dll": {
+            "locale": "ru"
+          },
+          "lib/netstandard1.1/tr/Microsoft.VisualStudio.Threading.resources.dll": {
+            "locale": "tr"
+          },
+          "lib/netstandard1.1/zh-Hans/Microsoft.VisualStudio.Threading.resources.dll": {
+            "locale": "zh-Hans"
+          },
+          "lib/netstandard1.1/zh-Hant/Microsoft.VisualStudio.Threading.resources.dll": {
+            "locale": "zh-Hant"
+          }
+        }
+      },
+      "Microsoft.VisualStudio.Validation/15.3.15": {
+        "runtime": {
+          "lib/netstandard1.0/Microsoft.VisualStudio.Validation.dll": {
+            "assemblyVersion": "15.3.0.0",
+            "fileVersion": "15.3.15.16354"
+          }
+        },
+        "resources": {
+          "lib/netstandard1.0/cs/Microsoft.VisualStudio.Validation.resources.dll": {
+            "locale": "cs"
+          },
+          "lib/netstandard1.0/de/Microsoft.VisualStudio.Validation.resources.dll": {
+            "locale": "de"
+          },
+          "lib/netstandard1.0/es/Microsoft.VisualStudio.Validation.resources.dll": {
+            "locale": "es"
+          },
+          "lib/netstandard1.0/fr/Microsoft.VisualStudio.Validation.resources.dll": {
+            "locale": "fr"
+          },
+          "lib/netstandard1.0/it/Microsoft.VisualStudio.Validation.resources.dll": {
+            "locale": "it"
+          },
+          "lib/netstandard1.0/ja/Microsoft.VisualStudio.Validation.resources.dll": {
+            "locale": "ja"
+          },
+          "lib/netstandard1.0/ko/Microsoft.VisualStudio.Validation.resources.dll": {
+            "locale": "ko"
+          },
+          "lib/netstandard1.0/pl/Microsoft.VisualStudio.Validation.resources.dll": {
+            "locale": "pl"
+          },
+          "lib/netstandard1.0/pt-BR/Microsoft.VisualStudio.Validation.resources.dll": {
+            "locale": "pt-BR"
+          },
+          "lib/netstandard1.0/ru/Microsoft.VisualStudio.Validation.resources.dll": {
+            "locale": "ru"
+          },
+          "lib/netstandard1.0/tr/Microsoft.VisualStudio.Validation.resources.dll": {
+            "locale": "tr"
+          },
+          "lib/netstandard1.0/zh-Hans/Microsoft.VisualStudio.Validation.resources.dll": {
+            "locale": "zh-Hans"
+          },
+          "lib/netstandard1.0/zh-Hant/Microsoft.VisualStudio.Validation.resources.dll": {
+            "locale": "zh-Hant"
+          }
+        }
+      },
       "Microsoft.Win32.Primitives/4.3.0": {
         "dependencies": {
           "System.Runtime": "4.3.0"
@@ -1464,6 +1528,61 @@
           "runtime/ubuntu.16.10-x64/native/_._": {
             "rid": "ubuntu.16.10-x64",
             "assetType": "native"
+          }
+        }
+      },
+      "StreamJsonRpc/1.4.128": {
+        "dependencies": {
+          "Microsoft.VisualStudio.Threading": "15.3.20",
+          "Newtonsoft.Json": "10.0.3",
+          "System.Net.Http": "4.3.3",
+          "System.Reflection.Emit": "4.3.0"
+        },
+        "runtime": {
+          "lib/netstandard2.0/StreamJsonRpc.dll": {
+            "assemblyVersion": "1.4.0.0",
+            "fileVersion": "1.4.128.11867"
+          }
+        },
+        "resources": {
+          "lib/netstandard2.0/cs/StreamJsonRpc.resources.dll": {
+            "locale": "cs"
+          },
+          "lib/netstandard2.0/de/StreamJsonRpc.resources.dll": {
+            "locale": "de"
+          },
+          "lib/netstandard2.0/es/StreamJsonRpc.resources.dll": {
+            "locale": "es"
+          },
+          "lib/netstandard2.0/fr/StreamJsonRpc.resources.dll": {
+            "locale": "fr"
+          },
+          "lib/netstandard2.0/it/StreamJsonRpc.resources.dll": {
+            "locale": "it"
+          },
+          "lib/netstandard2.0/ja/StreamJsonRpc.resources.dll": {
+            "locale": "ja"
+          },
+          "lib/netstandard2.0/ko/StreamJsonRpc.resources.dll": {
+            "locale": "ko"
+          },
+          "lib/netstandard2.0/pl/StreamJsonRpc.resources.dll": {
+            "locale": "pl"
+          },
+          "lib/netstandard2.0/pt-BR/StreamJsonRpc.resources.dll": {
+            "locale": "pt-BR"
+          },
+          "lib/netstandard2.0/ru/StreamJsonRpc.resources.dll": {
+            "locale": "ru"
+          },
+          "lib/netstandard2.0/tr/StreamJsonRpc.resources.dll": {
+            "locale": "tr"
+          },
+          "lib/netstandard2.0/zh-Hans/StreamJsonRpc.resources.dll": {
+            "locale": "zh-Hans"
+          },
+          "lib/netstandard2.0/zh-Hant/StreamJsonRpc.resources.dll": {
+            "locale": "zh-Hant"
           }
         }
       },
@@ -2106,7 +2225,7 @@
         "runtime": {
           "lib/netstandard2.0/System.Runtime.CompilerServices.Unsafe.dll": {
             "assemblyVersion": "4.0.3.0",
-            "fileVersion": "4.0.0.0"
+            "fileVersion": "0.0.0.0"
           }
         }
       },
@@ -2602,7 +2721,6 @@
       },
       "Microsoft.Languages.Core/1.0.0": {
         "dependencies": {
-          "MicroBuild.Core": "0.2.0",
           "Microsoft.R.Common.Core": "1.0.0",
           "System.Collections.Specialized": "4.3.0"
         },
@@ -2612,7 +2730,6 @@
       },
       "Microsoft.Languages.Editor/1.0.0": {
         "dependencies": {
-          "MicroBuild.Core": "0.2.0",
           "Microsoft.Languages.Core": "1.0.0",
           "Microsoft.R.Common.Core": "1.0.0",
           "System.Collections.Specialized": "4.3.0"
@@ -2623,7 +2740,6 @@
       },
       "Microsoft.R.Common.Core/1.0.0": {
         "dependencies": {
-          "MicroBuild.Core": "0.2.0",
           "Microsoft.Extensions.FileSystemGlobbing": "2.0.0",
           "Microsoft.Extensions.Logging.Abstractions": "2.0.0",
           "Newtonsoft.Json": "10.0.3"
@@ -2634,13 +2750,12 @@
       },
       "Microsoft.R.Components/1.0.0": {
         "dependencies": {
-          "MicroBuild.Core": "0.2.0",
           "Microsoft.Languages.Core": "1.0.0",
           "Microsoft.R.Common.Core": "1.0.0",
           "Microsoft.R.Containers": "1.0.0",
-          "Microsoft.R.Core": "1.0.0",
           "Microsoft.R.Host.Client": "1.0.0",
           "Microsoft.R.Host.Protocol": "1.0.0",
+          "Microsoft.R.Platform": "1.0.0",
           "System.Collections.Immutable": "1.3.1",
           "System.Net.Http": "4.3.3"
         },
@@ -2650,7 +2765,6 @@
       },
       "Microsoft.R.Containers/1.0.0": {
         "dependencies": {
-          "MicroBuild.Core": "0.2.0",
           "Microsoft.R.Common.Core": "1.0.0",
           "Newtonsoft.Json": "10.0.3"
         },
@@ -2660,7 +2774,6 @@
       },
       "Microsoft.R.Core/1.0.0": {
         "dependencies": {
-          "MicroBuild.Core": "0.2.0",
           "Microsoft.Languages.Core": "1.0.0",
           "Microsoft.R.Common.Core": "1.0.0",
           "System.Collections.Specialized": "4.3.0"
@@ -2671,7 +2784,6 @@
       },
       "Microsoft.R.Editor/1.0.0": {
         "dependencies": {
-          "MicroBuild.Core": "0.2.0",
           "Microsoft.Languages.Core": "1.0.0",
           "Microsoft.Languages.Editor": "1.0.0",
           "Microsoft.R.Common.Core": "1.0.0",
@@ -2686,7 +2798,6 @@
       },
       "Microsoft.R.Host.Broker/1.0.0": {
         "dependencies": {
-          "MicroBuild.Core": "0.2.0",
           "Microsoft.AspNetCore": "2.0.0",
           "Microsoft.AspNetCore.Authentication": "2.0.0",
           "Microsoft.AspNetCore.DataProtection": "2.0.0",
@@ -2719,7 +2830,6 @@
       },
       "Microsoft.R.Host.Client/1.0.0": {
         "dependencies": {
-          "MicroBuild.Core": "0.2.0",
           "Microsoft.AspNetCore.WebSockets.Protocol": "0.1.0",
           "Microsoft.R.Common.Core": "1.0.0",
           "Microsoft.R.Host.Protocol": "1.0.0",
@@ -2737,7 +2847,6 @@
       },
       "Microsoft.R.Host.Protocol/1.0.0": {
         "dependencies": {
-          "MicroBuild.Core": "0.2.0",
           "Microsoft.Extensions.FileSystemGlobbing": "2.0.0",
           "Microsoft.Extensions.Logging.Abstractions": "2.0.0",
           "Microsoft.R.Common.Core": "1.0.0",
@@ -2750,7 +2859,6 @@
       },
       "Microsoft.R.Platform/1.0.0": {
         "dependencies": {
-          "MicroBuild.Core": "0.2.0",
           "Microsoft.R.Common.Core": "1.0.0"
         },
         "runtime": {
@@ -2759,7 +2867,6 @@
       },
       "Microsoft.R.Platform.Unix/1.0.0": {
         "dependencies": {
-          "MicroBuild.Core": "0.2.0",
           "Microsoft.R.Platform": "1.0.0"
         },
         "runtime": {
@@ -2774,40 +2881,12 @@
       "serviceable": false,
       "sha512": ""
     },
-    "CXuesong.JsonRpc.Standard/0.3.1": {
-      "type": "package",
-      "serviceable": true,
-      "sha512": "sha512-bhK7/o2jzgB97XFKw30jVplr3P3b9gwq2fh08astgk53AroDvvcEy9bxJLHk5bWEEBEtH0JVbRW9ZnQ6VxIc+A==",
-      "path": "cxuesong.jsonrpc.standard/0.3.1",
-      "hashPath": "cxuesong.jsonrpc.standard.0.3.1.nupkg.sha512"
-    },
-    "CXuesong.JsonRpc.Streams/0.3.1": {
-      "type": "package",
-      "serviceable": true,
-      "sha512": "sha512-7HBgmDdDJBJMXm+MYY9yFjHCXKUrqYYaoNZ5L5kgGYzU97XUToymqJYLzwdxFnOJIY3opPw3quszllS9OgCtZw==",
-      "path": "cxuesong.jsonrpc.streams/0.3.1",
-      "hashPath": "cxuesong.jsonrpc.streams.0.3.1.nupkg.sha512"
-    },
-    "CXuesong.LanguageServer.VsCode/0.1.2": {
-      "type": "package",
-      "serviceable": true,
-      "sha512": "sha512-wW4MXzA5O/nqeP843In8vJgttDC0IWWMDgtoCRPQmn64Ah3GECfK7YsneV6gSBGBw+1Gr1PeQUj8FUzd7CxYUg==",
-      "path": "cxuesong.languageserver.vscode/0.1.2",
-      "hashPath": "cxuesong.languageserver.vscode.0.1.2.nupkg.sha512"
-    },
     "Libuv/1.10.0": {
       "type": "package",
       "serviceable": true,
       "sha512": "sha512-GsCf4q+eyaI49rCPlgYxdxa1SQCysXFFdSJWdstrwxytg4+VPYLYrXD4AT2rjHVJ+UF7SSWX9CapWEYaU4ejVQ==",
       "path": "libuv/1.10.0",
       "hashPath": "libuv.1.10.0.nupkg.sha512"
-    },
-    "MicroBuild.Core/0.2.0": {
-      "type": "package",
-      "serviceable": true,
-      "sha512": "sha512-UU0glyD/p+hIrgMdA6nYw5NhdhsYxaKTc3/N9sGEPZZi63wuB3dlB1AAbFBBtVjj9jZ9UijaBnUslNWKM1xDxA==",
-      "path": "microbuild.core/0.2.0",
-      "hashPath": "microbuild.core.0.2.0.nupkg.sha512"
     },
     "Microsoft.AspNetCore/2.0.0": {
       "type": "package",
@@ -3446,6 +3525,20 @@
       "path": "microsoft.net.http.server/1.1.3",
       "hashPath": "microsoft.net.http.server.1.1.3.nupkg.sha512"
     },
+    "Microsoft.VisualStudio.Threading/15.3.20": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-h/EPnlSJIKBcIPQVTzbWvviKE/avZY5LI5+SiLY5kwQJ+MXyPEoK7ACSFhTMJB7hwGrwPFNXWSc4e9+5Pi3WQQ==",
+      "path": "microsoft.visualstudio.threading/15.3.20",
+      "hashPath": "microsoft.visualstudio.threading.15.3.20.nupkg.sha512"
+    },
+    "Microsoft.VisualStudio.Validation/15.3.15": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-bvJIwuCLqu7YKXcZqY85VJy0ljtm9QSRkq4CD2bpO/GHynsm72uZxjBDa050VY7kElXS8mb7VW5JNUfg4D/UBA==",
+      "path": "microsoft.visualstudio.validation/15.3.15",
+      "hashPath": "microsoft.visualstudio.validation.15.3.15.nupkg.sha512"
+    },
     "Microsoft.Win32.Primitives/4.3.0": {
       "type": "package",
       "serviceable": true,
@@ -3592,6 +3685,13 @@
       "sha512": "sha512-leXiwfiIkW7Gmn7cgnNcdtNAU70SjmKW3jxGj1iKHOvdn0zRWsgv/l2OJUO5zdGdiv2VRFnAsxxhDgMzofPdWg==",
       "path": "runtime.ubuntu.16.10-x64.runtime.native.system.security.cryptography.openssl/4.3.2",
       "hashPath": "runtime.ubuntu.16.10-x64.runtime.native.system.security.cryptography.openssl.4.3.2.nupkg.sha512"
+    },
+    "StreamJsonRpc/1.4.128": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-PTMnEyz28bWN0sBE3sgIt6NxvhmHOvG/dY9fenFQ9zF6cEKAoX9kmysGFeIr0ikhOrs5PE4JbXf7eV66mIrVGw==",
+      "path": "streamjsonrpc/1.4.128",
+      "hashPath": "streamjsonrpc.1.4.128.nupkg.sha512"
     },
     "System.AppContext/4.3.0": {
       "type": "package",
