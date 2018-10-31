@@ -8,12 +8,12 @@
   <PropertyGroup>
     <DebugType>portable</DebugType>
   </PropertyGroup>
-  <ItemGroup>
-    <ProjectReference Include="$(SourceDirectory)Common\Core\Impl\Microsoft.R.Common.Core.csproj" />
-    <ProjectReference Include="$(SourceDirectory)Host\Broker\Impl\Microsoft.R.Host.Broker.csproj" />
-    <ProjectReference Include="$(SourceDirectory)R\Platform\Impl\Microsoft.R.Platform.csproj" />
-    <ProjectReference Include="$(SourceDirectory)Unix\R\Platform\Impl\Microsoft.R.Platform.Unix.csproj" />
-  </ItemGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <OutputPath>..\..\..\..\..\bin\Debug</OutputPath>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <OutputPath>..\..\..\..\..\bin\Release</OutputPath>
+  </PropertyGroup>
   <ItemGroup>
     <Compile Update="Resources.Designer.cs">
       <DesignTime>True</DesignTime>
@@ -41,5 +41,11 @@
     <None Update="rtvsd.config.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\Common\Core\Impl\Microsoft.R.Common.Core.csproj" />
+    <ProjectReference Include="..\..\..\..\Host\Broker\Impl\Microsoft.R.Host.Broker.csproj" />
+    <ProjectReference Include="..\..\..\R\Platform\Impl\Microsoft.R.Platform.Unix.csproj" />
+    <ProjectReference Include="..\..\..\..\R\Platform\Impl\Microsoft.R.Platform.csproj" />
   </ItemGroup>
 </Project>

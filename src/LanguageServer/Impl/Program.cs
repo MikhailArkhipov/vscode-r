@@ -1,8 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// Based on https://github.com/CXuesong/LanguageServer.NET
 
-#define WAIT_FOR_DEBUGGER
+// #define WAIT_FOR_DEBUGGER
 
 using System;
 using System.IO;
