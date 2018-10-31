@@ -15,6 +15,7 @@ using Microsoft.Common.Core.Shell;
 using Microsoft.Common.Core.Tasks;
 using Microsoft.R.Components.InteractiveWorkflow;
 using Microsoft.R.Editor;
+using Microsoft.R.LanguageServer.Commands;
 using Microsoft.R.LanguageServer.Documents;
 using Microsoft.R.LanguageServer.InteractiveWorkflow;
 using Microsoft.R.LanguageServer.Server;
@@ -42,6 +43,7 @@ namespace Microsoft.R.LanguageServer.Services {
                 .AddService(new EditorSupport())
                 .AddService(new REvalSession(this))
                 .AddService(new SettingsManager(this))
+                .AddService(new Controller(this))
                 .AddEditorServices();
 
             AddPlatformSpecificServices();

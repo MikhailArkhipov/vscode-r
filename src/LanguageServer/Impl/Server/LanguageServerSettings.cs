@@ -16,8 +16,8 @@ namespace Microsoft.R.LanguageServer.Server {
     /// </remarks>
     public sealed class LanguageServerSettings {
         public int Interpreter { get; set; }
-        public EditorSettings Editor { get; set; }
-        public LinterSettings Linting { get; set; }
+        public EditorSettings Editor { get; set; } = new EditorSettings();
+        public LinterSettings Linting { get; set; } = new LinterSettings();
     }
 
     public sealed class EditorSettings {

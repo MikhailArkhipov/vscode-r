@@ -204,8 +204,7 @@ namespace Microsoft.R.LanguageServer {
             return MainThreadPriority.SendAsync(() => {
                 var settings = new LanguageServerSettings();
 
-                var rootSection = token["settings"];
-                var r = rootSection?["R"];
+                var r = token["settings"];
                 if (r == null) {
                     return;
                 }
@@ -297,7 +296,7 @@ namespace Microsoft.R.LanguageServer {
             };
         }
 
-        [JsonRpcMethod("information/getInterpreterPath")]
+        [JsonRpcMethod("r/getInterpreterPath")]
         public string getInterpreterPath() {
             if (!IsRInstalled()) {
                 return null;

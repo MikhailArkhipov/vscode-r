@@ -47,6 +47,7 @@ namespace Microsoft.R.LanguageServer.Server {
             var provider = _services.GetService<IRInteractiveWorkflowProvider>();
             _workflow = provider.GetOrCreate();
             _ui = _services.GetService<IUIService>();
+            _ui.SetLogLevel(MessageType.Info);
 
             var e = GetREngine();
             if(e == null) {

@@ -12,7 +12,7 @@ export class REngine implements IREngine {
     }
 
     public getInterpreterPath(): Thenable<string> {
-        return this.client.sendRequest<string>("information/getInterpreterPath");
+        return this.client.sendRequest<string>("r/getInterpreterPath");
     }
 
     public execute(code: string): Thenable<string> {

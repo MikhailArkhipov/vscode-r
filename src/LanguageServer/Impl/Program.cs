@@ -6,6 +6,7 @@
 
 using System;
 using System.IO;
+using System.Threading;
 using Microsoft.R.LanguageServer.Services;
 using StreamJsonRpc;
 
@@ -25,12 +26,18 @@ namespace Microsoft.R.LanguageServer.Server {
                 using (var cout = Console.OpenStandardOutput())
                 using (var server = new LanguageServer(services))
                 using (var rpc = new JsonRpc(cout, cin, server)) {
+
                     services.AddService(new UIService(rpc));
                     services.AddService(new Client(rpc));
 
-                    var token = server.Start();
-                    rpc.StartListening();
-                    token.WaitHandle.WaitOne();
+                    var cts = new CancellationTokenSource();
+                    using (new RConnection(services, cts.Token)) {
+                        var token = server.Start();
+                        rpc.StartListening();
+                        // Wait for the "stop" request.
+                        token.WaitHandle.WaitOne();
+                        cts.Cancel();
+                    }
                 }
             }
         }
