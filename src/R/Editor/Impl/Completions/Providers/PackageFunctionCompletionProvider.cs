@@ -52,10 +52,10 @@ namespace Microsoft.R.Editor.Completions.Providers {
         #region IRCompletionListProvider
         public bool AllowSorting { get; } = true;
 
-        public IReadOnlyCollection<ICompletionEntry> GetEntries(IRIntellisenseContext context, string prefixFilter = null) {
+        public async Task<IReadOnlyCollection<ICompletionEntry>> GetEntriesAsync(IRIntellisenseContext context, string prefixFilter = null) {
             var completions = new List<ICompletionEntry>();
             var infoSource = _snippetInformationSource?.InformationSource;
-            var packages = GetPackages(context).ToList();
+            var packages = (await GetPackagesAsync(context)).ToList();
             var packageName = packages.Count == 1 ? packages[0].Name : null;
 
             var caretInNamespace = !context.IsCaretInNamespace(out bool showInternalFunctions);
@@ -98,13 +98,11 @@ namespace Microsoft.R.Editor.Completions.Providers {
             => _packageIndex.Packages.SelectMany(pkg => pkg.Functions.Select(x => x.Name)).ToList();
         #endregion
 
-        private IEnumerable<IPackageInfo> GetPackages(IRIntellisenseContext context) {
+        private async Task<IEnumerable<IPackageInfo>> GetPackagesAsync(IRIntellisenseContext context) {
             if (context.IsCaretInNamespace()) {
                 return GetSpecificPackage(context);
             }
-
-            _taskService.Wait(() => GetAllFilePackagesAsync(context), out var result, _asyncWaitTimeout);
-             return result ?? Enumerable.Empty<IPackageInfo>();
+            return await GetAllFilePackagesAsync(context);
         }
 
         /// <summary>

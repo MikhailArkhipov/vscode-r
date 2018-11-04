@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Microsoft.Common.Core.Imaging;
 using Microsoft.Languages.Editor.Completions;
 using Microsoft.R.Core.AST;
@@ -26,7 +27,7 @@ namespace Microsoft.R.Editor.Completions.Providers {
         #region IRCompletionListProvider
         public bool AllowSorting { get; } = true;
 
-        public IReadOnlyCollection<ICompletionEntry> GetEntries(IRIntellisenseContext context, string prefixFilter = null) {
+        public Task<IReadOnlyCollection<ICompletionEntry>> GetEntriesAsync(IRIntellisenseContext context, string prefixFilter = null) {
             var completions = new List<ICompletionEntry>();
             var ast = context.AstRoot;
 
@@ -42,7 +43,7 @@ namespace Microsoft.R.Editor.Completions.Providers {
                 completions.Add(completion);
             }
 
-            return completions;
+            return Task.FromResult<IReadOnlyCollection<ICompletionEntry>>(completions);
         }
         #endregion
     }

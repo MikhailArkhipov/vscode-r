@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.Common.Core.Imaging;
 using Microsoft.Languages.Editor.Completions;
 using Microsoft.R.Editor.Functions;
@@ -25,11 +26,10 @@ namespace Microsoft.R.Editor.Completions.Providers {
         #region IRCompletionListProvider
         public bool AllowSorting { get; } = true;
 
-        public IReadOnlyCollection<ICompletionEntry> GetEntries(IRIntellisenseContext context, string prefixFilter = null) {
-            return _packageIndex.Packages
-                .Select(p => new EditorCompletionEntry(p.Name, p.Name, p.Description, _glyph))
-                .ToList();
-        }
+        public Task<IReadOnlyCollection<ICompletionEntry>> GetEntriesAsync(IRIntellisenseContext context, string prefixFilter = null)
+            => Task.FromResult<IReadOnlyCollection<ICompletionEntry>>(_packageIndex.Packages
+                    .Select(p => new EditorCompletionEntry(p.Name, p.Name, p.Description, _glyph))
+                    .ToList());
         #endregion
 
         #region IRHelpSearchTermProvider

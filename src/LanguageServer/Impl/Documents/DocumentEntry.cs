@@ -68,8 +68,8 @@ namespace Microsoft.R.LanguageServer.Documents {
         public void Dispose() => Document?.Close();
 
         [DebuggerStepThrough]
-        public CompletionList GetCompletions(Position position)
-            => _completionManager.GetCompletions(CreateContext(position));
+        public Task<CompletionList> GetCompletionsAsync(Position position)
+            => _completionManager.GetCompletionsAsync(CreateContext(position));
 
         public Task<SignatureHelp> GetSignatureHelpAsync(Position position)
             => _signatureManager.GetSignatureHelpAsync(CreateContext(position));

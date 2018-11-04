@@ -124,9 +124,9 @@ namespace Microsoft.R.LanguageServer {
         public Task<CompletionList> completion(JToken token, CancellationToken ct) {
             using (new DebugMeasureTime("textDocument/completion")) {
                 var p = token.ToObject<CompletionParams>();
-                return MainThreadPriority.SendAsync(() => {
+                return MainThreadPriority.SendAsync(async () => {
                     var doc = Documents.GetDocument(p.textDocument.uri);
-                    return Task.FromResult(doc != null ? doc.GetCompletions(p.position) : new CompletionList());
+                    return doc != null ? await doc.GetCompletionsAsync(p.position) : new CompletionList();
                 }, ThreadPostPriority.Background);
             }
         }

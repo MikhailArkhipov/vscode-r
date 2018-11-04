@@ -66,14 +66,11 @@ namespace Microsoft.R.Editor.Completions.Providers {
         #region IRCompletionListProvider
         public bool AllowSorting { get; } = false;
 
-        public IReadOnlyCollection<ICompletionEntry> GetEntries(IRIntellisenseContext context, string prefixFilter = null) {
+        public async Task<IReadOnlyCollection<ICompletionEntry>> GetEntriesAsync(IRIntellisenseContext context, string prefixFilter = null) {
             var completions = new List<ICompletionEntry>();
             var directory = _enteredDirectory;
 
-            try {
-                // If we are running async directory fetching, wait a bit
-                _task?.Wait(500);
-            } catch (OperationCanceledException) { }
+            await _task;
 
             try {
                 // If directory is set, then the async task did complete
@@ -92,8 +89,7 @@ namespace Microsoft.R.Editor.Completions.Providers {
                     IEnumerable<ICompletionEntry> entries;
 
                     if (_forceR || _workflow.RSession.IsRemote) {
-                        var t = GetRemoteDirectoryItemsAsync(directory);
-                        entries = t.WaitTimeout(_forceR ? 5000 : 1000);
+                        entries = await GetRemoteDirectoryItemsAsync(directory);
                     } else {
                         entries = GetLocalDirectoryItems(directory);
                     }

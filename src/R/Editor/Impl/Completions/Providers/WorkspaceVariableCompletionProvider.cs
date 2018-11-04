@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.Common.Core.Imaging;
 using Microsoft.Languages.Editor.Completions;
 using Microsoft.R.Core.AST;
@@ -30,7 +31,7 @@ namespace Microsoft.R.Editor.Completions.Providers {
         #region IRCompletionListProvider
         public bool AllowSorting { get; } = true;
 
-        public IReadOnlyCollection<ICompletionEntry> GetEntries(IRIntellisenseContext context, string prefixFilter = null) {
+        public Task<IReadOnlyCollection<ICompletionEntry>> GetEntriesAsync(IRIntellisenseContext context, string prefixFilter = null) {
             var completions = new List<ICompletionEntry>();
             var start = DateTime.Now;
 
@@ -49,7 +50,7 @@ namespace Microsoft.R.Editor.Completions.Providers {
                 }
             }
             Debug.WriteLine("Variable members fetch: " + (DateTime.Now - start).TotalMilliseconds);
-            return completions;
+            return Task.FromResult<IReadOnlyCollection<ICompletionEntry>>(completions);
         }
         #endregion
 
@@ -85,7 +86,7 @@ namespace Microsoft.R.Editor.Completions.Providers {
             }
 
             var name = context.Session.View.GetVariableNameBeforeCaret();
-            if(!string.IsNullOrEmpty(name)) {
+            if (!string.IsNullOrEmpty(name)) {
                 list.Add(name);
             }
             return list;

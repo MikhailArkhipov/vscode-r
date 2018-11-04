@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.Common.Core.Imaging;
 using Microsoft.Common.Core.Services;
 using Microsoft.Languages.Editor.Completions;
@@ -26,13 +27,13 @@ namespace Microsoft.R.Editor.Completions.Providers {
         #region IRCompletionListProvider
         public bool AllowSorting { get; } = true;
 
-        public IReadOnlyCollection<ICompletionEntry> GetEntries(IRIntellisenseContext context, string prefixFilter = null) {
+        public Task<IReadOnlyCollection<ICompletionEntry>> GetEntriesAsync(IRIntellisenseContext context, string prefixFilter = null) {
             var completions = new List<ICompletionEntry>();
             if (_snippetInformationSource?.InformationSource != null && !context.IsCaretInNamespace()) {
                 var snippets = _snippetInformationSource.InformationSource.Snippets;
                 completions.AddRange(snippets.Select(info => new EditorCompletionEntry(info.Name, info.Name, info.Description, _snippetGlyph)));
             }
-            return completions;
+            return Task.FromResult<IReadOnlyCollection<ICompletionEntry>>(completions);
         }
         #endregion
     }
