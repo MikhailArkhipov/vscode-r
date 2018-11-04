@@ -30,8 +30,7 @@
     "Snippets"
   ],
   "activationEvents": [
-    "onLanguage:r",
-    "workspaceContains:**/.r"
+    "onLanguage:r"
   ],
   "main": "./out/src/extension",
   "contributes": {
@@ -49,11 +48,6 @@
       {
         "command": "r.source",
         "title": "Source file",
-        "category": "R"
-      },
-      {
-        "command": "r.clear",
-        "title": "Clear output pane",
         "category": "R"
       },
       {
