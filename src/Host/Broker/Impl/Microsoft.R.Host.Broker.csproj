@@ -6,6 +6,7 @@
   </PropertyGroup>
   <PropertyGroup>
     <DebugType>portable</DebugType>
+    <OutputType>exe</OutputType>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <OutputPath>..\..\..\..\bin\Debug</OutputPath>

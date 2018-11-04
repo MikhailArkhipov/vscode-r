@@ -3,10 +3,11 @@
 "use strict";
 
 import * as fs from "fs";
-import { getenv } from "getenv";
-import { opn } from "opn";
 import * as vscode from "vscode";
 import * as os from "./os";
+
+var getenv = require('getenv');
+var opn = require('opn');
 
 export async function getR(r: IREngine): Promise<string> {
     const interpreterPath = await r.getInterpreterPath();

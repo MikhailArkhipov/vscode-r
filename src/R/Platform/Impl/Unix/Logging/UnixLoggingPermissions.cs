@@ -4,7 +4,7 @@
 using Microsoft.Common.Core.Logging;
 
 namespace Microsoft.R.Platform.Logging {
-    internal sealed class UnixLoggingPermissions: ILoggingPermissions {
+    public sealed class UnixLoggingPermissions: ILoggingPermissions {
         public LogVerbosity CurrentVerbosity { get; set; } = LogVerbosity.Traffic;
         public bool IsFeedbackPermitted => true;
         public LogVerbosity MaxVerbosity => LogVerbosity.Traffic;
