@@ -22,9 +22,9 @@ export async function activate(context: vscode.ExtensionContext) {
         return;
     }
 
-    console.log("Activating R Tools...");
+    console.log("Activating R Language Server...");
     await activateLanguageServer(context);
-    console.log("R Tools is now activated.");
+    console.log(" done.");
 }
 
 export async function activateLanguageServer(context: vscode.ExtensionContext) {
