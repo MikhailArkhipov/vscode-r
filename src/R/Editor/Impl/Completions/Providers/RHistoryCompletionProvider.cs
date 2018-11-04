@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Microsoft.Common.Core;
 using Microsoft.Common.Core.Imaging;
 using Microsoft.Languages.Core.Text;
@@ -22,7 +23,7 @@ namespace Microsoft.R.Editor.Completions.Providers {
             _glyph = imageService.GetImage("History");
         }
 
-        public IReadOnlyCollection<ICompletionEntry> GetEntries(IRIntellisenseContext context, string prefixFilter = null) {
+        public Task<IReadOnlyCollection<ICompletionEntry>> GetEntriesAsync(IRIntellisenseContext context, string prefixFilter = null) {
             var snapshot = context.EditorBuffer.CurrentSnapshot;
             var lineStart = snapshot.GetLineFromPosition(context.Position).Start;
             var searchText = snapshot.GetText(new TextRange(lineStart, context.Position - lineStart)).Trim();
@@ -33,7 +34,7 @@ namespace Microsoft.R.Editor.Completions.Providers {
                 entries.Add(new EditorCompletionEntry(displayText, text, descriptionText, _glyph));
             }
 
-            return entries;
+            return Task.FromResult<IReadOnlyCollection<ICompletionEntry>>(entries);
         }
 
         private static string GetDisplayText(string text) {

@@ -14,7 +14,6 @@ using Microsoft.R.Editor.Functions;
 using Microsoft.R.Host.Client;
 using Microsoft.R.Host.Client.Host;
 using Microsoft.R.LanguageServer.InteractiveWorkflow;
-using Microsoft.R.LanguageServer.Server;
 using Microsoft.R.LanguageServer.Settings;
 using Microsoft.R.Platform.Interpreters;
 
@@ -59,28 +58,28 @@ namespace Microsoft.R.LanguageServer.Server {
 
             var start = DateTime.Now;
             var message = $"Starting R Process with {e.InstallPath}...";
-            _ui.LogMessage(message, MessageType.Info).DoNotWait();
+            _ui.LogMessageAsync(message, MessageType.Info).DoNotWait();
 
             log.Write(LogVerbosity.Normal, MessageCategory.General, $"Switching local broker to {e.InstallPath}");
             if (await _workflow.RSessions.TrySwitchBrokerAsync("VSCR", info, ct)) {
                 try {
                     await _workflow.RSession.StartHostAsync(new RHostStartupInfo(), new RSessionCallback(), Debugger.IsAttached ? 100000 : 20000, ct);
                 } catch (Exception ex) {
-                    _ui.ShowMessage($"Unable to start R process. Exception: {ex.Message}", MessageType.Error).DoNotWait();
+                    _ui.ShowMessageAsync($"Unable to start R process. Exception: {ex.Message}", MessageType.Error).DoNotWait();
                     return;
                 }
 
                 // Start package building
-                _ui.LogMessage($"complete in {FormatElapsed(DateTime.Now - start)}", MessageType.Info).DoNotWait();
+                _ui.LogMessageAsync($"complete in {FormatElapsed(DateTime.Now - start)}", MessageType.Info).DoNotWait();
                 start = DateTime.Now;
-                _ui.LogMessage("Building IntelliSense index...", MessageType.Info).DoNotWait();
+                _ui.LogMessageAsync("Building IntelliSense index...", MessageType.Info).DoNotWait();
 
                 _packageIndex = _services.GetService<IPackageIndex>();
                 _packageIndex.BuildIndexAsync(ct).ContinueWith(t => {
-                    _ui.LogMessage($"complete in {FormatElapsed(DateTime.Now - start)}", MessageType.Info).DoNotWait();
+                    _ui.LogMessageAsync($"complete in {FormatElapsed(DateTime.Now - start)}", MessageType.Info).DoNotWait();
                 }, ct).DoNotWait();
             } else {
-                _ui.ShowMessage("Unable to start R process", MessageType.Error).DoNotWait();
+                _ui.ShowMessageAsync("Unable to start R process", MessageType.Error).DoNotWait();
             }
         }
 
@@ -95,22 +94,22 @@ namespace Microsoft.R.LanguageServer.Server {
 
             if (engines.Count == 0) {
                 const string message = "Unable to find R intepreter. Please install R from https://cran.r-project.org";
-                _ui.ShowMessage(message, MessageType.Error).DoNotWait();
+                _ui.ShowMessageAsync(message, MessageType.Error).DoNotWait();
                 return null;
             }
 
-            _ui.LogMessage("Available R interpreters:", MessageType.Info).DoNotWait();
+            _ui.LogMessageAsync("Available R interpreters:", MessageType.Info).DoNotWait();
             for (var i = 0; i < engines.Count; i++) {
-                _ui.LogMessage($"\t[{i}] {engines[i].Name}", MessageType.Info).DoNotWait();
+                _ui.LogMessageAsync($"\t[{i}] {engines[i].Name}", MessageType.Info).DoNotWait();
             }
-            _ui.LogMessage("You can specify the desired interpreter index in the R settings", MessageType.Info).DoNotWait();
+            _ui.LogMessageAsync("You can specify the desired interpreter index in the R settings", MessageType.Info).DoNotWait();
 
             var rs = _services.GetService<IREngineSettings>();
             if (rs.InterpreterIndex < 0 || rs.InterpreterIndex > engines.Count) {
-                _ui.ShowMessage($"Selected interpreter [{rs.InterpreterIndex}] does not exist. Using [0] instead", MessageType.Warning).DoNotWait();
+                _ui.ShowMessageAsync($"Selected interpreter [{rs.InterpreterIndex}] does not exist. Using [0] instead", MessageType.Warning).DoNotWait();
                 rs.InterpreterIndex = 0;
             } else {
-                _ui.LogMessage($"Selected interpreter: [{rs.InterpreterIndex}] {engines[rs.InterpreterIndex].Name}.\n", MessageType.Info).DoNotWait();
+                _ui.LogMessageAsync($"Selected interpreter: [{rs.InterpreterIndex}] {engines[rs.InterpreterIndex].Name}.\n", MessageType.Info).DoNotWait();
             }
 
             return engines[rs.InterpreterIndex];

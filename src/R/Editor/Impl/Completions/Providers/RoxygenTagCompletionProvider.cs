@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.Common.Core;
 using Microsoft.Common.Core.Imaging;
 using Microsoft.Languages.Editor.Completions;
@@ -18,7 +19,7 @@ namespace Microsoft.R.Editor.Completions.Providers {
             _glyph = imageService.GetImage(ImageType.Keyword);
         }
 
-        public IReadOnlyCollection<ICompletionEntry> GetEntries(IRIntellisenseContext context, string prefixFilter = null) {
+        public Task<IReadOnlyCollection<ICompletionEntry>> GetEntriesAsync(IRIntellisenseContext context, string prefixFilter = null) {
             var completions = new List<ICompletionEntry>();
 
             var line = context.EditorBuffer.CurrentSnapshot.GetLineFromPosition(context.Position);
@@ -31,7 +32,7 @@ namespace Microsoft.R.Editor.Completions.Providers {
             if (lineText.StartsWith("#'") && positionInLine >= 2 && typedText.StartsWithOrdinal("@")) {
                 completions.AddRange(RoxygenKeywords.Keywords.Select(k => new EditorCompletionEntry(k, k, string.Empty, _glyph)));
             }
-            return completions;
+            return Task.FromResult<IReadOnlyCollection<ICompletionEntry>>(completions);
         }
     }
 }

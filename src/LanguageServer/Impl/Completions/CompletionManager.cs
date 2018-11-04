@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.Common.Core.Services;
 using Microsoft.Languages.Core;
 using Microsoft.Languages.Editor.Completions;
@@ -23,7 +24,7 @@ namespace Microsoft.R.LanguageServer.Completions
             _completionEngine = new RCompletionEngine(services);
         }
 
-        public CompletionList GetCompletions(IRIntellisenseContext context) {
+        public async Task<CompletionList> GetCompletionsAsync(IRIntellisenseContext context) {
             context.EditorBuffer.GetEditorDocument<IREditorDocument>().EditorTree.EnsureTreeReady();
 
             var providers = _completionEngine.GetCompletionForLocation(context);
@@ -34,19 +35,9 @@ namespace Microsoft.R.LanguageServer.Completions
             // Do not generate thousands of items, VSCode cannot handle that.
             // Filter based on the text typed so far right away.
             var prefix = GetFilterPrefix(context);
+            var completions = (await Task.WhenAll(providers.Select(p => p.GetEntriesAsync(context, prefix)))).SelectMany(t => t).ToList();
 
-            var completions = new List<ICompletionEntry>();
-            var sort = true;
-
-            foreach (var provider in providers) {
-                var entries = provider.GetEntries(context, prefix);
-                if (entries.Count > 0) {
-                    completions.AddRange(entries);
-                }
-                sort &= provider.AllowSorting;
-            }
-
-            if (sort) {
+             if (providers.All(p => p.AllowSorting)) {
                 completions.Sort(new CompletionEntryComparer(StringComparison.OrdinalIgnoreCase));
                 completions.RemoveDuplicates(new CompletionEntryComparer(StringComparison.Ordinal));
             }

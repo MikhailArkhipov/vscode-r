@@ -16,7 +16,7 @@ namespace Microsoft.R.Core.AST.Arguments {
     [DebuggerDisplay("Arguments: {Count} [{Start}...{End})")]
     public abstract class CommaSeparatedList : AstNode, IReadOnlyList<CommaSeparatedItem> {
         private List<CommaSeparatedItem> _arguments = new List<CommaSeparatedItem>();
-        private RTokenType _terminatingTokenType;
+        private readonly RTokenType _terminatingTokenType;
 
         public CommaSeparatedList(RTokenType terminatingTokenType) {
             _terminatingTokenType = terminatingTokenType;

@@ -97,9 +97,7 @@ namespace Microsoft.R.LanguageServer.Validation {
             }
         }
 
-        private void ClearAllDiagnostic() {
-            _client.PublishDiagnostics(_documentUri, Enumerable.Empty<Diagnostic>());
-        }
+        private void ClearAllDiagnostic() => _client.PublishDiagnostics(_documentUri, Enumerable.Empty<Diagnostic>());
 
         private void OnDocumentClosing(object sender, EventArgs e) {
             if (_document != null) {

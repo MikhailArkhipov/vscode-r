@@ -13,7 +13,7 @@ namespace Microsoft.R.Core.AST.Statements {
     public sealed class KeywordScopeStatement : KeywordStatement, IKeywordScopeStatement {
         public IScope Scope { get; private set; }
 
-        private bool _allowsSimpleScope;
+        private readonly bool _allowsSimpleScope;
 
         public KeywordScopeStatement(bool allowsSimpleScope) {
             _allowsSimpleScope = allowsSimpleScope;

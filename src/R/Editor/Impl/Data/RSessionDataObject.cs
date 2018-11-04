@@ -145,7 +145,7 @@ namespace Microsoft.R.Editor.Data {
             return DefaultMaxGrandChildren;
         }
 
-        private static string DataFramePrefix = "'data.frame':([^:]+):";
+        private static readonly string DataFramePrefix = "'data.frame':([^:]+):";
         private string GetValue(IRValueInfo v) {
             var value = v.Representation;
             if (value != null) {

@@ -20,7 +20,7 @@
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="2.0.0" />
     <PackageReference Include="System.Diagnostics.TraceSource" Version="4.3.0" />
     <PackageReference Include="System.Runtime.Loader" Version="4.3.0" />
-    <PackageReference Include="StreamJsonRpc" Version="1.4.128" />
+    <PackageReference Include="StreamJsonRpc" Version="2.0.102-beta" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Languages\Core\Impl\Microsoft.Languages.Core.csproj" />
@@ -33,9 +33,7 @@
     <ProjectReference Include="..\..\Host\Client\Impl\Microsoft.R.Host.Client.csproj" />
     <ProjectReference Include="..\..\Host\Broker\Impl\Microsoft.R.Host.Broker.csproj" />
     <ProjectReference Include="..\..\R\Platform\Impl\Microsoft.R.Platform.csproj" />
-    <ProjectReference Include="..\..\Unix\R\Platform\Impl\Microsoft.R.Platform.Unix.csproj" />
     <ProjectReference Include="..\..\Host\Protocol\Impl\Microsoft.R.Host.Protocol.csproj" />
-    <ProjectReference Include="..\..\Unix\Host\Broker\Impl\Microsoft.R.Host.Broker.Unix.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Protocol\" />

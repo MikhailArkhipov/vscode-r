@@ -137,7 +137,7 @@ namespace Microsoft.R.Host.Broker.Services.Linux {
         }
 
 
-        private static object _videoCardInfoLock = new object();
+        private static readonly object _videoCardInfoLock = new object();
         private static List<VideoCardInfo> _videoCardInfo;
         public IEnumerable<VideoCardInfo> GetVideoControllerInformation() {
             lock (_videoCardInfoLock) {
@@ -266,7 +266,7 @@ namespace Microsoft.R.Host.Broker.Services.Linux {
             return standardOutData;
         }
 
-        private static char[] _cpuInfoSplitter = new char[] { ' ', ':', '\t' };
+        private static readonly char[] _cpuInfoSplitter = new char[] { ' ', ':', '\t' };
         private (long user, long nice, long system, long idle, long iowait, long irq, long softirq, long steal) GetCurrentCpuUsage() {
             var cpuLoadInfo = "/proc/stat";
             var lines = _fs.FileReadAllLines(cpuLoadInfo).ToArray();

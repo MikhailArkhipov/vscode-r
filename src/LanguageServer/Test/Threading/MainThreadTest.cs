@@ -41,7 +41,7 @@ namespace Microsoft.R.LanguageServer.Test.Text {
             cts.Cancel();
             var t = _mt.SendAsync(() => { }, cts.Token);
 
-            bool thrown = false;
+            var thrown = false;
             try {
                 await t;
             } catch(TaskCanceledException) {

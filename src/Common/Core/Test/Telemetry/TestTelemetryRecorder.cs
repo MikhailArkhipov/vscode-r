@@ -10,19 +10,15 @@ namespace Microsoft.Common.Core.Test.Telemetry {
 
     [ExcludeFromCodeCoverage]
     public sealed class TestTelemetryRecorder : ITelemetryRecorder, ITelemetryTestSupport {
-        private StringBuilder stringBuilder = new StringBuilder();
+        private readonly StringBuilder _stringBuilder = new StringBuilder();
 
         #region ITelemetryRecorder
-        public bool IsEnabled {
-            get { return true; }
-        }
+        public bool IsEnabled => true;
 
-        public bool CanCollectPrivateInformation {
-            get { return true; }
-        }
+        public bool CanCollectPrivateInformation => true;
 
         public void RecordEvent(string eventName, object parameters = null) {
-            this.stringBuilder.AppendLine(eventName);
+            _stringBuilder.AppendLine(eventName);
             if (parameters != null) {
                 if (parameters is string) {
                     WriteProperty("Value", parameters as string);
@@ -34,28 +30,24 @@ namespace Microsoft.Common.Core.Test.Telemetry {
         #endregion
 
         #region ITelemetryTestSupport
-        public void Reset() {
-            this.stringBuilder.Clear();
-        }
+        public void Reset() => _stringBuilder.Clear();
 
-        public string SessionLog {
-            get { return this.stringBuilder.ToString(); }
-        }
+        public string SessionLog => _stringBuilder.ToString();
         #endregion
 
         public void Dispose() { }
 
         private void WriteDictionary(IDictionary<string, object> dict) {
-            foreach (KeyValuePair<string, object> kvp in dict) {
+            foreach (var kvp in dict) {
                 WriteProperty(kvp.Key, kvp.Value);
             }
         }
 
         private void WriteProperty(string name, object value) {
-            this.stringBuilder.Append('\t');
-            this.stringBuilder.Append(name);
-            this.stringBuilder.Append(" : ");
-            this.stringBuilder.AppendLine(value.ToString());
+            _stringBuilder.Append('\t');
+            _stringBuilder.Append(name);
+            _stringBuilder.Append(" : ");
+            _stringBuilder.AppendLine(value.ToString());
         }
     }
 }

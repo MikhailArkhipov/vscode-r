@@ -364,9 +364,7 @@ namespace Microsoft.R.Host.Client.Session {
             await hostRunTask;
         }
 
-        public IDisposable DisableMutatedOnReadConsole() {
-            return _disableMutatingOnReadConsole.Increment();
-        }
+        public IDisposable DisableMutatedOnReadConsole() => _disableMutatingOnReadConsole.Increment();
 
         private static async Task RunHost(RHost host, TaskCompletionSourceEx<object> hostStartedTcs, CancellationToken initializationCt) {
             try {
@@ -527,15 +525,12 @@ if (rtvs:::version != {rtvsPackageVersion}) {{
             return rtvsExists ? hostDirectory : Path.GetFullPath(Path.Combine(hostDirectory, @"..\.."));
         }
 
-        private static Task SuppressUI(IRExpressionEvaluator eval) {
+        private static Task SuppressUI(IRExpressionEvaluator eval) =>
             // # Suppress Windows UI 
             // http://astrostatistics.psu.edu/datasets/R/html/utils/html/winMenus.html
-            return eval.ExecuteAsync(@"rtvs:::suppress_ui()");
-        }
+            eval.ExecuteAsync(@"rtvs:::suppress_ui()");
 
-        public void FlushLog() {
-            _host?.FlushLog();
-        }
+        public void FlushLog() => _host?.FlushLog();
 
         Task IRCallbacks.Connected(string rVersion) {
             Prompt = GetDefaultPrompt();
@@ -558,9 +553,7 @@ if (rtvs:::version != {rtvsPackageVersion}) {{
             return Task.CompletedTask;
         }
 
-        Task IRCallbacks.Shutdown(bool rDataSaved) {
-            return Task.CompletedTask;
-        }
+        Task IRCallbacks.Shutdown(bool rDataSaved) => Task.CompletedTask;
 
         private void ClearPendingRequests(OperationCanceledException exception) {
             RSessionRequestSource requestSource;
@@ -658,9 +651,7 @@ if (rtvs:::version != {rtvsPackageVersion}) {{
         private Task WriteErrorAsync(string format, params object[] args) =>
             WriteErrorAsync(format.FormatCurrent(args));
 
-        private async Task WriteOutputAsync(string text) {
-            await ((IRCallbacks)this).WriteConsoleEx(text + "\n", OutputType.Output, CancellationToken.None);
-        }
+        private async Task WriteOutputAsync(string text) => await ((IRCallbacks)this).WriteConsoleEx(text + "\n", OutputType.Output, CancellationToken.None);
 
         private Task WriteOutputAsync(string format, params object[] args) =>
             WriteOutputAsync(format.FormatCurrent(args));
@@ -711,9 +702,7 @@ if (rtvs:::version != {rtvsPackageVersion}) {{
             return MessageButtons.OK;
         }
 
-        Task IRCallbacks.Busy(bool which, CancellationToken ct) {
-            return Task.CompletedTask;
-        }
+        Task IRCallbacks.Busy(bool which, CancellationToken ct) => Task.CompletedTask;
 
         Task IRCallbacks.Plot(PlotMessage plot, CancellationToken ct) {
             var callback = _callback;
@@ -789,9 +778,7 @@ if (rtvs:::version != {rtvsPackageVersion}) {{
             return callback.AfterPackagesInstalledAsync(cancellationToken);
         }
 
-        void IRCallbacks.PackagesRemoved() {
-            PackagesRemoved?.Invoke(this, EventArgs.Empty);
-        }
+        void IRCallbacks.PackagesRemoved() => PackagesRemoved?.Invoke(this, EventArgs.Empty);
 
         Task<string> IRCallbacks.FetchFileAsync(string remoteFileName, ulong remoteBlobId, string localPath, CancellationToken cancellationToken) {
             var callback = _callback;
@@ -865,9 +852,7 @@ if (rtvs:::version != {rtvsPackageVersion}) {{
                 }
             }
 
-            public void Dispose() {
-                _hostToSwitch?.Dispose();
-            }
+            public void Dispose() => _hostToSwitch?.Dispose();
         }
 
         // A custom exception type for the sole purpose of distinguishing cancellation of ReadConsole

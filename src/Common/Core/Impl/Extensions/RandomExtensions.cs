@@ -5,8 +5,6 @@ using System;
 
 namespace Microsoft.Common.Core {
     public static class RandomExtensions {
-        public static int GetEphemeralPort(this Random random) {
-            return random.Next(49152, 65535);
-        }
+        public static int GetEphemeralPort(this Random random) => random.Next(49152, 65535);
     }
 }

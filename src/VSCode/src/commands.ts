@@ -9,11 +9,9 @@ import { ReplTerminal } from "./replTerminal";
 // Must match package.json declarations
 // tslint:disable-next-line:no-namespace
 export namespace CommandNames {
-    export const Execute = "r.execute";
     export const Interrupt = "r.interrupt";
     export const Reset = "r.reset";
     export const SourceFile = "r.source";
-    export const Clear = "r.clear";
     export const OpenTerminal = "r.openTerminal";
     export const ExecuteInTerminal = "r.executeInTerminal";
     export const SourceFileToTerminal = "r.sourceToTerminal";
@@ -22,20 +20,16 @@ export namespace CommandNames {
 export class Commands {
     private r: IREngine;
     private repl: IReplTerminal;
-    private resultsView: IResultsView;
 
-    constructor(r: IREngine, resultsView: IResultsView) {
+    constructor(r: IREngine) {
         this.r = r;
-        this.resultsView = resultsView;
     }
 
     public activateCommandsProvider(): Disposable[] {
         const disposables: Disposable[] = [];
-        disposables.push(commands.registerCommand(CommandNames.Execute, () => this.execute()));
         disposables.push(commands.registerCommand(CommandNames.Interrupt, () => this.r.interrupt()));
         disposables.push(commands.registerCommand(CommandNames.Reset, () => this.r.reset()));
         disposables.push(commands.registerCommand(CommandNames.SourceFile, () => this.source()));
-        disposables.push(commands.registerCommand(CommandNames.Clear, () => this.clear()));
         disposables.push(commands.registerCommand(CommandNames.OpenTerminal, () => this.openTerminal()));
         disposables.push(commands.registerCommand(CommandNames.ExecuteInTerminal, () => this.executeInTerminal()));
         disposables.push(commands.registerCommand(CommandNames.SourceFileToTerminal, () => this.sourceToTerminal()));
@@ -47,19 +41,6 @@ export class Commands {
         if (filePath.length > 0) {
             await this.r.source(filePath);
         }
-    }
-
-    private clear() {
-        this.resultsView.clear();
-    }
-
-    private async execute() {
-        const code = editor.getSelectedText();
-        if (code.length > 0) {
-            const result = await this.r.execute(code);
-            await this.resultsView.append(code, result);
-        }
-        await this.moveCaretDown();
     }
 
     private async sourceToTerminal(fileUri?: Uri) {
@@ -103,7 +84,7 @@ export class Commands {
 
     private async moveCaretDown() {
         // Take focus back to the editor
-        window.activeTextEditor.show();
+        await window.showTextDocument(window.activeTextEditor.document.uri);
         const selectionEmpty = window.activeTextEditor.selection.isEmpty;
         if (selectionEmpty) {
             await commands.executeCommand("cursorMove",

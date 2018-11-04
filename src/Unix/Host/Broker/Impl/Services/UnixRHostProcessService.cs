@@ -88,7 +88,8 @@ namespace Microsoft.R.Host.Broker.Services {
             for (var i = 0; i < arguments.Length; i++) {
                 // From the current position, iterate through contiguous backslashes.
                 var backslashCount = 0;
-                for (; i < arguments.Length && arguments[i] == '\\'; i++, backslashCount++) ;
+                for (; i < arguments.Length && arguments[i] == '\\'; i++, backslashCount++) { }
+
                 if (backslashCount > 0) {
                     if (i >= arguments.Length || arguments[i] != '"') {
                         // Backslashes not followed by a double quote:

@@ -105,9 +105,7 @@ namespace Microsoft.Languages.Core.Text {
         /// Moves current position forward or backward
         /// </summary>
         /// <param name="offset">Offset to move by</param>
-        public void Advance(int offset) {
-            Position += offset;
-        }
+        public void Advance(int offset) => Position += offset;
 
         /// <summary>
         /// Moves position to the next character if possible.

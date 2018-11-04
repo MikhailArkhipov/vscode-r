@@ -3,6 +3,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Common.Core;
 using Microsoft.Common.Core.Services;
 using Microsoft.R.Host.Client;
 
@@ -14,10 +15,10 @@ namespace Microsoft.R.LanguageServer.InteractiveWorkflow {
             _ui = services.GetService<IUIService>();
         }
 
-        public void WriteError(string text) => _ui.LogMessage(text, MessageType.Error);
-        public void WriteErrorLine(string text) => _ui.LogMessage(text, MessageType.Error);
-        public void Write(string text) => _ui.LogMessage(text, MessageType.Info);
-        public void WriteLine(string text) => _ui.LogMessage(text, MessageType.Info);
+        public void WriteError(string text) => _ui.LogMessageAsync(text, MessageType.Error).DoNotWait();
+        public void WriteErrorLine(string text) => _ui.LogMessageAsync(text, MessageType.Error).DoNotWait();
+        public void Write(string text) => _ui.LogMessageAsync(text, MessageType.Info).DoNotWait();
+        public void WriteLine(string text) => _ui.LogMessageAsync(text, MessageType.Info).DoNotWait();
         public Task<bool> PromptYesNoAsync(string text, CancellationToken cancellationToken) => Task.FromResult(true);
     }
 }

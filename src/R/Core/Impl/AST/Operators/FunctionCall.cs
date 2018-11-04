@@ -66,9 +66,7 @@ namespace Microsoft.R.Core.AST.Operators {
         #endregion
 
         #region ITextRange
-        public override int End {
-            get { return SignatureEnd; }
-        }
+        public override int End => SignatureEnd;
         #endregion
 
         public FunctionCall() {

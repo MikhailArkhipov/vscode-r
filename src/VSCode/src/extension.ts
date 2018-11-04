@@ -10,7 +10,6 @@ import { Commands } from "./commands";
 import { RLanguage } from "./constants";
 import * as deps from "./dependencies";
 import { REngine } from "./rengine";
-import { ResultsView } from "./resultsView";
 
 let client: languageClient.LanguageClient;
 let rEngine: IREngine;
@@ -23,13 +22,12 @@ export async function activate(context: vscode.ExtensionContext) {
         return;
     }
 
-    console.log("Activating R Tools...");
+    console.log("Activating R Language Server...");
     await activateLanguageServer(context);
-    console.log("R Tools is now activated.");
+    console.log("Startup completed.");
 }
 
 export async function activateLanguageServer(context: vscode.ExtensionContext) {
-    const r = RLanguage.language;
     // The server is implemented in C#
     const commandOptions = { stdio: "pipe" };
     const serverModule = context.extensionPath + "/ls/Microsoft.R.LanguageServer.dll";
@@ -44,23 +42,20 @@ export async function activateLanguageServer(context: vscode.ExtensionContext) {
     // Options to control the language client
     const clientOptions: languageClient.LanguageClientOptions = {
         // Register the server for R documents
-        documentSelector: [r],
+        documentSelector: [{language: RLanguage.language, scheme: 'file'}],
         synchronize: {
-            configurationSection: r,
+            configurationSection: RLanguage.language,
         },
     };
 
     // Create the language client and start the client.
-    client = new languageClient.LanguageClient(r, "R Tools", serverOptions, clientOptions);
+    client = new languageClient.LanguageClient(RLanguage.language, "R Tools", serverOptions, clientOptions);
     context.subscriptions.push(client.start());
 
     await client.onReady();
 
     rEngine = new REngine(client);
-    const resultsView = new ResultsView();
-    context.subscriptions.push(vscode.workspace.registerTextDocumentContentProvider("r", resultsView));
-
-    commands = new Commands(rEngine, resultsView);
+    commands = new Commands(rEngine);
     context.subscriptions.push(...commands.activateCommandsProvider());
 }
 

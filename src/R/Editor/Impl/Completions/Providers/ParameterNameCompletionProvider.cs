@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.Common.Core;
 using Microsoft.Common.Core.Imaging;
 using Microsoft.Languages.Editor.Completions;
@@ -30,20 +31,20 @@ namespace Microsoft.R.Editor.Completions.Providers {
         #region IRCompletionListProvider
         public bool AllowSorting { get; } = true;
 
-        public IReadOnlyCollection<ICompletionEntry> GetEntries(IRIntellisenseContext context, string prefixFilter = null) {
+        public Task<IReadOnlyCollection<ICompletionEntry>> GetEntriesAsync(IRIntellisenseContext context, string prefixFilter = null) {
             var completions = new List<ICompletionEntry>();
             var functionGlyph = _imageService.GetImage(ImageType.ValueType);
 
             // Get AST function call for the parameter completion
             var funcCall = GetFunctionCall(context);
             if (funcCall == null) {
-                return completions;
+                return Task.FromResult<IReadOnlyCollection<ICompletionEntry>>(completions);
             }
 
             // Get collection of function signatures from documentation (parsed RD file)
             var functionInfo = GetFunctionInfo(context);
             if (functionInfo == null) {
-                return completions;
+                return Task.FromResult<IReadOnlyCollection<ICompletionEntry>>(completions);
             }
 
             // Collect parameter names from all signatures
@@ -67,7 +68,7 @@ namespace Microsoft.R.Editor.Completions.Providers {
                 completions.Add(new EditorCompletionEntry(displayText, insertionText, arg.Value.Description, functionGlyph));
             }
 
-            return completions;
+            return Task.FromResult<IReadOnlyCollection<ICompletionEntry>>(completions);
         }
         #endregion
 

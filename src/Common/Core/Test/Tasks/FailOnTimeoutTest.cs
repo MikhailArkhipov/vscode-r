@@ -19,10 +19,10 @@ namespace Microsoft.Common.Core.Test.Tasks {
 
         [Test]
         public void FailOnCustomException() {
-            Func<Task> createTask = async () => {
+            async Task createTask() {
                 await Task.Delay(100);
                 throw new InvalidOperationException();
-            };
+            }
 
             Func<Task> f = () => createTask().FailOnTimeout(400);
             f.ShouldThrow<InvalidOperationException>();

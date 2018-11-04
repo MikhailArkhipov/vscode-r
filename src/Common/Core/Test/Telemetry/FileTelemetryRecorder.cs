@@ -17,8 +17,8 @@ namespace Microsoft.Common.Core.Test.Telemetry {
     public sealed class FileTelemetryRecorder : ITelemetryRecorder {
         public static string TestLog {
             get {
-                string logPath = Path.Combine(Path.GetTempPath(), @"Microsoft\RTVS\RtvsTelemetryEvents.json");
-                string telemetryFileDirectory = Path.GetDirectoryName(logPath);
+                var logPath = Path.Combine(Path.GetTempPath(), @"Microsoft\RTVS\RtvsTelemetryEvents.json");
+                var telemetryFileDirectory = Path.GetDirectoryName(logPath);
 
                 if (!Directory.Exists(telemetryFileDirectory)) {
                     Directory.CreateDirectory(telemetryFileDirectory);
@@ -33,11 +33,12 @@ namespace Microsoft.Common.Core.Test.Telemetry {
         public bool CanCollectPrivateInformation => true;
 
         public void RecordEvent(string eventName, object parameters = null) {
-            using (StreamWriter sw = File.AppendText(FileTelemetryRecorder.TestLog)) {
-                SimpleTelemetryEvent telemetryEvent = new SimpleTelemetryEvent(eventName);
-                telemetryEvent.Properties = DictionaryExtensions.FromAnonymousObject(parameters);
+            using (var sw = File.AppendText(FileTelemetryRecorder.TestLog)) {
+                var telemetryEvent = new SimpleTelemetryEvent(eventName) {
+                    Properties = DictionaryExtensions.FromAnonymousObject(parameters)
+                };
 
-                string json = JsonConvert.SerializeObject(telemetryEvent);
+                var json = JsonConvert.SerializeObject(telemetryEvent);
                 sw.WriteLine(json);
             }
         }

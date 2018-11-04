@@ -13,8 +13,6 @@ namespace Microsoft.R.Host.Broker.Lifetime {
         }
 
         [HttpPost]
-        public void Post() {
-            _lifetimeManager.Ping();
-        }
+        public void Post() => _lifetimeManager.Ping();
     }
 }
