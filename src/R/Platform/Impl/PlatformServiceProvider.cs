@@ -11,6 +11,7 @@ using Microsoft.R.Platform.Interpreters.Linux;
 using Microsoft.R.Platform.Interpreters.Mac;
 using Microsoft.R.Platform.IO;
 using Microsoft.R.Platform.Logging;
+using Microsoft.R.Platform.Windows;
 using Microsoft.R.Platform.Windows.Interpreters;
 using Microsoft.R.Platform.Windows.IO;
 using Microsoft.R.Platform.Windows.Logging;
@@ -31,7 +32,8 @@ namespace Microsoft.R.Platform {
                     .AddService(new WindowsProcessServices())
                     .AddService(new RegistryImpl())
                     .AddService<IRInstallationService, WindowsRInstallation>()
-                    .AddService<ILoggingPermissions, WindowsLoggingPermissions>();
+                    .AddService<ILoggingPermissions, WindowsLoggingPermissions>()
+                    .AddService(new WindowsPlatformServices());
             } else {
                 services
                     .AddService(new UnixFileSystem())
