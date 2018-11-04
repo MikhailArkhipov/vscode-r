@@ -14,8 +14,9 @@ using Microsoft.Common.Core.IO;
 using Microsoft.Common.Core.OS;
 using Microsoft.Extensions.Logging;
 using Microsoft.R.Host.Protocol;
+using Microsoft.R.Host.Broker.Services;
 
-namespace Microsoft.R.Host.Broker.Services.Linux {
+namespace Microsoft.R.Host.Broker.Security.Unix {
     public class LinuxSystemInfoService : ISystemInfoService {
         private readonly ILogger<ISystemInfoService> _logger;
         private readonly IFileSystem _fs;

@@ -250,6 +250,15 @@ namespace Microsoft.R.Host.Broker {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Failed to get user profile directory for user {0} with WIN32 error code 0x{1}.
+        /// </summary>
+        internal static string Error_GetUserProfileDirectory {
+            get {
+                return ResourceManager.GetString("Error_GetUserProfileDirectory", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Client failed to disconnect gracefully: {0}.
         /// </summary>
         internal static string Error_GracefulDisconnectFailed {
@@ -277,6 +286,15 @@ namespace Microsoft.R.Host.Broker {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Log on failed for user: {0}.
+        /// </summary>
+        internal static string Error_LogOnFailed {
+            get {
+                return ResourceManager.GetString("Error_LogOnFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Profile dirctory could not be found..
         /// </summary>
         internal static string Error_NoProfileDir {
@@ -300,6 +318,42 @@ namespace Microsoft.R.Host.Broker {
         internal static string Error_PAMAuthenticationError {
             get {
                 return ResourceManager.GetString("Error_PAMAuthenticationError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Profile creation failed for user {0} with WIN32 error code 0x{1}.
+        /// </summary>
+        internal static string Error_ProfileCreationFailed {
+            get {
+                return ResourceManager.GetString("Error_ProfileCreationFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Profile creation failed for user {0} with invalid response from the {1} service..
+        /// </summary>
+        internal static string Error_ProfileCreationFailedInvalidResponse {
+            get {
+                return ResourceManager.GetString("Error_ProfileCreationFailedInvalidResponse", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Profile creation failed for user {0}..
+        /// </summary>
+        internal static string Error_ProfileCreationFailedIO {
+            get {
+                return ResourceManager.GetString("Error_ProfileCreationFailedIO", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Profile deletion failed for user {0}..
+        /// </summary>
+        internal static string Error_ProfileDeletionFailedIO {
+            get {
+                return ResourceManager.GetString("Error_ProfileDeletionFailedIO", resourceCulture);
             }
         }
         
@@ -358,6 +412,15 @@ namespace Microsoft.R.Host.Broker {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to User name parsing failed for user {0} with WIN32 error code 0x{1}.
+        /// </summary>
+        internal static string Error_UserNameParse {
+            get {
+                return ResourceManager.GetString("Error_UserNameParse", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Pipe already has a client end.
         /// </summary>
         internal static string Exception_PipeHasClientEnd {
@@ -394,6 +457,24 @@ namespace Microsoft.R.Host.Broker {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Profile already exists for user: {0}.
+        /// </summary>
+        internal static string Info_ProfileAlreadyExists {
+            get {
+                return ResourceManager.GetString("Info_ProfileAlreadyExists", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Profile created for user: {0}.
+        /// </summary>
+        internal static string Info_ProfileCreated {
+            get {
+                return ResourceManager.GetString("Info_ProfileCreated", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to R session started for connection {0} of user {1}.
         /// </summary>
         internal static string Info_StartedRHost {
@@ -408,6 +489,15 @@ namespace Microsoft.R.Host.Broker {
         internal static string Info_StartingRHost {
             get {
                 return ResourceManager.GetString("Info_StartingRHost", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Microsoft.R.Host.UserProfile.
+        /// </summary>
+        internal static string Info_UserProfileServiceName {
+            get {
+                return ResourceManager.GetString("Info_UserProfileServiceName", resourceCulture);
             }
         }
         
@@ -457,6 +547,15 @@ namespace Microsoft.R.Host.Broker {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to {0} = {1}.
+        /// </summary>
+        internal static string Trace_EnvironmentVariable1 {
+            get {
+                return ResourceManager.GetString("Trace_EnvironmentVariable1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Creating user environment variables for user {0} with profile directory {1}.
         /// </summary>
         internal static string Trace_EnvironmentVariableCreationBegin {
@@ -466,11 +565,38 @@ namespace Microsoft.R.Host.Broker {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Creating user environment variables for user {0} with profile directory {1}.
+        /// </summary>
+        internal static string Trace_EnvironmentVariableCreationBegin1 {
+            get {
+                return ResourceManager.GetString("Trace_EnvironmentVariableCreationBegin1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to |{0}|: {1}.
         /// </summary>
         internal static string Trace_ErrorDataReceived {
             get {
                 return ResourceManager.GetString("Trace_ErrorDataReceived", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Log on succeeded for user: {0}.
+        /// </summary>
+        internal static string Trace_LogOnSuccess {
+            get {
+                return ResourceManager.GetString("Trace_LogOnSuccess", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Attempting log on for user: {0}.
+        /// </summary>
+        internal static string Trace_LogOnUserBegin {
+            get {
+                return ResourceManager.GetString("Trace_LogOnUserBegin", resourceCulture);
             }
         }
         
@@ -489,6 +615,24 @@ namespace Microsoft.R.Host.Broker {
         internal static string Trace_ServerUrlsToPipeDone {
             get {
                 return ResourceManager.GetString("Trace_ServerUrlsToPipeDone", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Attempting to create profile for user: {0}.
+        /// </summary>
+        internal static string Trace_UserProfileCreation {
+            get {
+                return ResourceManager.GetString("Trace_UserProfileCreation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to User {0} profile directory: {1}.
+        /// </summary>
+        internal static string Trace_UserProfileDirectory {
+            get {
+                return ResourceManager.GetString("Trace_UserProfileDirectory", resourceCulture);
             }
         }
     }

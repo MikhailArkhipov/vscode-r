@@ -7,6 +7,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.R.Host.Broker.RHost;
+using Microsoft.R.Host.Broker.Security.Windows;
 using Microsoft.R.Host.Broker.Services;
 using Microsoft.R.Host.Broker.Start;
 using Microsoft.R.Platform.Interpreters;
@@ -25,9 +26,11 @@ namespace Microsoft.R.Host.Broker.Windows {
             services
                 .AddSingleton<IFileSystem>(new WindowsFileSystem())
                 .AddSingleton<IProcessServices>(new WindowsProcessServices())
+                .AddSingleton<IPlatformAuthenticationService, WindowsAuthenticationService>()
                 .AddSingleton<IRegistry>(new RegistryImpl())
                 .AddSingleton<IRHostProcessService, RHostProcessService>()
-                .AddSingleton<IRInstallationService, WindowsRInstallation>();
+                .AddSingleton<IRInstallationService, WindowsRInstallation>()
+                .AddSingleton<UserProfileManager>();
         }
     }
 }

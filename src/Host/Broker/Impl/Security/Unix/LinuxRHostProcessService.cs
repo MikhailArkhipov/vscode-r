@@ -6,9 +6,10 @@ using Microsoft.Common.Core.IO;
 using Microsoft.Common.Core.OS;
 using Microsoft.Extensions.Logging;
 using Microsoft.R.Host.Broker.Interpreters;
+using Microsoft.R.Host.Broker.RHost;
 using Microsoft.R.Host.Broker.Sessions;
 
-namespace Microsoft.R.Host.Broker.RHost.Remote {
+namespace Microsoft.R.Host.Broker.Security.Unix {
     internal sealed class LinuxRHostProcessService : RHostProcessService {
         public LinuxRHostProcessService(ILogger<Session> sessionLogger, IFileSystem fs, IProcessServices ps) :
             base(sessionLogger, fs, ps) { }

@@ -7,10 +7,10 @@ using System.Threading.Tasks;
 using Microsoft.Common.Core.OS;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.R.Host.Broker.Security;
+using Microsoft.R.Host.Broker.RHost;
 using Microsoft.R.Host.Broker.Services;
 
-namespace Microsoft.R.Host.Broker.RHost.Remote {
+namespace Microsoft.R.Host.Broker.Security.Unix {
     public class LinuxAuthenticationService : IPlatformAuthenticationService {
         private readonly SecurityOptions _options;
         private readonly IProcessServices _ps;

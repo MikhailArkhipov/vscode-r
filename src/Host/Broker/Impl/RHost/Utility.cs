@@ -12,6 +12,7 @@ using Microsoft.Common.Core.OS;
 using Microsoft.Extensions.Logging;
 using Microsoft.R.Host.Broker.Services;
 using Microsoft.R.Host.Broker.Sessions;
+using Microsoft.R.Platform.Host;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
@@ -25,9 +26,9 @@ namespace Microsoft.R.Host.Broker.RHost {
         private const string RtvsResult = "rtvs-result";
         private const string RtvsError = "rtvs-error";
 
-        public static IProcess RunAsCurrentUser(ILogger<Session> logger, IProcessServices ps, string arguments, string rHomePath, string loadLibPath) {
+        public static IProcess RunAsCurrentUser(ILogger<Session> logger, IProcessServices ps, string hostBinPath, string arguments, string rHomePath, string loadLibPath) {
             var psi = new ProcessStartInfo {
-                FileName = PathConstants.RunHostBinPath,
+                FileName = hostBinPath,
                 Arguments = arguments,
                 RedirectStandardError = true,
                 RedirectStandardInput = true,

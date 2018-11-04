@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
-// #define WAIT_FOR_DEBUGGER
+#define WAIT_FOR_DEBUGGER
 
 using System;
 using System.IO;
@@ -26,8 +26,10 @@ namespace Microsoft.R.LanguageServer.Server {
                 using (var server = new LanguageServer(services))
                 using (var rpc = new JsonRpc(cout, cin, server)) {
 
-                    services.AddService(new UIService(rpc));
-                    services.AddService(new Client(rpc));
+                    services
+                        .AddService(new UIService(rpc))
+                        .AddService(new Client(rpc))
+                        .AddService(new TelemetryService());
 
                     var cts = new CancellationTokenSource();
                     using (new RConnection(services, cts.Token)) {

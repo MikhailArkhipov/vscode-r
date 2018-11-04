@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Security.Claims;
 using System.Text;
 using Microsoft.Common.Core.IO;
@@ -28,8 +29,13 @@ namespace Microsoft.R.Host.Broker.RHost {
         }
 
         public IProcess StartHost(Interpreter interpreter, string profilePath, string userName, ClaimsPrincipal principal, string commandLine) {
-            IProcess process;
-            process = Utility.RunAsCurrentUser(_sessionLogger, _ps, commandLine, GetRHomePath(interpreter), GetLoadLibraryPath(interpreter));
+            var exeLocator = BrokerExecutableLocator.Create(_fs);
+            var hostBinPath = exeLocator.GetHostExecutablePath();
+            if(!_fs.FileExists(hostBinPath) && RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) {
+                hostBinPath = PathConstants.RunHostBinPath;
+            }
+
+            var process = Utility.RunAsCurrentUser(_sessionLogger, _ps, hostBinPath, commandLine, GetRHomePath(interpreter), GetLoadLibraryPath(interpreter));
             process.WaitForExit(250);
             if (process.HasExited && process.ExitCode != 0) {
                 var message = _ps.MessageFromExitCode(process.ExitCode);
