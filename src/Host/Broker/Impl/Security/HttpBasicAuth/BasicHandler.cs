@@ -24,7 +24,7 @@ namespace Odachi.AspNetCore.Authentication.Basic {
         }
 
         protected override Task<object> CreateEventsAsync()
-            => Task.FromResult<object>(new BasicEvents { OnSignIn = ProgramBase.WebHost.Services.GetService<SecurityManager>().SignInAsync });
+            => Task.FromResult<object>(new BasicEvents { OnSignIn = Program.WebHost.Services.GetService<SecurityManager>().SignInAsync });
 
         protected override async Task<AuthenticateResult> HandleAuthenticateAsync() {
             var events = Events as BasicEvents;

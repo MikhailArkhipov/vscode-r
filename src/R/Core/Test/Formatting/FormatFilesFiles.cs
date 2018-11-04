@@ -12,7 +12,7 @@ namespace Microsoft.R.Core.Test.Formatting {
     [ExcludeFromCodeCoverage]
     public class FormatFilesFiles {
         // change to true in debugger if you want all baseline tree files regenerated
-        private static bool _regenerateBaselineFiles = false;
+        private static readonly bool _regenerateBaselineFiles = false;
 
         public static void FormatFile(CoreTestFilesFixture fixture, string name, RFormatOptions options) {
             Action a = () => FormatFileImplementation(fixture, name, options);

@@ -17,7 +17,7 @@ namespace Microsoft.R.Host.Client {
         public override bool CanRead { get; } = true;
         public override bool CanSeek { get; } = true;
 
-        private bool _canWrite;
+        private readonly bool _canWrite;
         public override bool CanWrite {
             get {
                 return _canWrite;

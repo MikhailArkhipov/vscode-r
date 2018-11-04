@@ -61,9 +61,7 @@ namespace Microsoft.Languages.Core.Bytes {
         public static bool IsDigit(Char ch) => ch >= '0' && ch <= '9';
         public bool IsNewLineChar() => CurrentChar == '\n' || CurrentChar == '\r';
 
-        public bool IsCharAt(int offset, byte ch) {
-            return (Position + offset < Length) && (_text[Position + offset] == ch);
-        }
+        public bool IsCharAt(int offset, byte ch) => (Position + offset < Length) && (_text[Position + offset] == ch);
 
         public bool IsAnsiLetter() => (CurrentChar >= 'A' && CurrentChar <= 'z');
 

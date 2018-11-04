@@ -8,10 +8,10 @@ using Microsoft.Languages.Core.Text;
 namespace Microsoft.Languages.Core.Tokens {
     [DebuggerDisplay("Count={Count}")]
     public sealed class TokenBraceCounter<T> where T : ITextRange {
-        T _openBrace1;
-        T _closeBrace1;
-        T _openBrace2;
-        T _closeBrace2;
+        readonly T _openBrace1;
+        readonly T _closeBrace1;
+        readonly T _openBrace2;
+        readonly T _closeBrace2;
 
         private Stack<T> _braces1 = new Stack<T>();
         private Stack<T> _braces2;

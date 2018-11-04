@@ -14,7 +14,7 @@ namespace Microsoft.Languages.Core.Test.Utility {
     [ExcludeFromCodeCoverage]
     public static class TokenizeFiles {
         // change to true in debugger if you want all baseline tree files regenerated
-        private static bool _regenerateBaselineFiles = false;
+        private static readonly bool _regenerateBaselineFiles = false;
 
         public static void TokenizeFile<TToken, TTokenType, TTokenizer>(DeployFilesFixture fixture, string name, string language)
             where TTokenizer : ITokenizer<TToken>, new()

@@ -45,7 +45,7 @@ namespace Microsoft.R.Platform.Host {
 
         private string GetHostMultiplatformSubPath() {
             string folder;
-            string ext = string.Empty;
+            var ext = string.Empty;
             if(_platform == OSPlatform.Windows) {
                 folder = "Windows";
                 ext = ".exe";

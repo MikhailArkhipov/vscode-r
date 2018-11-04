@@ -10,7 +10,7 @@ namespace Microsoft.Common.Core.Test.Telemetry {
 
     [ExcludeFromCodeCoverage]
     public sealed class TestTelemetryRecorder : ITelemetryRecorder, ITelemetryTestSupport {
-        private StringBuilder stringBuilder = new StringBuilder();
+        private readonly StringBuilder stringBuilder = new StringBuilder();
 
         #region ITelemetryRecorder
         public bool IsEnabled {

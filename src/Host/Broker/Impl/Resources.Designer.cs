@@ -10,7 +10,6 @@
 
 namespace Microsoft.R.Host.Broker {
     using System;
-    using System.Reflection;
     
     
     /// <summary>
@@ -40,7 +39,7 @@ namespace Microsoft.R.Host.Broker {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Microsoft.R.Host.Broker.Resources", typeof(Resources).GetTypeInfo().Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Microsoft.R.Host.Broker.Resources", typeof(Resources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -58,15 +57,6 @@ namespace Microsoft.R.Host.Broker {
             }
             set {
                 resourceCulture = value;
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Failed to load SSL Certificate: {0}.
-        /// </summary>
-        internal static string Critical_CertificateLoadFailed {
-            get {
-                return ResourceManager.GetString("Critical_CertificateLoadFailed", resourceCulture);
             }
         }
         
@@ -143,6 +133,51 @@ namespace Microsoft.R.Host.Broker {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Username or password is invalid..
+        /// </summary>
+        internal static string Error_AuthBadInput {
+            get {
+                return ResourceManager.GetString("Error_AuthBadInput", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Authentication failed with Error: {0}.
+        /// </summary>
+        internal static string Error_AuthFailed {
+            get {
+                return ResourceManager.GetString("Error_AuthFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Authentication initialization failed..
+        /// </summary>
+        internal static string Error_AuthInitFailed {
+            get {
+                return ResourceManager.GetString("Error_AuthInitFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No input to authenticate..
+        /// </summary>
+        internal static string Error_AuthNoInput {
+            get {
+                return ResourceManager.GetString("Error_AuthNoInput", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to User does not belong to the allowed group..
+        /// </summary>
+        internal static string Error_AuthNotAllowed {
+            get {
+                return ResourceManager.GetString("Error_AuthNotAllowed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to User {0} session creation blocked due to pending profile deletion..
         /// </summary>
         internal static string Error_BlockedByProfileDeletion {
@@ -206,6 +241,15 @@ namespace Microsoft.R.Host.Broker {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Command &quot;{0}&quot; failed to run with error: {1}.
+        /// </summary>
+        internal static string Error_FailedToRun {
+            get {
+                return ResourceManager.GetString("Error_FailedToRun", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Client failed to disconnect gracefully: {0}.
         /// </summary>
         internal static string Error_GracefulDisconnectFailed {
@@ -224,6 +268,24 @@ namespace Microsoft.R.Host.Broker {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Invalid response received from RunAsUser.
+        /// </summary>
+        internal static string Error_InvalidRunAsUserResponse {
+            get {
+                return ResourceManager.GetString("Error_InvalidRunAsUserResponse", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Profile dirctory could not be found..
+        /// </summary>
+        internal static string Error_NoProfileDir {
+            get {
+                return ResourceManager.GetString("Error_NoProfileDir", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to No compatible R interpreters found.
         /// </summary>
         internal static string Error_NoRInterpreters {
@@ -233,11 +295,56 @@ namespace Microsoft.R.Host.Broker {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to PAM authentication failed with error: {0}.
+        /// </summary>
+        internal static string Error_PAMAuthenticationError {
+            get {
+                return ResourceManager.GetString("Error_PAMAuthenticationError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to R session process failed to start. Error: {0}.
         /// </summary>
         internal static string Error_RHostFailedToStart {
             get {
                 return ResourceManager.GetString("Error_RHostFailedToStart", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid input to RunAsUser.
+        /// </summary>
+        internal static string Error_RunAsUser_InputFormatInvalid {
+            get {
+                return ResourceManager.GetString("Error_RunAsUser_InputFormatInvalid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid message type used for RunAsUser.
+        /// </summary>
+        internal static string Error_RunAsUser_MessageTypeInvalid {
+            get {
+                return ResourceManager.GetString("Error_RunAsUser_MessageTypeInvalid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to RunAsUser failed with error: {0}.
+        /// </summary>
+        internal static string Error_RunAsUserFailed {
+            get {
+                return ResourceManager.GetString("Error_RunAsUserFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error in run as user protocol: {0}.
+        /// </summary>
+        internal static string Error_RunAsUserJsonError {
+            get {
+                return ResourceManager.GetString("Error_RunAsUserJsonError", resourceCulture);
             }
         }
         
@@ -337,6 +444,24 @@ namespace Microsoft.R.Host.Broker {
         internal static string Trace_DetectedR {
             get {
                 return ResourceManager.GetString("Trace_DetectedR", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} = {1}.
+        /// </summary>
+        internal static string Trace_EnvironmentVariable {
+            get {
+                return ResourceManager.GetString("Trace_EnvironmentVariable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Creating user environment variables for user {0} with profile directory {1}.
+        /// </summary>
+        internal static string Trace_EnvironmentVariableCreationBegin {
+            get {
+                return ResourceManager.GetString("Trace_EnvironmentVariableCreationBegin", resourceCulture);
             }
         }
         

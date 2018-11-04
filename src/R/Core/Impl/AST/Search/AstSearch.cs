@@ -31,7 +31,7 @@ namespace Microsoft.R.Core.AST {
 
         class SingleElementFinder : IAstVisitor {
             public IAstNode Result { get; private set; }
-            private Func<IAstNode, bool> _match;
+            private readonly Func<IAstNode, bool> _match;
 
             public SingleElementFinder(Func<IAstNode, bool> filter) {
                 _match = filter;
@@ -49,7 +49,7 @@ namespace Microsoft.R.Core.AST {
 
         class MultipleElementFinder : IAstVisitor {
             public List<IAstNode> Result { get; private set; }
-            private Func<IAstNode, bool> _match;
+            private readonly Func<IAstNode, bool> _match;
 
             public MultipleElementFinder(Func<IAstNode, bool> filter) {
                 _match = filter;

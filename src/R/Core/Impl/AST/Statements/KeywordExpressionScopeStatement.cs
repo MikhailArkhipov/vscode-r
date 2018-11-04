@@ -13,7 +13,7 @@ namespace Microsoft.R.Core.AST.Statements {
     /// </summary>
     [DebuggerDisplay("[KeywordExpressionScopeStatement: {Text}]")]
     public class KeywordExpressionScopeStatement : KeywordExpressionStatement, IKeywordExpressionScope {
-        private string _terminatingKeyword;
+        private readonly string _terminatingKeyword;
 
         public IScope Scope { get; private set; }
 

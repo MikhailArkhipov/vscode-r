@@ -26,7 +26,7 @@ namespace Microsoft.R.Editor.Tree {
         #region Private members
         private const string _threadCheckMessage = "Method should only be called on the main thread";
         private static readonly Guid _treeUserId = new Guid("BE78E649-B9D4-4BC0-A332-F38A2B16CD10");
-        private static int _parserDelay = 200;
+        private static readonly int _parserDelay = 200;
 
         /// <summary>
         /// Owner thread - typically main thread ID

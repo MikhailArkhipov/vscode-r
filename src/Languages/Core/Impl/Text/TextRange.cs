@@ -179,7 +179,7 @@ namespace Microsoft.Languages.Core.Text {
             }
 
             // If one is null, but not both, return false.
-            if (((object)left == null) || ((object)right == null)) {
+            if ((left is null) || (right == null)) {
                 return false;
             }
 
@@ -285,8 +285,8 @@ namespace Microsoft.Languages.Core.Text {
         /// Calculates range that includes both supplied ranges.
         /// </summary>
         public static ITextRange Union(ITextRange range1, ITextRange range2) {
-            int start = Math.Min(range1.Start, range2.Start);
-            int end = Math.Max(range1.End, range2.End);
+            var start = Math.Min(range1.Start, range2.Start);
+            var end = Math.Max(range1.End, range2.End);
 
             return start <= end ? TextRange.FromBounds(start, end) : TextRange.EmptyRange;
         }
@@ -295,8 +295,8 @@ namespace Microsoft.Languages.Core.Text {
         /// Calculates range that includes both supplied ranges.
         /// </summary>
         public static ITextRange Union(ITextRange range1, int rangeStart, int rangeLength) {
-            int start = Math.Min(range1.Start, rangeStart);
-            int end = Math.Max(range1.End, rangeStart + rangeLength);
+            var start = Math.Min(range1.Start, rangeStart);
+            var end = Math.Max(range1.End, rangeStart + rangeLength);
 
             return start <= end ? TextRange.FromBounds(start, end) : TextRange.EmptyRange;
         }
@@ -306,8 +306,8 @@ namespace Microsoft.Languages.Core.Text {
         /// </summary>
         /// <returns>Intersection or empty range if ranges don't intersect</returns>
         public static ITextRange Intersection(ITextRange range1, ITextRange range2) {
-            int start = Math.Max(range1.Start, range2.Start);
-            int end = Math.Min(range1.End, range2.End);
+            var start = Math.Max(range1.Start, range2.Start);
+            var end = Math.Min(range1.End, range2.End);
 
             return start <= end ? TextRange.FromBounds(start, end) : TextRange.EmptyRange;
         }
@@ -317,8 +317,8 @@ namespace Microsoft.Languages.Core.Text {
         /// </summary>
         /// <returns>Intersection or empty range if ranges don't intersect</returns>
         public static ITextRange Intersection(ITextRange range1, int rangeStart, int rangeLength) {
-            int start = Math.Max(range1.Start, rangeStart);
-            int end = Math.Min(range1.End, rangeStart + rangeLength);
+            var start = Math.Max(range1.Start, rangeStart);
+            var end = Math.Min(range1.End, rangeStart + rangeLength);
 
             return start <= end ? TextRange.FromBounds(start, end) : TextRange.EmptyRange;
         }

@@ -13,7 +13,7 @@ namespace Microsoft.R.Core.AST.Statements {
     /// </summary>
     [DebuggerDisplay("[ExpressionStatement, Children:{Children.Count}]")]
     public sealed class ExpressionStatement : Statement, IExpressionStatement {
-        private string _terminatingKeyword;
+        private readonly string _terminatingKeyword;
 
         public IExpression Expression { get; private set; }
 

@@ -20,6 +20,9 @@
     <Folder Include="Properties\" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Microsoft.Win32.Registry" Version="4.5.0" />
+  </ItemGroup>
+  <ItemGroup>
     <Compile Update="Resources.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>

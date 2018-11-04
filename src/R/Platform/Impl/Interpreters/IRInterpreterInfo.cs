@@ -33,7 +33,7 @@ namespace Microsoft.R.Platform.Interpreters {
         string LibPath { get; }
 
         /// <summary>
-        /// Name of the R dynamic library such as  R.dll (Windows) or libR.dylib (MacOS)
+        /// Name of the R dynamic library such as R.dll (Windows) or libR.dylib (MacOS)
         /// </summary>
         string LibName { get; }
 

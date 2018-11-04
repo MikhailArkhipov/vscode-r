@@ -11,7 +11,7 @@ using static System.FormattableString;
 
 namespace Microsoft.R.Host.Client.Session {
     public static class RSessionEvaluationCommands {
-        public static Task OptionsSetWidthAsync(this IRExpressionEvaluator evaluation, int width) 
+        public static Task OptionsSetWidthAsync(this IRExpressionEvaluator evaluation, int width)
             => evaluation.ExecuteAsync(Invariant($"options(width=as.integer({width}))\n"));
 
         public static Task QuitAsync(this IRExpressionEvaluator eval) =>
@@ -27,21 +27,17 @@ namespace Microsoft.R.Host.Client.Session {
             return result.Replace('/', '\\');
         }
 
-        public static Task SetWorkingDirectoryAsync(this IRExpressionEvaluator evaluation, string path) {
-            return evaluation.ExecuteAsync(Invariant($"setwd('{path.Replace('\\', '/')}')\n"));
-        }
+        public static Task SetWorkingDirectoryAsync(this IRExpressionEvaluator evaluation, string path)
+            => evaluation.ExecuteAsync(Invariant($"setwd('{path.Replace('\\', '/')}')\n"));
 
-        public static Task SetDefaultWorkingDirectoryAsync(this IRExpressionEvaluator evaluation) {
-            return evaluation.ExecuteAsync($"setwd('~')\n");
-        }
+        public static Task SetDefaultWorkingDirectoryAsync(this IRExpressionEvaluator evaluation)
+            => evaluation.ExecuteAsync($"setwd('~')\n");
 
-        public static Task LoadWorkspaceAsync(this IRExpressionEvaluator evaluation, string path) {
-            return evaluation.ExecuteAsync(Invariant($"load('{path.Replace('\\', '/')}', .GlobalEnv)\n"));
-        }
+        public static Task LoadWorkspaceAsync(this IRExpressionEvaluator evaluation, string path)
+            => evaluation.ExecuteAsync(Invariant($"load('{path.Replace('\\', '/')}', .GlobalEnv)\n"));
 
-        public static Task SaveWorkspaceAsync(this IRExpressionEvaluator evaluation, string path) {
-            return evaluation.ExecuteAsync(Invariant($"save.image(file='{path.Replace('\\', '/')}')\n"), REvaluationKind.Normal);
-        }
+        public static Task SaveWorkspaceAsync(this IRExpressionEvaluator evaluation, string path)
+            => evaluation.ExecuteAsync(Invariant($"save.image(file='{path.Replace('\\', '/')}')\n"), REvaluationKind.Normal);
 
         public static Task SetVsGraphicsDeviceAsync(this IRExpressionEvaluator evaluation) {
             var script = @"
@@ -108,9 +104,7 @@ grDevices::deviceIsInteractive('ide')
             return evaluation.EvaluateAsync<int?>(Invariant($"rtvs:::graphics.ide.getdevicenum({deviceId.ToString().ToRStringLiteral()})"), REvaluationKind.Normal);
         }
 
-        public static async Task NewPlotDeviceAsync(this IRExpressionEvaluator evaluation) {
-            await evaluation.ExecuteAsync("ide()");
-        }
+        public static async Task NewPlotDeviceAsync(this IRExpressionEvaluator evaluation) => await evaluation.ExecuteAsync("ide()");
 
         public static async Task<Guid> GetActivePlotDeviceAsync(this IRExpressionEvaluator evaluation) {
             var id = await evaluation.EvaluateAsync<string>("rtvs:::graphics.ide.getactivedeviceid()", REvaluationKind.Normal);
@@ -196,11 +190,9 @@ grDevices::deviceIsInteractive('ide')
             return evaluation.EvaluateAsync<ulong>(script, REvaluationKind.Normal);
         }
 
-        public static Task<ulong> ExportToPdfAsync(this IRExpressionEvaluator evaluation, Guid deviceId, Guid plotId, string pdfDevice, string paper, double inchWidth, double inchHeight) {
-            return (pdfDevice == "cairo_pdf") ?
+        public static Task<ulong> ExportToPdfAsync(this IRExpressionEvaluator evaluation, Guid deviceId, Guid plotId, string pdfDevice, string paper, double inchWidth, double inchHeight) => (pdfDevice == "cairo_pdf") ?
                 ExportToCairoPdfAsync(evaluation, deviceId, plotId, pdfDevice, inchWidth, inchHeight) :
                 ExportToDefaultPdfAsync(evaluation, deviceId, plotId, pdfDevice, paper, inchWidth, inchHeight);
-        }
 
         private static Task<ulong> ExportToCairoPdfAsync(this IRExpressionEvaluator evaluation, Guid deviceId, Guid plotId, string pdfDevice, double inchWidth, double inchHeight) {
             string script = Invariant($"rtvs:::export_to_pdf({deviceId.ToString().ToRStringLiteral()}, {plotId.ToString().ToRStringLiteral()}, {pdfDevice}, {inchWidth}, {inchHeight})");
@@ -212,9 +204,7 @@ grDevices::deviceIsInteractive('ide')
             return evaluation.EvaluateAsync<ulong>(script, REvaluationKind.Normal);
         }
 
-        public static async Task SetVsCranSelectionAsync(this IRExpressionEvaluator evaluation, string mirrorUrl, CancellationToken cancellationToken = default(CancellationToken)) {
-            await evaluation.ExecuteAsync(Invariant($"rtvs:::set_mirror({mirrorUrl.ToRStringLiteral()})"), cancellationToken);
-        }
+        public static async Task SetVsCranSelectionAsync(this IRExpressionEvaluator evaluation, string mirrorUrl, CancellationToken cancellationToken = default(CancellationToken)) => await evaluation.ExecuteAsync(Invariant($"rtvs:::set_mirror({mirrorUrl.ToRStringLiteral()})"), cancellationToken);
 
         public static Task SetROptionsAsync(this IRExpressionEvaluator evaluation) {
             var script =
@@ -243,8 +233,7 @@ grDevices::deviceIsInteractive('ide')
                 if (!await evaluation.IsRSessionPlatformWindowsAsync(cancellationToken)) {
                     cp = "en_US.UTF-8";
                 }
-            }
-            else {
+            } else {
                 cp = Invariant($".{codePage}");
             }
 

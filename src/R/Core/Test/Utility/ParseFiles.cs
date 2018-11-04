@@ -15,7 +15,7 @@ namespace Microsoft.R.Core.Test.Utility {
     public class ParseFiles
     {
         // change to true in debugger if you want all baseline tree files regenerated
-        private static bool _regenerateBaselineFiles = false;
+        private static readonly bool _regenerateBaselineFiles = false;
 
         public static void ParseFile(CoreTestFilesFixture fixture, string name) {
             Action a = () => ParseFileImplementation(fixture, name);
