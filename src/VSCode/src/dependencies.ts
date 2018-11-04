@@ -23,11 +23,12 @@ export async function getR(r: IREngine): Promise<string> {
 }
 
 export async function checkDotNet(): Promise<boolean> {
+    console.log("Checking for .NET Core...");
     if (!IsDotNetInstalled()) {
         if (await vscode.window.showErrorMessage("R Tools require .NET Core Runtime. Would you like to install it now?",
             "Yes", "No") === "Yes") {
             InstallDotNet();
-            vscode.window.showWarningMessage("Please restart VS Code after .NET Runtime installation is complete.");
+            await vscode.window.showWarningMessage("Please restart VS Code after .NET Runtime installation is complete.");
         }
         return false;
     }
