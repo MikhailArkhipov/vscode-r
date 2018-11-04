@@ -85,8 +85,7 @@ namespace Microsoft.Languages.Core.Tokens {
         /// Given token stream and token representing opening brace
         /// finds index of the closing brace token.
         /// </summary>
-        public int GetMatchingBrace(TokenStream<T> tokens) {
-            return GetMatchingBrace(tokens, _openBrace1, _closeBrace1, _comparer);
-        }
+        public int GetMatchingBrace(TokenStream<T> tokens)
+            => GetMatchingBrace(tokens, _openBrace1, _closeBrace1, _comparer);
     }
 }

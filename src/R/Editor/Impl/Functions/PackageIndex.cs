@@ -140,7 +140,7 @@ namespace Microsoft.R.Editor.Functions {
         /// </summary>
         public async Task<IPackageInfo> GetPackageInfoAsync(string packageName, CancellationToken ct = default(CancellationToken)) {
             packageName = packageName.TrimQuotes().Trim();
-            IPackageInfo package = GetPackageInfo(packageName);
+            var package = GetPackageInfo(packageName);
             if (package != null) {
                 return package;
             }
@@ -159,7 +159,7 @@ namespace Microsoft.R.Editor.Functions {
 
             foreach (var n in packageNames) {
                 var name = n.TrimQuotes().Trim();
-                IPackageInfo package = GetPackageInfo(name);
+                var package = GetPackageInfo(name);
                 if (package != null) {
                     list.Add(package);
                 } else {
@@ -330,7 +330,7 @@ namespace Microsoft.R.Editor.Functions {
         /// </summary>
         private IPackageInfo GetPackageInfo(string packageName) {
             packageName = packageName.TrimQuotes().Trim();
-            _packages.TryGetValue(packageName, out PackageInfo package);
+            _packages.TryGetValue(packageName, out var package);
             return package;
         }
 

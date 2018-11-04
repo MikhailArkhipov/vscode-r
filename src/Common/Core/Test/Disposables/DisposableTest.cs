@@ -13,7 +13,7 @@ namespace Microsoft.Common.Core.Test.Disposables {
         [Test]
         public void Create() {
             var callCount = 0;
-            Action callback = () => callCount++;
+            void callback() => callCount++;
 
             var disposable = Disposable.Create(callback);
             callCount.Should().Be(0);

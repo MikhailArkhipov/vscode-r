@@ -15,8 +15,6 @@ namespace Microsoft.Common.Core.Services {
             _parent = parent;
         }
 
-        public override T GetService<T>(Type type = null) {
-            return base.GetService<T>(type) ?? _parent.GetService<T>(type);
-        }
+        public override T GetService<T>(Type type = null) => base.GetService<T>(type) ?? _parent.GetService<T>(type);
     }
 }

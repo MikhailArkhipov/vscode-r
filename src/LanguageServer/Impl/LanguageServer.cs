@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -57,9 +58,7 @@ namespace Microsoft.R.LanguageServer {
             _services = services;
         }
 
-        public CancellationToken Start() {
-            return _sessionTokenSource.Token;
-        }
+        public CancellationToken Start() => _sessionTokenSource.Token;
 
         public void Dispose() { }
 
@@ -266,6 +265,7 @@ namespace Microsoft.R.LanguageServer {
         [JsonRpcMethod("initialize")]
         public InitializeResult initialize(JToken token, CancellationToken ct) {
             _initParams = token.ToObject<InitializeParams>();
+            MonitorParentProcess(_initParams);
 
             return new InitializeResult {
                 capabilities = new ServerCapabilities {
@@ -320,9 +320,7 @@ namespace Microsoft.R.LanguageServer {
         }
 
         [JsonRpcMethod("exit")]
-        public void exit() {
-            _sessionTokenSource.Cancel();
-        }
+        public void exit() => _sessionTokenSource.Cancel();
 
         [JsonRpcMethod("$/cancelRequest")]
         public void cancelRequest(JToken token) {}
@@ -341,5 +339,31 @@ namespace Microsoft.R.LanguageServer {
 
         private bool IsRangeEmpty(Range range)
             => range.start.line == range.end.line && range.start.character == range.end.character;
+
+        private void MonitorParentProcess(InitializeParams p) {
+            // Monitor parent process
+            Process parentProcess = null;
+            if (p.processId.HasValue) {
+                try {
+                    parentProcess = Process.GetProcessById(p.processId.Value);
+                } catch (ArgumentException) { }
+
+                Debug.Assert(parentProcess != null, "Parent process does not exist");
+                if (parentProcess != null) {
+                    parentProcess.Exited += (s, e) => _sessionTokenSource.Cancel();
+                }
+            }
+
+            if (parentProcess != null) {
+                Task.Run(async () => {
+                    while (!_sessionTokenSource.IsCancellationRequested) {
+                        await Task.Delay(2000);
+                        if (parentProcess.HasExited) {
+                            _sessionTokenSource.Cancel();
+                        }
+                    }
+                }).DoNotWait();
+            }
+        }
     }
 }

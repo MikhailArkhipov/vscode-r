@@ -7,16 +7,10 @@ namespace Microsoft.R.Core.AST.DataTypes {
     public sealed class RNull : RObject, IRVector {
         public static RNull Null { get; } = new RNull();
 
-        public int Length {
-            get { return 0; }
-        }
+        public int Length => 0;
 
-        public RMode Mode {
-            get { return RMode.Null; }
-        }
+        public RMode Mode => RMode.Null;
 
-        public override string ToString() {
-            return "NULL";
-        }
+        public override string ToString() => "NULL";
     }
 }

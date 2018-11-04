@@ -20,13 +20,11 @@ namespace Microsoft.R.Host.Broker.Security.Windows {
             _logger = logger;
         }
 
-        public Task<RUserProfileServiceResponse> CreateProfileAsync(RUserProfileServiceRequest request, CancellationToken ct) {
-            return ProfileWorkerAsync(NamedPipeServerStreamFactory.CreatorName, Resources.Error_ProfileCreationFailedIO, request, ct);
-        }
+        public Task<RUserProfileServiceResponse> CreateProfileAsync(RUserProfileServiceRequest request, CancellationToken ct)
+            => ProfileWorkerAsync(NamedPipeServerStreamFactory.CreatorName, Resources.Error_ProfileCreationFailedIO, request, ct);
 
-        public Task<RUserProfileServiceResponse> DeleteProfileAsync(RUserProfileServiceRequest request, CancellationToken ct) {
-            return ProfileWorkerAsync(NamedPipeServerStreamFactory.DeletorName, Resources.Error_ProfileDeletionFailedIO, request, ct);
-        }
+        public Task<RUserProfileServiceResponse> DeleteProfileAsync(RUserProfileServiceRequest request, CancellationToken ct)
+            => ProfileWorkerAsync(NamedPipeServerStreamFactory.DeletorName, Resources.Error_ProfileDeletionFailedIO, request, ct);
 
         private async Task<RUserProfileServiceResponse> ProfileWorkerAsync(string name, string log, RUserProfileServiceRequest request, CancellationToken ct) {
             using (var client = new NamedPipeClientStream(name)) {

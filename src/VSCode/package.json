@@ -37,11 +37,6 @@
   "contributes": {
     "commands": [
       {
-        "command": "r.execute",
-        "title": "Execute current line on selection",
-        "category": "R"
-      },
-      {
         "command": "r.interrupt",
         "title": "Interrupt R",
         "category": "R"
@@ -79,13 +74,8 @@
     ],
     "keybindings": [
       {
-        "command": "r.execute",
-        "key": "ctrl+enter",
-        "when": "editorFocus"
-      },
-      {
         "command": "r.executeInTerminal",
-        "key": "ctrl+shift+enter",
+        "key": "ctrl+enter",
         "when": "editorFocus"
       },
       {

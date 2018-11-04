@@ -60,7 +60,7 @@ namespace Microsoft.R.Editor.Completions.Engine {
             if (tokenNode != null && context.Position == tokenNode.End && tokenNode.Token.TokenType == RTokenType.String) {
                 var snapshot = context.EditorBuffer.CurrentSnapshot;
                 // String token at least has opening quote
-                char quote = snapshot[tokenNode.Start];
+                var quote = snapshot[tokenNode.Start];
                 if (tokenNode.Length == 1 || quote != snapshot[tokenNode.End - 1]) {
                     // No completion at the end of underminated string
                     return providers;
@@ -126,10 +126,10 @@ namespace Microsoft.R.Editor.Completions.Engine {
         }
 
         public static bool CanShowFileCompletion(AstRoot ast, int position, out string directory) {
-            TokenNode node = ast.GetNodeOfTypeFromPosition<TokenNode>(position);
+            var node = ast.GetNodeOfTypeFromPosition<TokenNode>(position);
             directory = null;
             if (node != null && node.Token.TokenType == RTokenType.String) {
-                string text = node.Root.TextProvider.GetText(node);
+                var text = node.Root.TextProvider.GetText(node);
                 // Bring file/folder completion when either string is empty or ends with /
                 // assuming that / specifies directory where files are.
                 if (text.Length == 2 || text.EndsWith("/\"", StringComparison.Ordinal) || text.EndsWith("/\'", StringComparison.Ordinal)) {
@@ -143,17 +143,17 @@ namespace Microsoft.R.Editor.Completions.Engine {
         internal static bool IsPackageListCompletion(IEditorBuffer editorBuffer, int position) {
             var snapshot = editorBuffer.CurrentSnapshot;
             var line = snapshot.GetLineFromPosition(position);
-            string lineText = line.GetText();
-            int linePosition = position - line.Start;
+            var lineText = line.GetText();
+            var linePosition = position - line.Start;
 
             // We should be either at library(| or inside library(|) 
             // or over package name like in library(ba|se)
 
             // Go left and right looking for 
-            RTokenizer tokenizer = new RTokenizer();
+            var tokenizer = new RTokenizer();
             ITextProvider textProvider = new TextStream(lineText);
-            IReadOnlyTextRangeCollection<RToken> c = tokenizer.Tokenize(textProvider, 0, textProvider.Length);
-            TokenStream<RToken> tokens = new TokenStream<RToken>(c, RToken.EndOfStreamToken);
+            var c = tokenizer.Tokenize(textProvider, 0, textProvider.Length);
+            var tokens = new TokenStream<RToken>(c, RToken.EndOfStreamToken);
 
             while (!tokens.IsEndOfStream()) {
                 if (tokens.CurrentToken.Start >= linePosition) {
@@ -161,12 +161,12 @@ namespace Microsoft.R.Editor.Completions.Engine {
                 }
 
                 if (tokens.CurrentToken.TokenType == RTokenType.Identifier) {
-                    string identifier = textProvider.GetText(tokens.CurrentToken);
+                    var identifier = textProvider.GetText(tokens.CurrentToken);
                     if (identifier == "library" || identifier == "require") {
                         tokens.MoveToNextToken();
 
                         if (tokens.CurrentToken.TokenType == RTokenType.OpenBrace) {
-                            RToken openBrace = tokens.CurrentToken;
+                            var openBrace = tokens.CurrentToken;
                             while (!tokens.IsEndOfStream()) {
                                 if (tokens.CurrentToken.TokenType == RTokenType.CloseBrace) {
                                     if (linePosition >= openBrace.End && linePosition <= tokens.CurrentToken.Start) {

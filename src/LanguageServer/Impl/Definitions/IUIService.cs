@@ -11,25 +11,25 @@ namespace Microsoft.R.LanguageServer {
         /// <summary>
         /// Displays error message in a host-specific UI
         /// </summary>
-        Task ShowMessage(string message, MessageType messageType);
+        Task ShowMessageAsync(string message, MessageType messageType);
 
         /// <summary>
         /// Displays message with specified buttons in a host-specific UI
         /// </summary>
-        Task<MessageActionItem?> ShowMessage(string message, MessageActionItem[] actions, MessageType messageType);
+        Task<MessageActionItem?> ShowMessageAsync(string message, MessageActionItem[] actions, MessageType messageType);
 
         /// <summary>
         /// Writes message to the host application output log
         /// </summary>
         /// <param name="message"></param>
         /// <param name="messageType"></param>
-        Task LogMessage(string message, MessageType messageType);
+        Task LogMessageAsync(string message, MessageType messageType);
 
         /// <summary>
         /// Writes message to the host application status bar
         /// </summary>
         /// <param name="message"></param>
-        Task SetStatusBarMessage(string message);
+        Task SetStatusBarMessageAsync(string message);
 
         /// <summary>
         /// Sets log level for output in the host application.

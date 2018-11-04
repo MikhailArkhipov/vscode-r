@@ -16,13 +16,9 @@ namespace Microsoft.R.Host.Broker.Logging {
             _writer = writer;
         }
 
-        public void Dispose() {
-            _writer = null;
-        }
+        public void Dispose() => _writer = null;
 
-        public IDisposable BeginScope<TState>(TState state) {
-            return Disposable.Empty;
-        }
+        public IDisposable BeginScope<TState>(TState state) => Disposable.Empty;
 
         public bool IsEnabled(LogLevel logLevel) {
             return true;

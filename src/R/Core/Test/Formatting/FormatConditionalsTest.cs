@@ -16,8 +16,8 @@ namespace Microsoft.R.Core.Test.Formatting {
         [InlineData("if(true){if(false){}}", "if (true) { if (false) { }}")]
         [InlineData("if(true){\nif(false){}}", "if (true) {\n  if (false) { }\n}")]
         public void ConditionalTest(string original, string expected) {
-            RFormatter f = new RFormatter();
-            string actual = f.Format(original);
+            var f = new RFormatter();
+            var actual = f.Format(original);
             actual.Should().Be(expected);
         }
 
@@ -25,8 +25,8 @@ namespace Microsoft.R.Core.Test.Formatting {
         [InlineData("if(a == a+((b+c)/x)){if(func(a,b, c+2, x=2, ...)){}}", "if (a == a + ((b + c) / x)) { if (func(a, b, c + 2, x = 2, ...)) { }}")]
         [InlineData("if(a == a+((b+c)/x)){\nif(func(a,b, c+2, x=2, ...)){}}", "if (a == a + ((b + c) / x)) {\n  if (func(a, b, c + 2, x = 2, ...)) { }\n}")]
         public void ConditionalTest02(string original, string expected) {
-            RFormatter f = new RFormatter();
-            string actual = f.Format(original);
+            var f = new RFormatter();
+            var actual = f.Format(original);
             actual.Should().Be(expected);
         }
 
@@ -36,14 +36,15 @@ namespace Microsoft.R.Core.Test.Formatting {
         [InlineData("if(a == a+((b+c)/x)){if(func(a,b, c+2, x=2, ...)){}\n}",
                     "if (a == a + ((b + c) / x))\n{\n\tif (func(a, b, c + 2, x = 2, ...)) { }\n}")]
         public void ConditionalTest03(string original, string expected) {
-            RFormatOptions options = new RFormatOptions();
-            options.BracesOnNewLine = true;
-            options.IndentSize = 2;
-            options.IndentType = IndentType.Tabs;
-            options.TabSize = 2;
+            var options = new RFormatOptions {
+                BracesOnNewLine = true,
+                IndentSize = 2,
+                IndentType = IndentType.Tabs,
+                TabSize = 2
+            };
 
-            RFormatter f = new RFormatter(options);
-            string actual = f.Format(original);
+            var f = new RFormatter(options);
+            var actual = f.Format(original);
             actual.Should().Be(expected);
         }
 
@@ -52,22 +53,24 @@ namespace Microsoft.R.Core.Test.Formatting {
         [InlineData("if(TRUE) {\n1 } else {2} x<-1", "if (TRUE)\n{\n  1\n} else { 2 }\nx <- 1")]
         [InlineData("if(TRUE) {\n1 } else {2\n} x<-1", "if (TRUE)\n{\n  1\n} else\n{\n  2\n}\nx <- 1")]
         public void ConditionalTest04(string original, string expected) {
-            RFormatOptions options = new RFormatOptions();
-            options.BracesOnNewLine = true;
+            var options = new RFormatOptions {
+                BracesOnNewLine = true
+            };
 
-            RFormatter f = new RFormatter(options);
-            string actual = f.Format(original);
+            var f = new RFormatter(options);
+            var actual = f.Format(original);
             actual.Should().Be(expected);
         }
 
         [Test]
         public void ConditionalTest05() {
-            RFormatOptions options = new RFormatOptions();
-            options.BracesOnNewLine = true;
+            var options = new RFormatOptions {
+                BracesOnNewLine = true
+            };
 
-            RFormatter f = new RFormatter(options);
-            string actual = f.Format("if(TRUE) { 1 } else if(FALSE) {2} else {3} x<-1");
-            string expected = "if (TRUE) { 1 } else if (FALSE) { 2 } else { 3 }\nx <- 1";
+            var f = new RFormatter(options);
+            var actual = f.Format("if(TRUE) { 1 } else if(FALSE) {2} else {3} x<-1");
+            var expected = "if (TRUE) { 1 } else if (FALSE) { 2 } else { 3 }\nx <- 1";
             actual.Should().Be(expected);
         }
 
@@ -80,8 +83,8 @@ namespace Microsoft.R.Core.Test.Formatting {
             var options = new RFormatOptions() {
                 SpaceBeforeCurly = spaceBeforeCurly
             };
-            RFormatter f = new RFormatter(options);
-            string actual = f.Format(original);
+            var f = new RFormatter(options);
+            var actual = f.Format(original);
             actual.Should().Be(expected);
         }
 
@@ -99,8 +102,8 @@ namespace Microsoft.R.Core.Test.Formatting {
         [InlineData("if(true)\n if(false) {  x<-2 } else 1", "if (true)\n  if (false) { x <- 2 } else 1")]
         [InlineData("if(true)\n if(false) {  x<-2\n } else \n1", "if (true)\n  if (false) {\n    x <- 2\n  } else\n    1")]
         public void FormatNoCurlyConditionalTest(string original, string expected) {
-            RFormatter f = new RFormatter();
-            string actual = f.Format(original);
+            var f = new RFormatter();
+            var actual = f.Format(original);
             actual.Should().Be(expected);
         }
 
@@ -108,24 +111,24 @@ namespace Microsoft.R.Core.Test.Formatting {
         [InlineData("repeat x<-2", "repeat x <- 2")]
         [InlineData("repeat\nx<-2", "repeat\n  x <- 2")]
         public void NoCurlyRepeatTest(string original, string expected) {
-            RFormatter f = new RFormatter();
-            string actual = f.Format(original);
+            var f = new RFormatter();
+            var actual = f.Format(original);
             actual.Should().Be(expected);
         }
 
         [Test]
         public void FormatConditionalAlignBraces01() {
-            RFormatter f = new RFormatter();
-            string original = "\n    if (intercept) \n\t{\n        x <- cbind(1, x)\n    }\n";
-            string actual = f.Format(original);
-            string expected = "\nif (intercept) {\n  x <- cbind(1, x)\n}\n";
+            var f = new RFormatter();
+            var original = "\n    if (intercept) \n\t{\n        x <- cbind(1, x)\n    }\n";
+            var actual = f.Format(original);
+            var expected = "\nif (intercept) {\n  x <- cbind(1, x)\n}\n";
             actual.Should().Be(expected);
         }
 
         [Test]
         public void FormatConditionalAlignBraces02() {
-            RFormatter f = new RFormatter();
-            string original =
+            var f = new RFormatter();
+            var original =
 @"
     if (intercept) 
 	{
@@ -138,8 +141,8 @@ x<-3
 }
     }
 ";
-            string actual = f.Format(original);
-            string expected =
+            var actual = f.Format(original);
+            var expected =
 @"
 if (intercept) {
   if (x > 1)
@@ -155,8 +158,8 @@ if (intercept) {
 
         [Test]
         public void PreserveEmptyLines() {
-            RFormatter f = new RFormatter();
-            string original =
+            var f = new RFormatter();
+            var original =
 @"
     if (intercept) 
 	{
@@ -165,8 +168,8 @@ x<- 1
 x<-3
 }
 ";
-            string actual = f.Format(original);
-            string expected =
+            var actual = f.Format(original);
+            var expected =
 @"
 if (intercept) {
   x <- 1
@@ -179,8 +182,8 @@ if (intercept) {
 
         [Test]
         public void AlignComments() {
-            RFormatter f = new RFormatter();
-            string original =
+            var f = new RFormatter();
+            var original =
 @"
         # comment1
     if (intercept) 
@@ -191,8 +194,8 @@ x<- 1
 x<-3
 }
 ";
-            string actual = f.Format(original);
-            string expected =
+            var actual = f.Format(original);
+            var expected =
 @"
 # comment1
 if (intercept) {
@@ -207,11 +210,11 @@ if (intercept) {
 
         [Test]
         public void FormatForTest() {
-            RFormatter f = new RFormatter();
-            string original = @"for (i in  1:6) x[,i]= rowMeans(fmri[[i]])";
+            var f = new RFormatter();
+            var original = @"for (i in  1:6) x[,i]= rowMeans(fmri[[i]])";
 
-            string actual = f.Format(original);
-            string expected = "for (i in 1:6)\n  x[, i] = rowMeans(fmri[[i]])";
+            var actual = f.Format(original);
+            var expected = "for (i in 1:6)\n  x[, i] = rowMeans(fmri[[i]])";
             actual.Should().Be(expected);
         }
     }

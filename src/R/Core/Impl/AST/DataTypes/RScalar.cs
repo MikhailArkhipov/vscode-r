@@ -12,9 +12,7 @@ namespace Microsoft.R.Core.AST.DataTypes {
     [DebuggerDisplay("[{Value}]")]
     public abstract class RScalar<T> : RObject, IRVector, IRScalar<T> {
         #region IRVector
-        public int Length {
-            get { return 1; }
-        }
+        public int Length => 1;
 
         public abstract RMode Mode { get; }
         #endregion

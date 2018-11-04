@@ -10,7 +10,6 @@ import { Commands } from "./commands";
 import { RLanguage } from "./constants";
 import * as deps from "./dependencies";
 import { REngine } from "./rengine";
-import { ResultsView } from "./resultsView";
 
 let client: languageClient.LanguageClient;
 let rEngine: IREngine;
@@ -57,10 +56,7 @@ export async function activateLanguageServer(context: vscode.ExtensionContext) {
     await client.onReady();
 
     rEngine = new REngine(client);
-    const resultsView = new ResultsView();
-    context.subscriptions.push(vscode.workspace.registerTextDocumentContentProvider("r", resultsView));
-
-    commands = new Commands(rEngine, resultsView);
+    commands = new Commands(rEngine);
     context.subscriptions.push(...commands.activateCommandsProvider());
 }
 

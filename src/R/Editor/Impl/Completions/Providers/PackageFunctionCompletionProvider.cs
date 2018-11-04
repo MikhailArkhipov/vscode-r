@@ -58,7 +58,7 @@ namespace Microsoft.R.Editor.Completions.Providers {
             var packages = (await GetPackagesAsync(context)).ToList();
             var packageName = packages.Count == 1 ? packages[0].Name : null;
 
-            var caretInNamespace = !context.IsCaretInNamespace(out bool showInternalFunctions);
+            var caretInNamespace = !context.IsCaretInNamespace(out var showInternalFunctions);
             // Get list of functions in the package
             foreach (var pkg in packages) {
                 Debug.Assert(pkg != null);

@@ -3,6 +3,7 @@
 
 using System;
 using System.Threading.Tasks;
+using Microsoft.Common.Core;
 using StreamJsonRpc;
 
 namespace Microsoft.R.LanguageServer.Services {
@@ -13,7 +14,7 @@ namespace Microsoft.R.LanguageServer.Services {
         public UIService(JsonRpc rpc) {
             _rpc = rpc;
         }
-        public Task ShowMessage(string message, MessageType messageType) {
+        public Task ShowMessageAsync(string message, MessageType messageType) {
             var parameters = new ShowMessageRequestParams {
                 type = messageType,
                 message = message
@@ -21,7 +22,7 @@ namespace Microsoft.R.LanguageServer.Services {
             return _rpc.NotifyWithParameterObjectAsync("window/showMessage", parameters);
         }
 
-        public Task<MessageActionItem?> ShowMessage(string message, MessageActionItem[] actions, MessageType messageType) {
+        public Task<MessageActionItem?> ShowMessageAsync(string message, MessageActionItem[] actions, MessageType messageType) {
             var parameters = new ShowMessageRequestParams {
                 type = messageType,
                 message = message,
@@ -36,7 +37,7 @@ namespace Microsoft.R.LanguageServer.Services {
             public string message;
         }
 
-        public Task LogMessage(string message, MessageType messageType) {
+        public Task LogMessageAsync(string message, MessageType messageType) {
             if(messageType > _logLevel) {
                 return Task.CompletedTask;
             }
@@ -47,10 +48,10 @@ namespace Microsoft.R.LanguageServer.Services {
             return _rpc.NotifyWithParameterObjectAsync("window/logMessage", parameters);
         }
 
-        public Task SetStatusBarMessage(string message) 
+        public Task SetStatusBarMessageAsync(string message) 
             => _rpc.NotifyWithParameterObjectAsync("window/setStatusBarMessage", message);
 
-        public void TraceMessage(string message) => LogMessage(message.ToString(), MessageType.Info);
+        public void TraceMessage(string message) => LogMessageAsync(message.ToString(), MessageType.Info).DoNotWait();
         public void TraceMessage(IFormattable message) => TraceMessage(message.ToString());
 
         public void SetLogLevel(MessageType logLevel) => _logLevel = logLevel;
