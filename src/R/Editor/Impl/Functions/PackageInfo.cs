@@ -136,7 +136,8 @@ namespace Microsoft.R.Editor.Functions {
             return null;
         }
 
-        private string CacheFilePath => Path.Combine(_host.Services.GetService<IPackageIndex>().CacheFolderPath, Invariant($"{this.Name}_{_version}.functions"));
+        private string CacheFilePath 
+            => Path.Combine(_host.Services.GetService<IPackageIndex>().CacheFolderPath, Invariant($"{this.Name}_{_version}.functions"));
         private string VersionString => Invariant($"Version: {Version}");
     }
 }

@@ -42,11 +42,13 @@ namespace Microsoft.R.Platform {
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX)) {
                     services
                         .AddService(new MacProcessServices())
+                        .AddService(new MacPlatformServices())
                         .AddService(new RMacInstallation())
-                        .AddService(new MacPlatformServices());
+                        .AddService(new LinuxPlatformServices());
                 } else {
                     services
                         .AddService(new LinuxProcessServices())
+                        .AddService(new LinuxPlatformServices())
                         .AddService(new RLinuxInstallation());
                 }
             }
