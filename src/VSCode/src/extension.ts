@@ -25,9 +25,6 @@ export async function activate(context: vscode.ExtensionContext) {
         return;
     }
 
-    // Make sure Microsoft.R.Host is marked as executable on Mac/Linux.
-    deps.ensureExecutableHost(context);
-
     console.log("Activating R Language Server...");
     await activateLanguageServer(context);
     console.log("Startup completed.");

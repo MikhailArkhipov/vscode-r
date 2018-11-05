@@ -5,7 +5,6 @@
 import * as fs from "fs";
 import * as vscode from "vscode";
 import * as os from "./os";
-import * as path from "path";
 
 var getenv = require('getenv');
 var opn = require('opn');
@@ -36,7 +35,7 @@ export async function checkDotNet(): Promise<boolean> {
     return true;
 }
 
-function IsDotNetInstalled(): boolean {
+function IsDotNetInstalled() {
     let dir: string;
 
     if (os.IsWindows()) {
@@ -50,11 +49,11 @@ function IsDotNetInstalled(): boolean {
     return fs.existsSync(dir);
 }
 
-function InstallDotNet(): void {
+function InstallDotNet() {
     opn("https://www.microsoft.com/net/download/core#/runtime");
 }
 
-function InstallR(): void {
+function InstallR() {
     let url: string;
     if (os.IsWindows()) {
         url = "https://cran.r-project.org/bin/windows/base/";
@@ -64,13 +63,4 @@ function InstallR(): void {
         url = "https://cran.r-project.org/bin/linux/";
     }
     opn(url);
-}
-
-export function ensureExecutableHost(context: vscode.ExtensionContext): void {
-    if(!os.IsWindows()) {
-        const osName = os.IsMac() ? "Mac" : "Linux";
-        fs.chmod(path.join(context.extensionPath, "ls", "Host", osName, "Microsoft.R.Host"), "0764", (err) => { 
-            console.log(`Unable to make Microsoft.R.Host executable. Error: ${err.message}`);
-        }); // -rwxrw-r--
-    }
 }
