@@ -27,13 +27,13 @@ namespace Microsoft.R.Host.Broker.Start {
 
             services
                 .AddSingleton<IFileSystem, UnixFileSystem>()
-                .AddSingleton<IPlatformAuthenticationService, LinuxAuthenticationService>();
+                .AddSingleton<IPlatformAuthenticationService, LinuxAuthenticationService>()
+                .AddSingleton<IRHostProcessService, RHostProcessService>();
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX)) {
                 services
                     .AddSingleton<IProcessServices, MacProcessServices>()
-                    .AddSingleton<IRInstallationService, RMacInstallation>()
-                    .AddSingleton<IRHostProcessService, RHostProcessService>();
+                    .AddSingleton<IRInstallationService, RMacInstallation>();
             } else {
                 services
                     .AddSingleton<IProcessServices, LinuxProcessServices>()

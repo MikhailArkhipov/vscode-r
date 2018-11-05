@@ -25,7 +25,8 @@ namespace Microsoft.R.Platform.Interpreters.Linux {
             InstallPath = GetRInstallPath(files, fileSystem);
             _packageFullVersion = version;
 
-            BinPath = GetRLibPath();
+            BinPath = Path.Combine(InstallPath, "bin");
+            LibPath = GetRLibPath();
             DocPath = GetRDocPath(files, fileSystem);
             IncludePath = GetIncludePath(files, fileSystem);
             RShareDir = GetRSharePath(files, fileSystem);
@@ -35,7 +36,7 @@ namespace Microsoft.R.Platform.Interpreters.Linux {
         /// <summary>
         /// Name of the R dynamic library such as  R.dll (Windows) or libR.dylib (MacOS)
         /// </summary>
-        public override string LibName => "LibR.so";
+        public override string LibName => "libR.so";
 
         public static RLinuxInterpreterInfo CreateFromPackage(InstalledPackageInfo package, string namePrefix, IFileSystem fs) 
             => new RLinuxInterpreterInfo($"{namePrefix} '{package.Version}'", package, package.Version, package.GetVersion(), fs);
