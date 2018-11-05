@@ -106,7 +106,7 @@ namespace Microsoft.R.Editor.Validation {
         private void OnIdle(object sender, EventArgs e) {
             // Throttle validator idle a bit and check if previous 
             // task is still running. If so, try next idle.
-            if (TimeUtility.MillisecondsSinceUtc(_idleRequestTime) > _validationDelay && !_aggregator.Busy) {
+            if ((DateTime.Now -_idleRequestTime).TotalMilliseconds > _validationDelay && !_aggregator.Busy) {
                 UnadviseFromIdle();
                 StartValidation();
             }
@@ -114,7 +114,7 @@ namespace Microsoft.R.Editor.Validation {
 
         private void AdviseToIdle() {
             if (!_advisedToIdleTime) {
-                _idleRequestTime = DateTime.UtcNow;
+                _idleRequestTime = DateTime.Now;
                 _idleTime.Idle += OnIdle;
                 _advisedToIdleTime = true;
             }

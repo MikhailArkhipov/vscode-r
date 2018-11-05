@@ -25,7 +25,7 @@ using Newtonsoft.Json.Linq;
 using StreamJsonRpc;
 
 namespace Microsoft.R.LanguageServer {
-    public class LanguageServer: IDisposable {
+    public class LanguageServer : IDisposable {
         /// <remarks>
         /// In VS Code editor operations such as formatting are not supposed
         /// to change local copy of the text buffer. Instead, they return
@@ -200,51 +200,51 @@ namespace Microsoft.R.LanguageServer {
 
         [JsonRpcMethod("workspace/didChangeConfiguration")]
         public Task didChangeConfiguration(JToken token, CancellationToken ct) {
+            var settings = new LanguageServerSettings();
+
+            var r = token["settings"];
+            if (r == null) {
+                return Task.CompletedTask;
+            }
+
+            settings.Interpreter = GetSetting(r, "interpreter", 0);
+
+            var editor = r["editor"];
+            settings.Editor.BreakMultipleStatements = GetSetting(editor, "breakMultipleStatements", true);
+            settings.Editor.FormatScope = GetSetting(editor, "formatScope", true);
+            settings.Editor.SpaceAfterKeyword = GetSetting(editor, "spaceAfterKeyword", true);
+            settings.Editor.SpacesAroundEquals = GetSetting(editor, "spacesAroundEquals", true);
+            settings.Editor.SpaceBeforeCurly = GetSetting(editor, "spaceBeforeCurly", true);
+            settings.Editor.TabSize = GetSetting(editor, "tabSize", 4);
+
+            var linting = r["linting"];
+            settings.Linting.Enabled = GetSetting(linting, "enabled", false);
+            settings.Linting.CamelCase = GetSetting(linting, "camelCase", true);
+            settings.Linting.SnakeCase = GetSetting(linting, "snakeCase", false);
+            settings.Linting.PascalCase = GetSetting(linting, "pascalCase", false);
+            settings.Linting.UpperCase = GetSetting(linting, "upperCase", false);
+            settings.Linting.MultipleDots = GetSetting(linting, "multipleDots", true);
+            settings.Linting.NameLength = GetSetting(linting, "nameLength", true);
+            settings.Linting.MaxNameLength = GetSetting(linting, "maxNameLength", 32);
+            settings.Linting.TrueFalseNames = GetSetting(linting, "trueFalseNames", true);
+            settings.Linting.AssignmentType = GetSetting(linting, "assignmentType", true);
+            settings.Linting.SpacesAroundComma = GetSetting(linting, "spacesAroundComma", true);
+            settings.Linting.SpacesAroundOperators = GetSetting(linting, "spacesAroundOperators", true);
+            settings.Linting.CloseCurlySeparateLine = GetSetting(linting, "closeCurlySeparateLine", true);
+            settings.Linting.SpaceBeforeOpenBrace = GetSetting(linting, "spaceBeforeOpenBrace", true);
+            settings.Linting.SpacesInsideParenthesis = GetSetting(linting, "spacesInsideParenthesis", true);
+            settings.Linting.NoSpaceAfterFunctionName = GetSetting(linting, "noSpaceAfterFunctionName", true);
+            settings.Linting.OpenCurlyPosition = GetSetting(linting, "openCurlyPosition", true);
+            settings.Linting.NoTabs = GetSetting(linting, "noTabs", true);
+            settings.Linting.TrailingWhitespace = GetSetting(linting, "trailingWhitespace", true);
+            settings.Linting.TrailingBlankLines = GetSetting(linting, "trailingBlankLines", true);
+            settings.Linting.DoubleQuotes = GetSetting(linting, "doubleQuotes", true);
+            settings.Linting.LineLength = GetSetting(linting, "lineLength", false);
+            settings.Linting.MaxLineLength = GetSetting(linting, "maxLineLength", 132);
+            settings.Linting.Semicolons = GetSetting(linting, "semicolons", true);
+            settings.Linting.MultipleStatements = GetSetting(linting, "multipleStatements", true);
+
             return MainThreadPriority.SendAsync(() => {
-                var settings = new LanguageServerSettings();
-
-                var r = token["settings"];
-                if (r == null) {
-                    return;
-                }
-
-                settings.Interpreter = GetSetting(r, "interpreter", 0);
-
-                var editor = r["editor"];
-                settings.Editor.BreakMultipleStatements = GetSetting<bool>(editor, "breakMultipleStatements", true);
-                settings.Editor.FormatScope = GetSetting<bool>(editor, "formatScope", true);
-                settings.Editor.SpaceAfterKeyword = GetSetting<bool>(editor, "spaceAfterKeyword", true);
-                settings.Editor.SpacesAroundEquals = GetSetting<bool>(editor, "spacesAroundEquals", true);
-                settings.Editor.SpaceBeforeCurly = GetSetting<bool>(editor, "spaceBeforeCurly", true);
-                settings.Editor.TabSize = GetSetting<int>(editor, "tabSize", 4);
-
-                var linting = r["linting"];
-                settings.Linting.Enabled = GetSetting<bool>(linting, "enabled", false);
-                settings.Linting.CamelCase = GetSetting<bool>(linting, "camelCase", true);
-                settings.Linting.SnakeCase = GetSetting<bool>(linting, "snakeCase", false);
-                settings.Linting.PascalCase = GetSetting<bool>(linting, "pascalCase", false);
-                settings.Linting.UpperCase = GetSetting<bool>(linting, "upperCase", false);
-                settings.Linting.MultipleDots = GetSetting<bool>(linting, "multipleDots", true);
-                settings.Linting.NameLength = GetSetting<bool>(linting, "nameLength", true);
-                settings.Linting.MaxNameLength = GetSetting<int>(linting, "maxNameLength", 32);
-                settings.Linting.TrueFalseNames = GetSetting<bool>(linting, "trueFalseNames", true);
-                settings.Linting.AssignmentType = GetSetting<bool>(linting, "assignmentType", true);
-                settings.Linting.SpacesAroundComma = GetSetting<bool>(linting, "spacesAroundComma", true);
-                settings.Linting.SpacesAroundOperators = GetSetting<bool>(linting, "spacesAroundOperators", true);
-                settings.Linting.CloseCurlySeparateLine = GetSetting<bool>(linting, "closeCurlySeparateLine", true);
-                settings.Linting.SpaceBeforeOpenBrace = GetSetting<bool>(linting, "spaceBeforeOpenBrace", true);
-                settings.Linting.SpacesInsideParenthesis = GetSetting<bool>(linting, "spacesInsideParenthesis", true);
-                settings.Linting.NoSpaceAfterFunctionName = GetSetting<bool>(linting, "noSpaceAfterFunctionName", true);
-                settings.Linting.OpenCurlyPosition = GetSetting<bool>(linting, "openCurlyPosition", true);
-                settings.Linting.NoTabs = GetSetting<bool>(linting, "noTabs", true);
-                settings.Linting.TrailingWhitespace = GetSetting<bool>(linting, "trailingWhitespace", true);
-                settings.Linting.TrailingBlankLines = GetSetting<bool>(linting, "trailingBlankLines", true);
-                settings.Linting.DoubleQuotes = GetSetting<bool>(linting, "doubleQuotes", true);
-                settings.Linting.LineLength = GetSetting<bool>(linting, "lineLength", false);
-                settings.Linting.MaxLineLength = GetSetting<int>(linting, "maxLineLength", 132);
-                settings.Linting.Semicolons = GetSetting<bool>(linting, "semicolons", true);
-                settings.Linting.MultipleStatements = GetSetting<bool>(linting, "multipleStatements", true);
-
                 _services.GetService<ISettingsManager>().UpdateSettings(settings);
             });
         }
@@ -323,7 +323,7 @@ namespace Microsoft.R.LanguageServer {
         public void exit() => _sessionTokenSource.Cancel();
 
         [JsonRpcMethod("$/cancelRequest")]
-        public void cancelRequest(JToken token) {}
+        public void cancelRequest(JToken token) { }
 
         [JsonRpcMethod("r/execute")]
         public Task<string> execute(string code) => EvalSession.ExecuteCodeAsync(code, CancellationToken.None);

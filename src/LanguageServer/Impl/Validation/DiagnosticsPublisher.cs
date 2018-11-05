@@ -54,16 +54,17 @@ namespace Microsoft.R.LanguageServer.Validation {
             var errors = _resultsQueue.ToArray();
             var diagnostic = new List<Diagnostic>();
 
-            foreach (var e in errors) {
+            foreach (var e in errors.Where(e => !string.IsNullOrEmpty(e.Message))) {
                 var range = GetRange(e);
-                if (range != null) {
-                    diagnostic.Add(new Diagnostic {
-                        message = e.Message,
-                        severity = ToDiagnosticSeverity(e.Severity),
-                        range = range.Value,
-                        source = "R"
-                    });
+                if (range == null) {
+                    continue;
                 }
+                diagnostic.Add(new Diagnostic {
+                    message = e.Message,
+                    severity = ToDiagnosticSeverity(e.Severity),
+                    range = range.Value,
+                    source = "R"
+                });
             }
 
             if (!diagnostic.SequenceEqual(_lastDiagnostic, new DiagnosticComparer())) {
@@ -97,7 +98,10 @@ namespace Microsoft.R.LanguageServer.Validation {
             }
         }
 
-        private void ClearAllDiagnostic() => _client.PublishDiagnostics(_documentUri, Enumerable.Empty<Diagnostic>());
+        private void ClearAllDiagnostic() {
+            _client.PublishDiagnostics(_documentUri, Enumerable.Empty<Diagnostic>());
+            _lastDiagnostic = Enumerable.Empty<Diagnostic>().ToList();
+        }
 
         private void OnDocumentClosing(object sender, EventArgs e) {
             if (_document != null) {
