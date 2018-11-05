@@ -24,6 +24,8 @@ export async function activate(context: vscode.ExtensionContext) {
     if (check && !await deps.checkDotNet()) {
         return;
     }
+    
+    deps.ensureHostExecutable(context);
 
     console.log("Activating R Language Server...");
     await activateLanguageServer(context);
