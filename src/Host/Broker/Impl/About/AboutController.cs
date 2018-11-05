@@ -8,11 +8,9 @@ using System.Runtime.InteropServices;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.R.Host.Broker.Interpreters;
-using Microsoft.R.Host.Broker.Security;
 using Microsoft.R.Host.Broker.Services;
 using Microsoft.R.Host.Broker.Sessions;
 using Microsoft.R.Host.Protocol;
-using Odachi.AspNetCore.Authentication.Basic;
 using static System.FormattableString;
 
 namespace Microsoft.R.Host.Broker.About {

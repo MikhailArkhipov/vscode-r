@@ -37,8 +37,7 @@ namespace Microsoft.R.Host.Broker.Start {
             } else {
                 services
                     .AddSingleton<IProcessServices, LinuxProcessServices>()
-                    .AddSingleton<IRInstallationService, RLinuxInstallation>()
-                    .AddSingleton<ISystemInfoService, LinuxSystemInfoService>();
+                    .AddSingleton<IRInstallationService, RLinuxInstallation>();
             }
         }
     }
