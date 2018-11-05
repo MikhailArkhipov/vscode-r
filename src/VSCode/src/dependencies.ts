@@ -42,8 +42,10 @@ function IsDotNetInstalled(): boolean {
     if (os.IsWindows()) {
         const drive = getenv("SystemDrive");
         dir = drive + "\\Program Files\\dotnet\\shared\\Microsoft.NETCore.App";
-    } else {
+    } else if(os.IsMac()) {
         dir = "/usr/local/share/dotnet/shared/Microsoft.NETCore.App";
+    } else {
+        dir = "/usr/share/dotnet/shared/Microsoft.NETCore.App";
     }
     return fs.existsSync(dir);
 }

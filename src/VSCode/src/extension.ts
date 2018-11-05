@@ -10,6 +10,7 @@ import { Commands } from "./commands";
 import { RLanguage } from "./constants";
 import * as deps from "./dependencies";
 import { REngine } from "./rengine";
+import { bool } from "getenv";
 
 let client: languageClient.LanguageClient;
 let rEngine: IREngine;
@@ -18,7 +19,9 @@ let commands: Commands;
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export async function activate(context: vscode.ExtensionContext) {
-    if (!await deps.checkDotNet()) {
+    const config = vscode.workspace.getConfiguration("r");
+    const check = config.get<boolean>("dependencyChecks");
+    if (check && !await deps.checkDotNet()) {
         return;
     }
 

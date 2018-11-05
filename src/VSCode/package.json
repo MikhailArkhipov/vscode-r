@@ -98,6 +98,11 @@
       "type": "object",
       "title": "R",
       "properties": {
+        "r.dependencyChecks": {
+          "type": "boolean",
+          "default": true,
+          "description": "Perform or bypass checks for .NET Core."
+        },
         "r.interpreter": {
           "type": "number",
           "default": 0,
