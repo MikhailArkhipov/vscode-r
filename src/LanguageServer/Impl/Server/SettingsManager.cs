@@ -36,12 +36,14 @@ namespace Microsoft.R.LanguageServer.Server {
 
             var e = vscodeSettings.Editor;
             _editorSettings.FormatScope = e.FormatScope;
-            _editorSettings.FormatOptions.BreakMultipleStatements = e.BreakMultipleStatements;
+            _editorSettings.AutoFormat = e.FormatOnType;
             _editorSettings.FormatOptions.IndentSize = e.TabSize;
             _editorSettings.FormatOptions.TabSize = e.TabSize;
+            _editorSettings.FormatOptions.SpaceAfterComma = e.SpaceAfterComma;
             _editorSettings.FormatOptions.SpaceAfterKeyword = e.SpaceAfterKeyword;
             _editorSettings.FormatOptions.SpaceBeforeCurly = e.SpaceBeforeCurly;
             _editorSettings.FormatOptions.SpacesAroundEquals = e.SpacesAroundEquals;
+            _editorSettings.FormatOptions.BreakMultipleStatements = e.BreakMultipleStatements;
             _editorSettings.LintOptions = vscodeSettings.Linting;
             _editorSettings.RaiseChanged();
 
@@ -68,11 +70,11 @@ namespace Microsoft.R.LanguageServer.Server {
             public void Dispose() => _storage.Dispose();
 
             public event EventHandler<EventArgs> SettingsChanged;
-            public bool AutoFormat { get; } = true;
+            public bool AutoFormat { get; set; } = true;
             public bool CompletionEnabled { get; } = true;
-            public int IndentSize { get; } = 2;
+            public int IndentSize { get; set; } = 2;
             public IndentType IndentType { get; } = IndentType.Spaces;
-            public int TabSize { get; } = 2;
+            public int TabSize { get; set; } = 2;
             public IndentStyle IndentStyle { get; } = IndentStyle.Smart;
             public bool SyntaxCheckEnabled { get; } = true;
             public bool SignatureHelpEnabled { get; } = true;

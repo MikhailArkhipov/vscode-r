@@ -108,6 +108,11 @@
           "default": 0,
           "description": "R interpreter index."
         },
+        "r.editor.formatOnType": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enables formatting code as you type (on Enter or '}')."
+        },
         "r.editor.formatScope": {
           "type": "boolean",
           "default": true,
@@ -117,6 +122,16 @@
           "type": "number",
           "default": 2,
           "description": "R editor tab size. Default is 2."
+        },
+        "r.editor.bracesOnNewLine": {
+          "type": "boolean",
+          "default": false,
+          "description": "Place open curly brace on a new line.'"
+        },
+        "r.editor.spaceAfterComma": {
+          "type": "boolean",
+          "default": true,
+          "description": "Insert space after comma.'"
         },
         "r.editor.spaceAfterKeyword": {
           "type": "boolean",

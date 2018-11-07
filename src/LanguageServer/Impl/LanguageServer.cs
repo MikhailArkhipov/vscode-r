@@ -221,12 +221,15 @@ namespace Microsoft.R.LanguageServer {
             settings.Interpreter = GetSetting(r, "interpreter", 0);
 
             var editor = r["editor"];
-            settings.Editor.BreakMultipleStatements = GetSetting(editor, "breakMultipleStatements", true);
+            settings.Editor.TabSize = GetSetting(editor, "tabSize", 2);
+            settings.Editor.FormatOnType = GetSetting(editor, "formatOnType", true);
             settings.Editor.FormatScope = GetSetting(editor, "formatScope", true);
+            settings.Editor.SpaceAfterComma = GetSetting(editor, "spaceAfterComma", true);
             settings.Editor.SpaceAfterKeyword = GetSetting(editor, "spaceAfterKeyword", true);
             settings.Editor.SpacesAroundEquals = GetSetting(editor, "spacesAroundEquals", true);
             settings.Editor.SpaceBeforeCurly = GetSetting(editor, "spaceBeforeCurly", true);
-            settings.Editor.TabSize = GetSetting(editor, "tabSize", 4);
+            settings.Editor.BreakMultipleStatements = GetSetting(editor, "breakMultipleStatements", true);
+            settings.Editor.BracesOnNewLine = GetSetting(editor, "bracesOnNewLine", false);
 
             var linting = r["linting"];
             settings.Linting.Enabled = GetSetting(linting, "enabled", false);

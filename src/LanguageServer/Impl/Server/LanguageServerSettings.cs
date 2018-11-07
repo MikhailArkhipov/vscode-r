@@ -22,7 +22,10 @@ namespace Microsoft.R.LanguageServer.Server {
 
     public sealed class EditorSettings {
         public int TabSize { get; set; }
+        public bool FormatOnType { get; set; }
         public bool FormatScope { get; set; }
+        public bool BracesOnNewLine { get; set; }
+        public bool SpaceAfterComma { get; set; }
         public bool SpaceAfterKeyword { get; set; }
         public bool SpacesAroundEquals { get; set; }
         public bool SpaceBeforeCurly { get; set; }

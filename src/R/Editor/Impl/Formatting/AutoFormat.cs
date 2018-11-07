@@ -10,7 +10,6 @@ using Microsoft.R.Core.AST;
 using Microsoft.R.Core.AST.Statements;
 using Microsoft.R.Core.Tokens;
 using Microsoft.R.Editor.Document;
-using Microsoft.R.Editor.Tree;
 
 namespace Microsoft.R.Editor.Formatting {
     public class AutoFormat {
