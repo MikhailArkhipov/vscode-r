@@ -100,17 +100,15 @@ namespace Microsoft.R.Platform.Windows.Interpreters {
             return _isValid.Value;
         }
 
-        private static bool IsSameVersion(Version v1, Version v2) {
+        private static bool IsSameVersion(Version v1, Version v2)
             // Ignore build and revision
-            return v1.Major == v2.Major && v1.Minor == v2.Minor;
-        }
+            => v1.Major == v2.Major && v1.Minor == v2.Minor;
 
         private Version GetRVersionFromBinary(IFileSystem fs, string basePath) {
             var rDllPath = Path.Combine(BinPath, "R.dll");
             var fvi = fs.GetFileVersion(rDllPath);
-            int revision;
 
-            GetRVersionPartsFromFileMinorVersion(fvi.Minor, out var minor, out revision);
+            GetRVersionPartsFromFileMinorVersion(fvi.Minor, out var minor, out var revision);
             return new Version(fvi.Major, minor, revision);
         }
 

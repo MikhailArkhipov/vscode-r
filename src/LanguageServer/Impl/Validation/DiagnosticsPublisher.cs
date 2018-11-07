@@ -107,6 +107,8 @@ namespace Microsoft.R.LanguageServer.Validation {
             if (_document != null) {
                 _idleTime.Idle -= OnIdle;
 
+                ClearAllDiagnostic();
+
                 _document.EditorTree.UpdateCompleted -= OnTreeUpdateCompleted;
                 _document.Closing -= OnDocumentClosing;
                 _document = null;

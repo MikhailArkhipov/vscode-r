@@ -37,7 +37,7 @@ namespace Microsoft.R.Host.Client {
         /// </param>
         public async Task<IRBlobInfo> SendBytesAsync(byte[] data, bool doCleanUp, IProgress<long> progress, CancellationToken cancellationToken) {
             IRBlobInfo blob = null;
-            using (RBlobStream blobStream = await RBlobStream.CreateAsync(_blobService))
+            using (var blobStream = await RBlobStream.CreateAsync(_blobService))
             using (Stream ms = new MemoryStream(data)) {
                 await ms.CopyToAsync(blobStream, progress, cancellationToken);
                 blob = blobStream.GetBlobInfo();
@@ -58,8 +58,8 @@ namespace Microsoft.R.Host.Client {
         /// </param>
         public async Task<IRBlobInfo> SendFileAsync(string filePath, bool doCleanUp, IProgress<long> progress, CancellationToken cancellationToken) {
             IRBlobInfo blob = null;
-            using (RBlobStream blobStream = await RBlobStream.CreateAsync(_blobService))
-            using (Stream fileStream = _fs.FileOpen(filePath, FileMode.Open)){
+            using (var blobStream = await RBlobStream.CreateAsync(_blobService))
+            using (var fileStream = _fs.FileOpen(filePath, FileMode.Open)){
                 await fileStream.CopyToAsync(blobStream, progress, cancellationToken);
                 blob = blobStream.GetBlobInfo();
             }
@@ -78,8 +78,8 @@ namespace Microsoft.R.Host.Client {
         /// <param name="filePath">Path to the file where the retrieved data will be written.</param>
         /// <param name="doCleanUp">true to add blob upon transfer for cleanup on dispose, false to ignore it after transfer.</param>
         public async Task FetchFileAsync(IRBlobInfo blob, string filePath, bool doCleanUp, IProgress<long> progress, CancellationToken cancellationToken) {
-            using (RBlobStream blobStream = await RBlobStream.OpenAsync(blob, _blobService))
-            using (Stream fileStream = _fs.CreateFile(filePath)) {
+            using (var blobStream = await RBlobStream.OpenAsync(blob, _blobService))
+            using (var fileStream = _fs.CreateFile(filePath)) {
                 await blobStream.CopyToAsync(fileStream, progress, cancellationToken);
             }
 
@@ -96,11 +96,11 @@ namespace Microsoft.R.Host.Client {
         /// <param name="filePath">Path to the file where the retrieved data will be written.</param>
         /// <param name="doCleanUp">true to add blob upon transfer for cleanup on dispose, false to ignore it after transfer.</param>
         public async Task FetchAndDecompressFileAsync(IRBlobInfo blob, string filePath, bool doCleanUp, IProgress<long> progress, CancellationToken cancellationToken) {
-            using (MemoryStream compressed = new MemoryStream(await FetchBytesAsync(blob, false, progress, cancellationToken)))
-            using (ZipArchive archive = new ZipArchive(compressed, ZipArchiveMode.Read)) {
+            using (var compressed = new MemoryStream(await FetchBytesAsync(blob, false, progress, cancellationToken)))
+            using (var archive = new ZipArchive(compressed, ZipArchiveMode.Read)) {
                 var entry = archive.GetEntry("data");
-                using (Stream decompressedStream = entry.Open())
-                using (Stream fileStream = _fs.CreateFile(filePath)) {
+                using (var decompressedStream = entry.Open())
+                using (var fileStream = _fs.CreateFile(filePath)) {
                     await decompressedStream.CopyToAsync(fileStream, progress, cancellationToken);
                 }
             }
@@ -134,8 +134,8 @@ namespace Microsoft.R.Host.Client {
         /// <param name="doCleanUp">true to add blob upon transfer for cleanup on dispose, false to ignore it after transfer.</param>
         public async Task<byte[]> FetchBytesAsync(IRBlobInfo blob, bool doCleanUp, IProgress<long> progress, CancellationToken cancellationToken) {
             byte[] data = null;
-            using (RBlobStream blobStream = await RBlobStream.OpenAsync(blob, _blobService, cancellationToken))
-            using (MemoryStream ms = new MemoryStream((int)blobStream.Length)) {
+            using (var blobStream = await RBlobStream.OpenAsync(blob, _blobService, cancellationToken))
+            using (var ms = new MemoryStream((int)blobStream.Length)) {
                 await blobStream.CopyToAsync(ms, progress, cancellationToken);
                 data = ms.ToArray();
             }
@@ -154,9 +154,9 @@ namespace Microsoft.R.Host.Client {
         /// <param name="stream"></param>
         /// <param name="doCleanUp"></param>
         public async Task CopyToFileStreamAsync(string remoteFile, Stream stream, bool doCleanUp = true, IProgress<long> progress = null, CancellationToken cancellationToken = default(CancellationToken)) {
-            string filePath = remoteFile.ToRPath().ToRStringLiteral();
+            var filePath = remoteFile.ToRPath().ToRStringLiteral();
             IRBlobInfo blob = new RBlobInfo(await _session.EvaluateAsync<ulong>($"rtvs:::create_blob(readBin({filePath}, 'raw', file.info({filePath})$size))", REvaluationKind.Normal, cancellationToken));
-            using (RBlobStream blobStream = await RBlobStream.OpenAsync(blob, _blobService, cancellationToken)) {
+            using (var blobStream = await RBlobStream.OpenAsync(blob, _blobService, cancellationToken)) {
                 await blobStream.CopyToAsync(stream, progress, cancellationToken);
             }
 
@@ -174,11 +174,11 @@ namespace Microsoft.R.Host.Client {
         /// <param name="doCleanUp">true to add blob upon transfer for cleanup on dispose, false to ignore it after transfer.</param>
         public async Task<byte[]> FetchAndDecompressBytesAsync(IRBlobInfo blob, bool doCleanUp, IProgress<long> progress, CancellationToken cancellationToken) {
             byte[] data = null;
-            using (MemoryStream compressed = new MemoryStream(await FetchBytesAsync(blob, false, progress, cancellationToken)))
-            using (ZipArchive archive = new ZipArchive(compressed, ZipArchiveMode.Read)) {
+            using (var compressed = new MemoryStream(await FetchBytesAsync(blob, false, progress, cancellationToken)))
+            using (var archive = new ZipArchive(compressed, ZipArchiveMode.Read)) {
                 var entry = archive.GetEntry("data");
-                using (Stream decompressedStream = entry.Open())
-                using (MemoryStream ms = new MemoryStream()) {
+                using (var decompressedStream = entry.Open())
+                using (var ms = new MemoryStream()) {
                     await decompressedStream.CopyToAsync(ms, progress, cancellationToken);
                     data = ms.ToArray();
                 }
@@ -198,7 +198,7 @@ namespace Microsoft.R.Host.Client {
         /// <param name="doCleanUp">true to add blob upon transfer for cleanup on dispose, false to ignore it after transfer.</param>
         /// <returns>Path to the file on the remote machine.</returns>
         public async Task<string> CopyFileToRemoteTempAsync(string filePath, bool doCleanUp, IProgress<long> progress, CancellationToken cancellationToken) {
-            string fileName = Path.GetFileName(filePath);
+            var fileName = Path.GetFileName(filePath);
             var blobinfo = await SendFileAsync(filePath, doCleanUp, progress, cancellationToken);
             return await _session.EvaluateAsync<string>(Invariant($"rtvs:::save_to_temp_folder({blobinfo.Id}, {fileName.ToRStringLiteral()})"), REvaluationKind.Normal, cancellationToken);
         }

@@ -40,16 +40,16 @@ namespace Microsoft.R.Host.Protocol {
         private Message() { }
 
         public static Message Parse(byte[] data) {
-            Message message = new Message();
+            var message = new Message();
             try {
-                int offset = 0;
+                var offset = 0;
                 message.Id = BitConverter.ToUInt64(data, offset);
                 offset += sizeof(ulong);
 
                 message.RequestId = BitConverter.ToUInt64(data, offset);
                 offset += sizeof(ulong);
 
-                int term = Array.IndexOf<byte>(data, 0, offset);
+                var term = Array.IndexOf<byte>(data, 0, offset);
                 if (term < 0) {
                     throw new IndexOutOfRangeException();
                 }
@@ -60,7 +60,7 @@ namespace Microsoft.R.Host.Protocol {
                 if (term < 0) {
                     throw new IndexOutOfRangeException();
                 }
-                string json = Encoding.UTF8.GetString(data, offset, term - offset);
+                var json = Encoding.UTF8.GetString(data, offset, term - offset);
                 message.Json = Microsoft.Common.Core.Json.Json.ParseToken(json) as JArray ?? new JArray();
                 offset = term + 1;
 
@@ -125,11 +125,7 @@ namespace Microsoft.R.Host.Protocol {
             }
         }
 
-        public JToken this[int i] {
-            get {
-                return Json[i];
-            }
-        }
+        public JToken this[int i] => Json[i];
 
         public JToken GetArgument(int i, string name, JTokenType expectedType) {
             var arg = this[i];
@@ -182,7 +178,7 @@ namespace Microsoft.R.Host.Protocol {
                 return (TEnum)(object)(int)arg;
             }
 
-            int n = Array.IndexOf(names, (string)arg);
+            var n = Array.IndexOf(names, (string)arg);
             if (n < 0) {
                 throw ProtocolError($"Argument #{i} must be integer, or one of: {string.Join(", ", names)}:", this);
             }

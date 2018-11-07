@@ -24,9 +24,7 @@ namespace Microsoft.R.Core.AST.Scopes {
             }
         }
 
-        public override bool Contains(int position) {
-            return position >= Start && position <= End;
-        }
+        public override bool Contains(int position) => position >= Start && position <= End;
         #endregion
 
         #region IAstNode

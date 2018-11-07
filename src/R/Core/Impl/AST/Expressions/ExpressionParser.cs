@@ -259,9 +259,8 @@ namespace Microsoft.R.Core.AST.Expressions {
             return true;
         }
 
-        private ITextRange GetErrorRange(ParseContext context) {
-            return context.Tokens.IsEndOfStream() ? context.Tokens.PreviousToken : context.Tokens.CurrentToken;
-        }
+        private ITextRange GetErrorRange(ParseContext context)
+            => context.Tokens.IsEndOfStream() ? context.Tokens.PreviousToken : context.Tokens.CurrentToken;
 
         private ITextRange GetIndexerOrFunctionErrorRange(ParseContext context, IOperator operatorNode) {
             ITextRange range = null;
@@ -446,7 +445,7 @@ namespace Microsoft.R.Core.AST.Expressions {
             var currentOperator = new TokenOperator(firstInExpression: _operands.Count == 0);
             currentOperator.Parse(context, null);
             var isUnary = currentOperator.IsUnary;
-            operationType = isUnary? OperationType.UnaryOperator: OperationType.BinaryOperator;
+            operationType = isUnary ? OperationType.UnaryOperator : OperationType.BinaryOperator;
 
             if (currentOperator.OperatorType == OperatorType.Not) {
                 //This comes from the fact that

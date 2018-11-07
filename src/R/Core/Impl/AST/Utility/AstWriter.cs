@@ -18,7 +18,7 @@ namespace Microsoft.R.Core.Utility {
             _indent = 0;
             _ast = ast;
 
-            foreach (IAstNode node in ast.Children) {
+            foreach (var node in ast.Children) {
                 WriteNode(node);
             }
 
@@ -33,7 +33,7 @@ namespace Microsoft.R.Core.Utility {
                 }
             }
 
-            string text = _sb.ToString();
+            var text = _sb.ToString();
 
             _sb = null;
             _ast = null;
@@ -44,17 +44,17 @@ namespace Microsoft.R.Core.Utility {
         private void WriteNode(IAstNode node) {
             Indent();
 
-            string type = node.GetType().ToString();
-            string name = type.Substring(type.LastIndexOf('.') + 1);
+            var type = node.GetType().ToString();
+            var name = type.Substring(type.LastIndexOf('.') + 1);
 
             _sb.Append(name);
 
-            string innerType = node.ToString();
+            var innerType = node.ToString();
 
             innerType = innerType.Replace("\n", "\\n");
             innerType = innerType.Replace("\r", "\\r");
 
-            int ms = innerType.IndexOf("Microsoft", StringComparison.Ordinal);
+            var ms = innerType.IndexOf("Microsoft", StringComparison.Ordinal);
             if (ms >= 0) {
                 innerType = innerType.Substring(type.LastIndexOf('.') + 1);
             }
@@ -69,7 +69,7 @@ namespace Microsoft.R.Core.Utility {
 
             _indent++;
 
-            foreach (IAstNode child in node.Children) {
+            foreach (var child in node.Children) {
                 WriteNode(child);
             }
 
@@ -83,8 +83,6 @@ namespace Microsoft.R.Core.Utility {
             _indent--;
         }
 
-        private void Indent() {
-            _sb.Append(' ', _indent * 4);
-        }
+        private void Indent() => _sb.Append(' ', _indent * 4);
     }
 }

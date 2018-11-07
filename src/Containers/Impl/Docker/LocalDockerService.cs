@@ -33,7 +33,7 @@ namespace Microsoft.R.Containers.Docker {
             _ps = services.Process();
             _outputService = services.GetService<IOutputService>();
         }
-        
+
         public async Task<IContainer> CreateContainerFromFileAsync(BuildImageParameters buildParams, CancellationToken ct) {
             await TaskUtilities.SwitchToBackgroundThread();
 
@@ -128,7 +128,7 @@ namespace Microsoft.R.Containers.Docker {
             return ExecuteCommandAsync(Invariant($"{command} {commandOptions}"), $"{command} {server}", -1, true, ct);
         }
 
-        public Task<string> RepositoryLoginAsync(RepositoryCredentials auth, CancellationToken ct) 
+        public Task<string> RepositoryLoginAsync(RepositoryCredentials auth, CancellationToken ct)
             => RepositoryLoginAsync(auth.Username, auth.Password, auth.RepositoryServer, ct);
 
         public Task<string> RepositoryLogoutAsync(string server, CancellationToken ct) {
@@ -136,7 +136,7 @@ namespace Microsoft.R.Containers.Docker {
             return ExecuteCommandAsync(command, command, -1, true, ct);
         }
 
-        public Task<string> RepositoryLogoutAsync(RepositoryCredentials auth, CancellationToken ct) 
+        public Task<string> RepositoryLogoutAsync(RepositoryCredentials auth, CancellationToken ct)
             => RepositoryLogoutAsync(auth.RepositoryServer, ct);
 
         public Task<string> PullImageAsync(string fullImageName, CancellationToken ct) {
@@ -199,12 +199,12 @@ namespace Microsoft.R.Containers.Docker {
                 }
 
                 await process.WaitForExitAsync(timeoutms, ct);
-            } catch(IOException) {
+            } catch (IOException) {
                 if (printOutput) {
                     Output.WriteError(Resources.LocalDockerErrorFormat.FormatInvariant(outputPrefix, Resources.LocalDockerOutputStreamException));
                 }
                 throw new ContainerException(Resources.LocalDockerOutputStreamException);
-            } catch(OperationCanceledException) when (!failOnTimeout && !ct.IsCancellationRequested){
+            } catch (OperationCanceledException) when (!failOnTimeout && !ct.IsCancellationRequested) {
             }
 
             var error = await process.StandardError.ReadToEndAsync();
@@ -216,13 +216,12 @@ namespace Microsoft.R.Containers.Docker {
                     throw new ContainerException(error);
                 }
             }
-             
+
             return result.ToString();
         }
 
-        private bool IsSecurityWarning(string error) {
-            return error.ContainsIgnoreCase("SECURITY WARNING: You are building a Docker image from Windows against a non-Windows Docker host.");
-        }
+        private bool IsSecurityWarning(string error)
+            => error.ContainsIgnoreCase("SECURITY WARNING: You are building a Docker image from Windows against a non-Windows Docker host.");
 
         private bool IsServiceNotReady(string error) {
             return error.ContainsIgnoreCase("open //./pipe/docker_engine: The system cannot find the file specified") ||

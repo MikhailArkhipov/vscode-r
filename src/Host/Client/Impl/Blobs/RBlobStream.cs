@@ -40,25 +40,21 @@ namespace Microsoft.R.Host.Client {
 
         private long _position;
         public override long Position {
-            get {
-                return _position;
-            }
-            set {
-                Seek(value, SeekOrigin.Begin);
-            }
+            get => _position;
+            set => Seek(value, SeekOrigin.Begin);
         }
 
         public override void Flush() => _length = _blobService.GetBlobSizeAsync(_blob.Id).GetAwaiter().GetResult();
 
         public override int Read(byte[] buffer, int offset, int count) {
-            byte[] bytes = _blobService.BlobReadAsync(_blob.Id, Position, count).GetAwaiter().GetResult();
+            var bytes = _blobService.BlobReadAsync(_blob.Id, Position, count).GetAwaiter().GetResult();
             Array.Copy(bytes, 0, buffer, offset, bytes.Length);
             _position += bytes.Length;
             return bytes.Length;
         }
 
         public override long Seek(long offset, SeekOrigin origin) {
-            long temp = _position;
+            var temp = _position;
             switch (origin) {
                 case SeekOrigin.Begin:
                     temp = offset;

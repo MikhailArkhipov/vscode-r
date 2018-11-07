@@ -15,7 +15,7 @@ namespace Microsoft.R.Core.Test.Tokens {
         [Test]
         [Category.R.Formatting]
         public void VerifySortedRKeywords() {
-            string[] array = new List<string>(Keywords.KeywordList).ToArray();
+            var array = new List<string>(Keywords.KeywordList).ToArray();
             Array.Sort(array, StringComparer.Ordinal);
 
             array.Should().Equal(Keywords.KeywordList);
@@ -24,7 +24,7 @@ namespace Microsoft.R.Core.Test.Tokens {
         [Test]
         [Category.R.Formatting]
         public void VerifySorted2CharOperators() {
-            string[] array = new List<string>(Operators._twoChars).ToArray();
+            var array = new List<string>(Operators._twoChars).ToArray();
             Array.Sort(array, StringComparer.Ordinal);
 
             array.Should().Equal(Operators._twoChars);
@@ -33,7 +33,7 @@ namespace Microsoft.R.Core.Test.Tokens {
         [Test]
         [Category.R.Formatting]
         public void VerifySorted3CharOperators() {
-            string[] array = new List<string>(Operators._threeChars).ToArray();
+            var array = new List<string>(Operators._threeChars).ToArray();
             Array.Sort(array, StringComparer.Ordinal);
 
             array.Should().Equal(Operators._threeChars);

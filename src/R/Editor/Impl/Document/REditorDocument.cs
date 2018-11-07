@@ -5,7 +5,6 @@ using System;
 using System.Diagnostics;
 using Microsoft.Common.Core.Services;
 using Microsoft.Languages.Editor.Text;
-using Microsoft.R.Core.Parser;
 using Microsoft.R.Editor.Tree;
 using Microsoft.R.Editor.Validation;
 using static System.FormattableString;

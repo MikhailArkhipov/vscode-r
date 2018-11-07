@@ -133,7 +133,7 @@ namespace Microsoft.R.Core.Formatting {
         public int GetOpenCurlyBraceIndentSize(RToken openCurlyBraceToken, TextBuilder tb, RFormatOptions options) {
             Debug.Assert(openCurlyBraceToken.TokenType == RTokenType.OpenCurlyBrace);
 
-            int keywordPosition = -1;
+            var keywordPosition = -1;
             if (_bracetoKeywordPositionMap.TryGetValue(openCurlyBraceToken, out keywordPosition)) {
                 return IndentBuilder.GetLineIndentSize(tb, keywordPosition, options.TabSize);
             }
@@ -199,7 +199,7 @@ namespace Microsoft.R.Core.Formatting {
         }
 
         private int GetNearestNonWhitespaceIndex() {
-            for (int i = _tb.Length - 1; i >= 0; i--) {
+            for (var i = _tb.Length - 1; i >= 0; i--) {
                 if (!Char.IsWhiteSpace(_tb.Text[i])) {
                     return i;
                 }

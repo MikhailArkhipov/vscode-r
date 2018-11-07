@@ -26,8 +26,6 @@ namespace Microsoft.R.Host.Client.Session {
             return _responseTask;
         }
 
-        public void Dispose() {
-            _requestTcs.TrySetCanceled();
-        }
+        public void Dispose() => _requestTcs.TrySetCanceled();
     }
 }

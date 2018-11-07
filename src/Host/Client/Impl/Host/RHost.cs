@@ -54,13 +54,9 @@ namespace Microsoft.R.Host.Client {
 
         public IActionLog Log { get; }
 
-        public void Dispose() {
-            DisconnectAsync().DoNotWait();
-        }
+        public void Dispose() => DisconnectAsync().DoNotWait();
 
-        public void FlushLog() {
-            Log?.Flush();
-        }
+        public void FlushLog() => Log?.Flush();
 
         private static Exception ProtocolError(FormattableString fs, object message = null) {
             var s = Invariant(fs);

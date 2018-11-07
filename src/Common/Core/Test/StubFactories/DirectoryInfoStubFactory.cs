@@ -47,16 +47,16 @@ namespace Microsoft.Common.Core.Test.StubFactories {
         }
 
         public static IFileSystemInfo FromIndentedString(IFileSystem fileSystem, string rootPath, string indentedString) {
-            string[] lines = indentedString.Split('\r', '\n');
-            Stack<int> folderIndents = new Stack<int>();
+            var lines = indentedString.Split('\r', '\n');
+            var folderIndents = new Stack<int>();
             folderIndents.Push(-1);
-            IDirectoryInfo root = Create(fileSystem, rootPath);
-            IDirectoryInfo directory = root;
+            var root = Create(fileSystem, rootPath);
+            var directory = root;
 
-            foreach (string line in lines.Where(l => !string.IsNullOrWhiteSpace(l))) {
-                int indent = GetIndent(line);
-                string name = line.Trim();
-                bool isFolder = IsFolder(name);
+            foreach (var line in lines.Where(l => !string.IsNullOrWhiteSpace(l))) {
+                var indent = GetIndent(line);
+                var name = line.Trim();
+                var isFolder = IsFolder(name);
 
                 if (isFolder) {
                     // Find a folder for current item
@@ -65,8 +65,8 @@ namespace Microsoft.Common.Core.Test.StubFactories {
                         directory = directory.Parent;
                     }
 
-                    string path = Path.Combine(directory.FullName, name.Substring(1, name.Length - 2));
-                    IDirectoryInfo child = Create(fileSystem, path);
+                    var path = Path.Combine(directory.FullName, name.Substring(1, name.Length - 2));
+                    var child = Create(fileSystem, path);
 
                     AddToDirectory(directory, child);
 
@@ -79,7 +79,7 @@ namespace Microsoft.Common.Core.Test.StubFactories {
                         directory = directory.Parent;
                     }
 
-                    string path = Path.Combine(directory.FullName, name);
+                    var path = Path.Combine(directory.FullName, name);
                     IFileSystemInfo child = FileInfoStubFactory.Create(fileSystem, path);
 
                     AddToDirectory(directory, child);
@@ -99,7 +99,7 @@ namespace Microsoft.Common.Core.Test.StubFactories {
 
         private static void AddToDirectory(IDirectoryInfo directory, IFileSystemInfo child) {
             var children = (List<IFileSystemInfo>)directory.EnumerateFileSystemInfos();
-            int index = children.BinarySearch(child, Comparer<IFileSystemInfo>.Create((x, y) => string.Compare(x.FullName, y.FullName, StringComparison.OrdinalIgnoreCase)));
+            var index = children.BinarySearch(child, Comparer<IFileSystemInfo>.Create((x, y) => string.Compare(x.FullName, y.FullName, StringComparison.OrdinalIgnoreCase)));
             if (index >= 0) {
                 throw new InvalidOperationException(string.Format(CultureInfo.InvariantCulture, "Item with name {0} already exists in folder {1}", child.FullName, directory.FullName));
             }
@@ -124,7 +124,7 @@ namespace Microsoft.Common.Core.Test.StubFactories {
         }
 
         private static int GetIndent(string s) {
-            for (int i = 0; i < s.Length; i++) {
+            for (var i = 0; i < s.Length; i++) {
                 if (!char.IsWhiteSpace(s, i)) {
                     return i;
                 }

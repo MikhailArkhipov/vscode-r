@@ -24,11 +24,11 @@ namespace Microsoft.R.Core.AST.Statements {
         }
 
         public override bool Parse(ParseContext context, IAstNode parent) {
-            this.Expression = new Expression(_terminatingKeyword);
-            if (this.Expression.Parse(context, this)) {
-                if (this.Expression.Children.Count == 1 && this.Expression.Children[0] is Expression) {
+            Expression = new Expression(_terminatingKeyword);
+            if (Expression.Parse(context, this)) {
+                if (Expression.Children.Count == 1 && Expression.Children[0] is Expression) {
                     // Promote up
-                    Expression = this.Expression.Children[0] as Expression;
+                    Expression = Expression.Children[0] as Expression;
                     Expression.Parent = null;
                     _children.RemoveAt(0);
                     Expression.Parent = this;
@@ -40,8 +40,6 @@ namespace Microsoft.R.Core.AST.Statements {
             return false;
         }
 
-        public override string ToString() {
-            return this.Expression + base.ToString();
-        }
+        public override string ToString() => Expression + base.ToString();
     }
 }

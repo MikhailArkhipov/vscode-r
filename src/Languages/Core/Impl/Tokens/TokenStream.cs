@@ -45,7 +45,7 @@ namespace Microsoft.Languages.Core.Tokens {
         /// position to -1.
         /// </summary>
         public int Position {
-            get { return _index; }
+            get => _index;
             set {
                 _index = value;
                 CheckBounds();

@@ -13,9 +13,8 @@ namespace Microsoft.R.Host.Client {
                 : base(host, message, cancellationToken) {
             }
 
-            public static Task<BlobReadRequest> ReadAllAsync(RHost host, ulong blobId, CancellationToken cancellationToken) {
-                return ReadAsync(host, blobId, 0, -1, cancellationToken);
-            }
+            public static Task<BlobReadRequest> ReadAllAsync(RHost host, ulong blobId, CancellationToken cancellationToken)
+                => ReadAsync(host, blobId, 0, -1, cancellationToken);
 
             public static async Task<BlobReadRequest> ReadAsync(RHost host, ulong blobId, long position, long count, CancellationToken cancellationToken) {
                 var message = host.CreateRequestMessage("?ReadBlob", new JArray { blobId, position, count });
@@ -24,7 +23,8 @@ namespace Microsoft.R.Host.Client {
                 return request;
             }
 
-            public override void Handle(RHost host, Message response) => CompletionSource.TrySetResult(response.Blob);
+            public override void Handle(RHost host, Message response)
+                => CompletionSource.TrySetResult(response.Blob);
         }
     }
 }

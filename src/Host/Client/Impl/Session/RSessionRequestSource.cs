@@ -37,9 +37,7 @@ namespace Microsoft.R.Host.Client.Session {
             }
         }
 
-        public void CompleteResponse() {
-            _responseTcs.SetResult(null);
-        }
+        public void CompleteResponse() => _responseTcs.SetResult(null);
 
         public void TryCancel(OperationCanceledException exception) {
             _createRequestTcs.TrySetCanceled(exception);

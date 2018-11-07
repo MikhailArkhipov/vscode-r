@@ -8,7 +8,6 @@ using System.Threading;
 using Microsoft.Common.Core;
 using Microsoft.Common.Core.Services;
 using Microsoft.Common.Core.Shell;
-using Microsoft.Languages.Core.Utility;
 using Microsoft.Languages.Editor.Text;
 using Microsoft.R.Editor.Document;
 using Microsoft.R.Editor.Tree;
@@ -47,7 +46,7 @@ namespace Microsoft.R.Editor.Validation {
         private readonly ValidatorAggregator _aggregator;
 
         private CancellationTokenSource _cts;
-        private bool _syntaxCheckEnabled = true;
+        private readonly bool _syntaxCheckEnabled = true;
         private bool _lintCheckEnabled;
         private bool _advisedToIdleTime;
         private DateTime _idleRequestTime = DateTime.UtcNow;
@@ -174,7 +173,7 @@ namespace Microsoft.R.Editor.Validation {
 
             //  Empty the results queue
             while (!ValidationResults.IsEmpty) {
-                ValidationResults.TryDequeue(out IValidationError error);
+                ValidationResults.TryDequeue(out var _);
             }
             ClearResults();
             UnadviseFromIdle();
@@ -201,10 +200,9 @@ namespace Microsoft.R.Editor.Validation {
         }
         #endregion
 
-        private void ClearResults() {
+        private void ClearResults() =>
             // Adding sentinel will cause task list handler
             // to remove all results from the task list 
             ValidationResults.Enqueue(new ValidationSentinel());
-        }
     }
 }

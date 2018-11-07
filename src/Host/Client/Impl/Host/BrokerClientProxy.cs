@@ -12,9 +12,7 @@ namespace Microsoft.R.Host.Client.Host {
             _broker = new NullBrokerClient();
         }
 
-        public IBrokerClient Set(IBrokerClient broker) {
-            return Interlocked.Exchange(ref _broker, broker);
-        }
+        public IBrokerClient Set(IBrokerClient broker) => Interlocked.Exchange(ref _broker, broker);
 
         public void Dispose() {
             var broker = Interlocked.Exchange(ref _broker, new NullBrokerClient());

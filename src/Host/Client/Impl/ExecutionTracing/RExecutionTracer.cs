@@ -289,7 +289,7 @@ namespace Microsoft.R.ExecutionTracing {
                 }
             }
 
-            bool isStepCompleted = false;
+            var isStepCompleted = false;
             if (_stepTcs != null) {
                 var stepTcs = _stepTcs;
                 _stepTcs = null;
@@ -319,8 +319,7 @@ namespace Microsoft.R.ExecutionTracing {
             ProcessBrowsePrompt(e.Contexts);
         }
 
-        private void RSession_AfterRequest(object sender, RAfterRequestEventArgs e) {
-            _currentBrowseEventArgs = null;
-        }
+        private void RSession_AfterRequest(object sender, RAfterRequestEventArgs e) 
+            => _currentBrowseEventArgs = null;
     }
 }
