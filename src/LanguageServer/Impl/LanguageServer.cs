@@ -42,7 +42,7 @@ namespace Microsoft.R.LanguageServer {
         private readonly CancellationTokenSource _sessionTokenSource = new CancellationTokenSource();
 
         private IDocumentCollection _documents;
-        private IIdleTimeNotification _idleTimeNotification;
+        private IIdleTimeTracker _idleTimeTracker;
         private IMainThreadPriority _mainThread;
         private IFunctionIndex _functionIndex;
         private InitializeParams _initParams;
@@ -50,7 +50,7 @@ namespace Microsoft.R.LanguageServer {
 
         private IMainThreadPriority MainThreadPriority => _mainThread ?? (_mainThread = _services.GetService<IMainThreadPriority>());
         private IDocumentCollection Documents => _documents ?? (_documents = _services.GetService<IDocumentCollection>());
-        private IIdleTimeNotification IdleTimeNotification => _idleTimeNotification ?? (_idleTimeNotification = _services.GetService<IIdleTimeNotification>());
+        private IIdleTimeTracker IdleTimeTracker => _idleTimeTracker ?? (_idleTimeTracker = _services.GetService<IIdleTimeTracker>());
         private IFunctionIndex FunctionIndex => _functionIndex ?? (_functionIndex = _services.GetService<IFunctionIndex>());
         private IREvalSession EvalSession => _evalSession ?? (_evalSession = _services.GetService<IREvalSession>());
 
@@ -84,19 +84,19 @@ namespace Microsoft.R.LanguageServer {
 
         [JsonRpcMethod("textDocument/didOpen")]
         public void didOpen(JToken token, CancellationToken ct) {
-            IdleTimeNotification.NotifyUserActivity();
+            IdleTimeTracker.NotifyUserActivity();
             var p = token.ToObject<DidOpenTextDocumentParams>();
             MainThreadPriority.Post(() => Documents.AddDocument(p.textDocument.text, p.textDocument.uri), ThreadPostPriority.Normal);
         }
 
         [JsonRpcMethod("textDocument/didChange")]
         public async Task didChange(JToken token, CancellationToken ct) {
+            IdleTimeTracker.NotifyUserActivity();
+
             if (_ignoreNextChange) {
                 _ignoreNextChange = false;
                 return;
             }
-
-            IdleTimeNotification.NotifyUserActivity();
 
             using (new DebugMeasureTime("textDocument/didChange")) {
                 await MainThreadPriority.SendAsync(async () => {
@@ -115,12 +115,14 @@ namespace Microsoft.R.LanguageServer {
 
         [JsonRpcMethod("textDocument/didClose")]
         public void didClose(JToken token, CancellationToken ct) {
+            IdleTimeTracker.NotifyUserActivity();
             var p = token.ToObject<DidCloseTextDocumentParams>();
             MainThreadPriority.Post(() => Documents.RemoveDocument(p.textDocument.uri), ThreadPostPriority.Normal);
         }
 
         [JsonRpcMethod("textDocument/completion")]
         public Task<CompletionList> completion(JToken token, CancellationToken ct) {
+            IdleTimeTracker.NotifyUserActivity();
             using (new DebugMeasureTime("textDocument/completion")) {
                 var p = token.ToObject<CompletionParams>();
                 return MainThreadPriority.SendAsync(async () => {
@@ -150,6 +152,7 @@ namespace Microsoft.R.LanguageServer {
 
         [JsonRpcMethod("textDocument/formatting")]
         public Task<TextEdit[]> formatting(JToken token, CancellationToken ct) {
+            IdleTimeTracker.NotifyUserActivity();
             using (new DebugMeasureTime("textDocument/formatting")) {
                 return MainThreadPriority.SendAsync(async () => {
                     var p = token.ToObject<DocumentFormattingParams>();
@@ -163,6 +166,7 @@ namespace Microsoft.R.LanguageServer {
 
         [JsonRpcMethod("textDocument/rangeFormatting")]
         public Task<TextEdit[]> rangeFormatting(JToken token, CancellationToken ct) {
+            IdleTimeTracker.NotifyUserActivity();
             using (new DebugMeasureTime("textDocument/rangeFormatting")) {
                 return MainThreadPriority.SendAsync(async () => {
                     var p = token.ToObject<DocumentRangeFormattingParams>();
@@ -176,6 +180,7 @@ namespace Microsoft.R.LanguageServer {
 
         [JsonRpcMethod("textDocument/onTypeFormatting")]
         public Task<TextEdit[]> onTypeFormatting(JToken token, CancellationToken ct) {
+            IdleTimeTracker.NotifyUserActivity();
             using (new DebugMeasureTime("textDocument/onTypeFormatting")) {
                 return MainThreadPriority.SendAsync(async () => {
                     var p = token.ToObject<DocumentOnTypeFormattingParams>();
@@ -200,9 +205,14 @@ namespace Microsoft.R.LanguageServer {
 
         [JsonRpcMethod("workspace/didChangeConfiguration")]
         public Task didChangeConfiguration(JToken token, CancellationToken ct) {
+            IdleTimeTracker.NotifyUserActivity();
             var settings = new LanguageServerSettings();
 
-            var r = token["settings"];
+            var s = token["settings"];
+            if (s == null) {
+                return Task.CompletedTask;
+            }
+            var r = s["r"];
             if (r == null) {
                 return Task.CompletedTask;
             }
@@ -259,8 +269,10 @@ namespace Microsoft.R.LanguageServer {
         }
 
         [JsonRpcMethod("workspace/executeCommand")]
-        public Task<object> executeCommand(string command, object[] arguments)
-            => _services.GetService<IController>().ExecuteAsync(command, arguments);
+        public Task<object> executeCommand(string command, object[] arguments) {
+            IdleTimeTracker.NotifyUserActivity();
+            return _services.GetService<IController>().ExecuteAsync(command, arguments);
+        }
 
         [JsonRpcMethod("initialize")]
         public InitializeResult initialize(JToken token, CancellationToken ct) {
@@ -326,10 +338,16 @@ namespace Microsoft.R.LanguageServer {
         public void cancelRequest(JToken token) { }
 
         [JsonRpcMethod("r/execute")]
-        public Task<string> execute(string code) => EvalSession.ExecuteCodeAsync(code, CancellationToken.None);
+        public Task<string> execute(string code) {
+            IdleTimeTracker.NotifyUserActivity();
+            return EvalSession.ExecuteCodeAsync(code, CancellationToken.None);
+        }
 
         [JsonRpcMethod("r/interrupt")]
-        public Task interrupt() => EvalSession.InterruptAsync(CancellationToken.None);
+        public Task interrupt() {
+            IdleTimeTracker.NotifyUserActivity();
+            return EvalSession.InterruptAsync(CancellationToken.None);
+        }
 
         [JsonRpcMethod("r/reset")]
         public Task reset() => EvalSession.ResetAsync(CancellationToken.None);

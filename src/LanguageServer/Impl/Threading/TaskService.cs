@@ -17,7 +17,9 @@ namespace Microsoft.R.LanguageServer.Threading {
         public bool Wait<T>(Func<Task<T>> method, out T result, int ms = Timeout.Infinite, CancellationToken cancellationToken = default(CancellationToken)) {
             var delayTask = Task.Delay(ms, cancellationToken);
             var resultTask = Run(method, delayTask);
+#pragma warning disable VSTHRD002 // Avoid problematic synchronous waits
             result = resultTask is Task<T> task ? task.GetAwaiter().GetResult() : default(T);
+#pragma warning restore VSTHRD002 // Avoid problematic synchronous waits
             return resultTask != delayTask;
         }
 

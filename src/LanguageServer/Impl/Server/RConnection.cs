@@ -77,7 +77,7 @@ namespace Microsoft.R.LanguageServer.Server {
                 _packageIndex = _services.GetService<IPackageIndex>();
                 _packageIndex.BuildIndexAsync(ct).ContinueWith(t => {
                     _ui.LogMessageAsync($"complete in {FormatElapsed(DateTime.Now - start)}", MessageType.Info).DoNotWait();
-                }, ct).DoNotWait();
+                }, ct, TaskContinuationOptions.None, TaskScheduler.Default).DoNotWait();
             } else {
                 _ui.ShowMessageAsync("Unable to start R process", MessageType.Error).DoNotWait();
             }

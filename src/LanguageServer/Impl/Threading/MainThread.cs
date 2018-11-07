@@ -49,9 +49,17 @@ namespace Microsoft.R.LanguageServer.Threading {
 
         public Task<T> SendAsync<T>(Func<Task<T>> action, ThreadPostPriority priority) {
             var tcs = new TaskCompletionSource<T>();
+#pragma warning disable VSTHRD101 // Avoid unsupported async delegates
             Execute(async () => {
-                tcs.TrySetResult(await action());
+                try {
+                    tcs.TrySetResult(await action());
+                } catch(OperationCanceledException) {
+                    tcs.TrySetCanceled();
+                } catch(Exception ex) {
+                    tcs.TrySetException(ex);
+                }
             }, priority);
+#pragma warning restore VSTHRD101 // Avoid unsupported async delegates
 
             return tcs.Task;
         }
@@ -78,29 +86,29 @@ namespace Microsoft.R.LanguageServer.Threading {
         private void Execute(Action action, ThreadPostPriority priority) {
             _disposableBag.ThrowIfDisposed();
 
-            if (ThreadId == Thread.CurrentThread.ManagedThreadId) {
-                action();
-                return;
-            }
-
             BufferBlock<Action> queue = null;
-            switch (priority) {
-                case ThreadPostPriority.IdleOnce:
-                    _idleOnceAction = action;
-                    return;
-                case ThreadPostPriority.Idle:
-                    queue = _idleTimeQueue;
-                    break;
-                case ThreadPostPriority.Background:
-                    queue = _backgroundPriorityQueue;
-                    break;
-                case ThreadPostPriority.Normal:
-                    queue = _normalPriorityQueue;
-                    break;
+            if (priority == ThreadPostPriority.IdleOnce) {
+                _idleOnceAction = action;
+            } else {
+                if (ThreadId == Thread.CurrentThread.ManagedThreadId) {
+                    action();
+                } else {
+                    switch (priority) {
+                        case ThreadPostPriority.Idle:
+                            queue = _idleTimeQueue;
+                            break;
+                        case ThreadPostPriority.Background:
+                            queue = _backgroundPriorityQueue;
+                            break;
+                        case ThreadPostPriority.Normal:
+                            queue = _normalPriorityQueue;
+                            break;
+                    }
+                }
             }
 
             lock (_lock) {
-                queue.Post(action);
+                queue?.Post(action);
                 _workItemsAvailable.Set();
             }
         }

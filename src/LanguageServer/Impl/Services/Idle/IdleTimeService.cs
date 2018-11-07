@@ -8,7 +8,7 @@ using Microsoft.Common.Core.Shell;
 using Microsoft.R.LanguageServer.Threading;
 
 namespace Microsoft.R.LanguageServer.Services {
-    internal sealed class IdleTimeService : IIdleTimeService, IIdleTimeSource, IIdleTimeNotification, IDisposable {
+    internal sealed class IdleTimeService : IIdleTimeService, IIdleTimeSource, IIdleTimeTracker, IDisposable {
         private const int IdleDelay = 100;
         private const int MaxTimesFired = 500;
         private readonly object _lock = new object();

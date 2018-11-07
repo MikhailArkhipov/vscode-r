@@ -8,7 +8,7 @@ namespace Microsoft.R.LanguageServer.Services {
     /// that user activity happened. Helps timer-based implementations
     /// of idle service to avoid firing event when app is actually busy.
     /// </summary>
-    internal interface IIdleTimeNotification {
+    internal interface IIdleTimeTracker {
         void NotifyUserActivity();
     }
 }

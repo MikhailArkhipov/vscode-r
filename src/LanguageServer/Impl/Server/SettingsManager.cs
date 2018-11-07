@@ -42,8 +42,9 @@ namespace Microsoft.R.LanguageServer.Server {
             _editorSettings.FormatOptions.SpaceAfterKeyword = e.SpaceAfterKeyword;
             _editorSettings.FormatOptions.SpaceBeforeCurly = e.SpaceBeforeCurly;
             _editorSettings.FormatOptions.SpacesAroundEquals = e.SpacesAroundEquals;
-
             _editorSettings.LintOptions = vscodeSettings.Linting;
+            _editorSettings.RaiseChanged();
+
             _engineSettings.InterpreterIndex = vscodeSettings.Interpreter;
 
             SettingsChanged?.Invoke(this, EventArgs.Empty);
@@ -88,6 +89,8 @@ namespace Microsoft.R.LanguageServer.Server {
             public bool SmartIndentByArgument { get; set; } = true;
             public RFormatOptions FormatOptions { get; set; } = new RFormatOptions();
             public ILintOptions LintOptions { get; set; }
+
+            public void RaiseChanged() => SettingsChanged?.Invoke(this, EventArgs.Empty);
         }
 
         private sealed class RSettings : IRSettings {

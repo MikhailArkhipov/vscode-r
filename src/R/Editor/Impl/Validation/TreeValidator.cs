@@ -47,7 +47,7 @@ namespace Microsoft.R.Editor.Validation {
         private readonly ValidatorAggregator _aggregator;
 
         private CancellationTokenSource _cts;
-        private bool _syntaxCheckEnabled;
+        private bool _syntaxCheckEnabled = true;
         private bool _lintCheckEnabled;
         private bool _advisedToIdleTime;
         private DateTime _idleRequestTime = DateTime.UtcNow;
@@ -76,7 +76,7 @@ namespace Microsoft.R.Editor.Validation {
             // cause it fire Changed notification in some cases.
             _settings.SettingsChanged += OnSettingsChanged;
 
-            _syntaxCheckEnabled = IsSyntaxCheckEnabled(_editorTree.EditorBuffer, _settings, out _lintCheckEnabled);
+           // _syntaxCheckEnabled = IsSyntaxCheckEnabled(_editorTree.EditorBuffer, _settings, out _lintCheckEnabled);
             _lintCheckEnabled = _settings.LintOptions.Enabled;
 
             // We don't want to start validation right away since it may 
@@ -106,7 +106,7 @@ namespace Microsoft.R.Editor.Validation {
         private void OnIdle(object sender, EventArgs e) {
             // Throttle validator idle a bit and check if previous 
             // task is still running. If so, try next idle.
-            if ((DateTime.Now -_idleRequestTime).TotalMilliseconds > _validationDelay && !_aggregator.Busy) {
+            if ((DateTime.Now - _idleRequestTime).TotalMilliseconds > _validationDelay && !_aggregator.Busy) {
                 UnadviseFromIdle();
                 StartValidation();
             }
@@ -130,22 +130,17 @@ namespace Microsoft.R.Editor.Validation {
 
         #region Settings change handler
         private void OnSettingsChanged(object sender, EventArgs e) {
-            var syntaxCheckWasEnabled = _syntaxCheckEnabled;
+            //var syntaxCheckWasEnabled = _syntaxCheckEnabled;
             var lintCheckWasEnabled = _lintCheckEnabled;
 
-            _syntaxCheckEnabled = IsSyntaxCheckEnabled(_editorTree.EditorBuffer, _settings, out _lintCheckEnabled);
-            _lintCheckEnabled &= _settings.LintOptions.Enabled;
+           // _syntaxCheckEnabled = IsSyntaxCheckEnabled(_editorTree.EditorBuffer, _settings, out _lintCheckEnabled);
+            _lintCheckEnabled = _settings.LintOptions.Enabled;
 
-            var optionsChanged = (syntaxCheckWasEnabled ^ _syntaxCheckEnabled) ||
-                                 (lintCheckWasEnabled ^ _lintCheckEnabled);
+            // This will clear error list so any errors that were produced
+            // by validators that were turned off will go away.
+            StopValidation();
+            StartValidation();
 
-            if (optionsChanged) {
-                // This will clear error list so any errors that were produced
-                // by validators that were turned off will go away.
-                StopValidation();
-            }
-
-            StartValidation(); // Checks _syntaxCheckEnabled
             Cleared?.Invoke(this, EventArgs.Empty);
         }
         #endregion
