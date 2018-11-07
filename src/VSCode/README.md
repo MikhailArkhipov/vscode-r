@@ -2,6 +2,8 @@
 
 A [Visual Studio Code](https://code.visualstudio.com/) [extension](https://marketplace.visualstudio.com/VSCode) provides support for the [R language](https://www.r-project.org/) for R 3.2+. Features include syntax checking, completions, code formatting, formatting as you type, tooltips, linting.
 
+![Completions](images/completions.png)
+
 ## Prerequsites
 
 - [.NET Core 2.1 Runtime](https://www.microsoft.com/net/download)
@@ -11,22 +13,22 @@ A [Visual Studio Code](https://code.visualstudio.com/) [extension](https://marke
 
 Open the Command Palette (Command+Shift+P on macOS and Ctrl+Shift+P on Windows/Linux) and type 'R:' to see list of available commands and shortcuts.
 
-### Syntax check
+### _Syntax check_
 Syntax check is performed as you type or when opening a file. Look for red squiggles. Problems are also reported in the `Problems` tab.
 
-### Formatting
+### _Formatting_
 Extension provides ability to format document or selection. Formatting options are available in the `r.editor` settings section.
 
-### Automatic formatting (as you type)
+### _Automatic formatting (as you type)_
 By default editor formats code after you type Enter, ; or }. You can deactivate the feature via `editor.formatOnType` setting. Formatting settings are the same as in the document formatting.
 
-###Linting 
+### _Linting_ 
 Functionality is close to [lintr](https://github.com/jimhester/lintr). However, you do not have to run linting explicitly, it happens as you type. By default it is disabled, you can enable it by setting `r.linting.enabled` to `true`. Linter has various options available in the `r.linting` section.
 
-###Execute in terminal/source file
+### _Execute in terminal/source file_
 Use `R: Execute line or selection` commands to execute line or selection in the terminal. Similarly, use `R: source file` to source file from the editor into the terminal section.
 
-###Known issues
+## Known issues
 R session in the editor does not automatically pick up new packages installed in the terminal. You may have to reload the window for the session to pick up newly installed modules.
 
 ## Not currently supported
