@@ -119,7 +119,12 @@ namespace Microsoft.R.LanguageServer.Threading {
             while (!_ctsExit.IsCancellationRequested) {
                 Action action;
 
-                _workItemsAvailable.Wait(_ctsExit.Token);
+                try {
+                    _workItemsAvailable.Wait(_ctsExit.Token);
+                } catch(OperationCanceledException) {
+                    break;
+                }
+
                 if(_ctsExit.IsCancellationRequested) {
                     break;
                 }

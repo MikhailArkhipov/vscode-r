@@ -47,6 +47,7 @@ namespace Microsoft.R.LanguageServer {
         private IFunctionIndex _functionIndex;
         private InitializeParams _initParams;
         private IREvalSession _evalSession;
+        private bool _shutdown;
 
         private IMainThreadPriority MainThreadPriority => _mainThread ?? (_mainThread = _services.GetService<IMainThreadPriority>());
         private IDocumentCollection Documents => _documents ?? (_documents = _services.GetService<IDocumentCollection>());
@@ -308,6 +309,26 @@ namespace Microsoft.R.LanguageServer {
             };
         }
 
+        [JsonRpcMethod("shutdown")]
+        public void shutdown() {
+            // Shutdown, but do not exit.
+            // https://microsoft.github.io/language-server-protocol/specification#shutdown
+            _shutdown = true;
+            _idleTimeTracker.Dispose();
+        }
+
+        [JsonRpcMethod("exit")]
+        public void exit() {
+            _sessionTokenSource.Cancel();
+            _idleTimeTracker.Dispose();
+            // Per https://microsoft.github.io/language-server-protocol/specification#exit
+            Environment.Exit(_shutdown ? 0 : 1);
+        }
+
+        [JsonRpcMethod("$/cancelRequest")]
+        public void cancelRequest(JToken token) { }
+
+        #region R Commands
         [JsonRpcMethod("r/getInterpreterPath")]
         public string getInterpreterPath() {
             if (!IsRInstalled()) {
@@ -331,12 +352,6 @@ namespace Microsoft.R.LanguageServer {
             return engines.Count > 0;
         }
 
-        [JsonRpcMethod("exit")]
-        public void exit() => _sessionTokenSource.Cancel();
-
-        [JsonRpcMethod("$/cancelRequest")]
-        public void cancelRequest(JToken token) { }
-
         [JsonRpcMethod("r/execute")]
         public Task<string> execute(string code) {
             IdleTimeTracker.NotifyUserActivity();
@@ -351,6 +366,7 @@ namespace Microsoft.R.LanguageServer {
 
         [JsonRpcMethod("r/reset")]
         public Task reset() => EvalSession.ResetAsync(CancellationToken.None);
+        #endregion
 
         private bool IsEmptyChange(IEnumerable<TextEdit> changes)
             => changes.All(x => string.IsNullOrEmpty(x.newText) && IsRangeEmpty(x.range));
