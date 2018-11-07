@@ -45,8 +45,7 @@ namespace Microsoft.R.LanguageServer.Documents {
             _symbolsProvider = new DocumentSymbolsProvider();
         }
 
-        public async Task ProcessChangesAsync(TextDocumentContentChangedEvent[] contentChanges) {
-            await _services.MainThread().SwitchToAsync();
+        public void ProcessChanges(TextDocumentContentChangedEvent[] contentChanges) {
 
             foreach (var change in contentChanges.Where(c => c.range.HasValue)) {
                 var position = EditorBuffer.ToStreamPosition(change.range.Value.start);
@@ -79,16 +78,16 @@ namespace Microsoft.R.LanguageServer.Documents {
             => _signatureManager.GetHoverAsync(CreateContext(position), ct);
 
         [DebuggerStepThrough]
-        public Task<TextEdit[]> FormatAsync()
-            => _formatter.FormatAsync(EditorBuffer.CurrentSnapshot);
+        public TextEdit[] Format()
+            => _formatter.Format(EditorBuffer.CurrentSnapshot);
 
         [DebuggerStepThrough]
-        public Task<TextEdit[]> FormatRangeAsync(Range range)
-            => _formatter.FormatRangeAsync(EditorBuffer.CurrentSnapshot, range);
+        public TextEdit[] FormatRange(Range range)
+            => _formatter.FormatRange(EditorBuffer.CurrentSnapshot, range);
 
         [DebuggerStepThrough]
-        public Task<TextEdit[]> AutoformatAsync(Position position, string typeChar)
-            => _formatter.AutoformatAsync(EditorBuffer.CurrentSnapshot, position, typeChar);
+        public TextEdit[] Autoformat(Position position, string typeChar)
+            => _formatter.Autoformat(EditorBuffer.CurrentSnapshot, position, typeChar);
 
         [DebuggerStepThrough]
         public SymbolInformation[] GetSymbols(Uri uri)

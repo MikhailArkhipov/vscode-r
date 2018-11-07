@@ -25,24 +25,24 @@ namespace Microsoft.R.LanguageServer.Formatting {
             _services = services;
         }
 
-        public Task<TextEdit[]> FormatAsync(IEditorBufferSnapshot snapshot) {
+        public TextEdit[] Format(IEditorBufferSnapshot snapshot) {
             var settings = _services.GetService<IREditorSettings>();
 
-            return DoFormatActionAsync(snapshot, () => {
+            return DoFormatAction(snapshot, () => {
                 var formattedText = new RFormatter(settings.FormatOptions).Format(snapshot.GetText());
                 snapshot.EditorBuffer.Replace(TextRange.FromBounds(0, snapshot.Length), formattedText);
             });
         }
 
-        public Task<TextEdit[]> FormatRangeAsync(IEditorBufferSnapshot snapshot, Range range) {
+        public TextEdit[] FormatRange(IEditorBufferSnapshot snapshot, Range range) {
             var editorBuffer = snapshot.EditorBuffer;
             var editorView = new EditorView(editorBuffer, range.ToTextRange(snapshot).Start);
             var rangeFormatter = new RangeFormatter(_services, editorView, editorBuffer, new IncrementalTextChangeHandler());
 
-             return DoFormatActionAsync(snapshot, () => rangeFormatter.FormatRange(range.ToTextRange(snapshot)));
+             return DoFormatAction(snapshot, () => rangeFormatter.FormatRange(range.ToTextRange(snapshot)));
         }
 
-        public Task<TextEdit[]> AutoformatAsync(IEditorBufferSnapshot snapshot, Position position, string typedChar) {
+        public TextEdit[] Autoformat(IEditorBufferSnapshot snapshot, Position position, string typedChar) {
             var editorBuffer = snapshot.EditorBuffer;
             var editorView = new EditorView(editorBuffer, position.ToStreamPosition(snapshot));
             var formatter = new AutoFormat(_services, editorView, editorBuffer, new IncrementalTextChangeHandler());
@@ -54,14 +54,13 @@ namespace Microsoft.R.LanguageServer.Formatting {
                 SpinWait.SpinUntil(() => document.EditorTree.IsReady, 50);
             }
 
-            return DoFormatActionAsync(snapshot, () => formatter.HandleTyping(typedChar[0], position.ToStreamPosition(snapshot)));
+            return DoFormatAction(snapshot, () => formatter.HandleTyping(typedChar[0], position.ToStreamPosition(snapshot)));
         }
 
-        private async Task<TextEdit[]> DoFormatActionAsync(IEditorBufferSnapshot snapshot, Action action) {
+        private TextEdit[] DoFormatAction(IEditorBufferSnapshot snapshot, Action action) {
             if (snapshot == null) {
                 return new TextEdit[0];
             }
-            await _services.MainThread().SwitchToAsync();
 
             var before = snapshot;
             action();

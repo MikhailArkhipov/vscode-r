@@ -7,6 +7,7 @@ using System;
 using System.IO;
 using System.Threading;
 using Microsoft.R.LanguageServer.Services;
+using Microsoft.R.LanguageServer.Threading;
 using Newtonsoft.Json;
 using StreamJsonRpc;
 
@@ -32,6 +33,7 @@ namespace Microsoft.R.LanguageServer.Server {
                 using (var cout = Console.OpenStandardOutput())
                 using (var server = new LanguageServer(services))
                 using (var rpc = new JsonRpc(cout, cin, server)) {
+                    rpc.SynchronizationContext = new SingleThreadSynchronizationContext();
 
                     services
                         .AddService(new UIService(rpc))

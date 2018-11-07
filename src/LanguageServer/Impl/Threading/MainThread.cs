@@ -47,15 +47,30 @@ namespace Microsoft.R.LanguageServer.Threading {
         public void Post(Action action, ThreadPostPriority priority)
             => Execute(action, priority);
 
+        public Task<T> SendAsync<T>(Func<T> action, ThreadPostPriority priority) {
+            var tcs = new TaskCompletionSource<T>();
+            Execute(() => {
+                try {
+                    tcs.TrySetResult(action());
+                } catch(OperationCanceledException) {
+                    tcs.TrySetCanceled();
+                } catch(Exception ex) {
+                    tcs.TrySetException(ex);
+                }
+            }, priority);
+
+            return tcs.Task;
+        }
+
         public Task<T> SendAsync<T>(Func<Task<T>> action, ThreadPostPriority priority) {
             var tcs = new TaskCompletionSource<T>();
 #pragma warning disable VSTHRD101 // Avoid unsupported async delegates
             Execute(async () => {
                 try {
                     tcs.TrySetResult(await action());
-                } catch(OperationCanceledException) {
+                } catch (OperationCanceledException) {
                     tcs.TrySetCanceled();
-                } catch(Exception ex) {
+                } catch (Exception ex) {
                     tcs.TrySetException(ex);
                 }
             }, priority);

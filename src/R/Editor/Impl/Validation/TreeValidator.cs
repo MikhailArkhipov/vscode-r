@@ -47,7 +47,6 @@ namespace Microsoft.R.Editor.Validation {
 
         private CancellationTokenSource _cts;
         private readonly bool _syntaxCheckEnabled = true;
-        private bool _lintCheckEnabled;
         private bool _advisedToIdleTime;
         private DateTime _idleRequestTime = DateTime.UtcNow;
 
@@ -76,7 +75,6 @@ namespace Microsoft.R.Editor.Validation {
             _settings.SettingsChanged += OnSettingsChanged;
 
            // _syntaxCheckEnabled = IsSyntaxCheckEnabled(_editorTree.EditorBuffer, _settings, out _lintCheckEnabled);
-            _lintCheckEnabled = _settings.LintOptions.Enabled;
 
             // We don't want to start validation right away since it may 
             // interfere with the editor perceived startup performance.
@@ -130,10 +128,8 @@ namespace Microsoft.R.Editor.Validation {
         #region Settings change handler
         private void OnSettingsChanged(object sender, EventArgs e) {
             //var syntaxCheckWasEnabled = _syntaxCheckEnabled;
-            var lintCheckWasEnabled = _lintCheckEnabled;
 
            // _syntaxCheckEnabled = IsSyntaxCheckEnabled(_editorTree.EditorBuffer, _settings, out _lintCheckEnabled);
-            _lintCheckEnabled = _settings.LintOptions.Enabled;
 
             // This will clear error list so any errors that were produced
             // by validators that were turned off will go away.
@@ -159,7 +155,7 @@ namespace Microsoft.R.Editor.Validation {
                 // Run all validators
                 _cts = new CancellationTokenSource();
                 var projected = IsProjectedBuffer(_editorTree.EditorBuffer);
-                _aggregator.RunAsync(_editorTree.AstRoot, projected, _lintCheckEnabled, ValidationResults, _cts.Token).DoNotWait();
+                _aggregator.RunAsync(_editorTree.AstRoot, projected, _settings.LintOptions.Enabled, ValidationResults, _cts.Token).DoNotWait();
             }
         }
 
