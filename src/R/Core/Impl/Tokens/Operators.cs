@@ -58,7 +58,7 @@ namespace Microsoft.R.Core.Tokens {
             if (cs.DistanceFromEnd >= 3) {
                 var threeLetterCandidate = cs.GetSubstringAt(cs.Position, 3);
                 if (threeLetterCandidate.Length == 3) {
-                    var index = Array.BinarySearch<string>(_threeChars, threeLetterCandidate);
+                    var index = Array.BinarySearch(_threeChars, threeLetterCandidate, StringComparer.Ordinal);
                     if (index >= 0) {
                         return 3;
                     }
@@ -73,7 +73,7 @@ namespace Microsoft.R.Core.Tokens {
                 var twoLetterCandidate = cs.GetSubstringAt(cs.Position, 2);
 
                 if (twoLetterCandidate.Length == 2) {
-                    var index = Array.BinarySearch<string>(_twoChars, twoLetterCandidate);
+                    var index = Array.BinarySearch(_twoChars, twoLetterCandidate, StringComparer.Ordinal);
                     if (index >= 0) {
                         return 2;
                     }
@@ -112,24 +112,24 @@ namespace Microsoft.R.Core.Tokens {
             "%%",
             "&&",
             "**", // alternative to ^
+            "->",
             "::",
             ":=", // reserved for data.table package
-            "??",
-            "||",
             "<-",
             "<=",
             "==",
-            "->",
             ">=",
+            "??",
+            "||"
             };
 
         // must be sorted
         internal static string[] _threeChars = {
             "%*%",
             "%/%",
-            ":::",
-            "<<-",
             "->>",
+            ":::",
+            "<<-"
         };
     }
 }

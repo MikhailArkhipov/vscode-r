@@ -5,7 +5,8 @@ using System;
 
 namespace Microsoft.R.Core.Tokens {
     public static class Constants {
-        public static bool IsConstant(string candidate) => Array.BinarySearch(ConstantsList, candidate) >= 0;
+        public static bool IsConstant(string candidate) 
+            => Array.BinarySearch(ConstantsList, candidate, StringComparer.Ordinal) >= 0;
         public static string[] ConstantsList { get; } = {
                  // must be sorted
                 "Inf",

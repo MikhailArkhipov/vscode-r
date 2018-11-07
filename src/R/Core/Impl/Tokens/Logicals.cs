@@ -6,7 +6,7 @@ using System;
 namespace Microsoft.R.Core.Tokens {
     public static class Logicals {
         public static bool IsLogical(string candidate)
-            => Array.BinarySearch(LogicalsList, candidate) >= 0; // R is case sensitive language
+            => Array.BinarySearch(LogicalsList, candidate, StringComparer.Ordinal) >= 0; // R is case sensitive language
 
         // must be sorted
         public static string[] LogicalsList { get; } = new [] {

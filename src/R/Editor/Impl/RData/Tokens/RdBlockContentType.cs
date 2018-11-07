@@ -45,12 +45,12 @@ namespace Microsoft.R.Editor.RData.Tokens {
          };
 
         public static BlockContentType GetBlockContentType(string keyword) {
-            int index = Array.BinarySearch(Keywords, keyword);
+            int index = Array.BinarySearch(Keywords, keyword, StringComparer.Ordinal);
             if (index >= 0) {
                 return BlockContentType.R;
             }
 
-            index = Array.BinarySearch(VerbatimKeywords, keyword);
+            index = Array.BinarySearch(VerbatimKeywords, keyword, StringComparer.Ordinal);
             if (index >= 0) {
                 return BlockContentType.Verbatim;
             }

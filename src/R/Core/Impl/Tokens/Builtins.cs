@@ -7,7 +7,7 @@ namespace Microsoft.R.Core.Tokens {
     public static class Builtins {
         public static bool IsBuiltin(string candidate) =>
             // R is case sensitive language
-            Array.BinarySearch(BuiltinList, candidate) >= 0;
+            Array.BinarySearch(BuiltinList, candidate, StringComparer.Ordinal) >= 0;
 
         public static string[] BuiltinList { get; } = new[] {
             "library",
