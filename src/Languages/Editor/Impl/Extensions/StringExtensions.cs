@@ -14,14 +14,14 @@ namespace Microsoft.Languages.Editor.Utility {
         public static string Wrap(this string s, int limit) {
             limit = Math.Max(80, limit);
 
-            StringBuilder sb = new StringBuilder();
-            int count = 0;
+            var sb = new StringBuilder();
+            var count = 0;
 
-            for (int i = 0; i < s.Length; i++) {
-                char ch = s[i];
+            for (var i = 0; i < s.Length; i++) {
+                var ch = s[i];
 
                 if (char.IsWhiteSpace(ch) && count >= limit) {
-                    sb.Append("\r\n");
+                    sb.Append(Environment.NewLine);
                     count = 0;
                 } else {
                     sb.Append(ch);
