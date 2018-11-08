@@ -2,7 +2,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 "use strict";
 
-import {commands, Disposable, Uri, window} from "vscode";
+import {commands, Disposable, Uri, window, ViewColumn} from "vscode";
 import * as editor from "./editor";
 import { ReplTerminal } from "./replTerminal";
 
@@ -84,7 +84,7 @@ export class Commands {
 
     private async moveCaretDown() {
         // Take focus back to the editor
-        await window.showTextDocument(window.activeTextEditor.document.uri);
+        await window.showTextDocument(window.activeTextEditor.document, ViewColumn.Active, true);
         const selectionEmpty = window.activeTextEditor.selection.isEmpty;
         if (selectionEmpty) {
             await commands.executeCommand("cursorMove",
