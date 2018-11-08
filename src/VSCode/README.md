@@ -2,7 +2,7 @@
 
 A [Visual Studio Code](https://code.visualstudio.com/) [extension](https://marketplace.visualstudio.com/VSCode) provides support for the [R language](https://www.r-project.org/) for R 3.2+. Features include syntax checking, completions, code formatting, formatting as you type, tooltips, linting.
 
-![Completions](images/completions.png)
+![Completions](/images/completions.png)
 
 ## Prerequsites
 
@@ -20,10 +20,10 @@ Syntax check is performed as you type or when opening a file. Look for red squig
 Extension provides ability to format document or selection. Formatting options are available in the `r.editor` settings section.
 
 ### _Automatic formatting (as you type)_
-By default editor formats code after you type Enter, ; or }. You can deactivate the feature via `editor.formatOnType` setting. Formatting settings are the same as in the document formatting.
+The editor can format code after you type Enter, ; or }. You can control the feature via `editor.formatOnType` and `r.editor.fornatOnType` settings. Formatting settings are the same as in the document formatting.
 
 ### _Linting_ 
-Functionality is close to [lintr](https://github.com/jimhester/lintr). However, you do not have to run linting explicitly, it happens as you type. By default it is disabled, you can enable it by setting `r.linting.enabled` to `true`. Linter has various options available in the `r.linting` section.
+Functionality is close to [lintr](https://github.com/jimhester/lintr). However, you do not have to run linting explicitly, it happens as you type. By default it is disabled, you can enable it by setting `r.linting.enable` to `true`. Linter has various options available in the `r.linting` section.
 
 ### _Execute in terminal/source file_
 Use `R: Execute line or selection` commands to execute line or selection in the terminal. Similarly, use `R: source file` to source file from the editor into the terminal section.

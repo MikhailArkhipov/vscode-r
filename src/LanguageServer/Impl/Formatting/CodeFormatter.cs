@@ -105,12 +105,13 @@ namespace Microsoft.R.LanguageServer.Formatting {
                 newEnd = newTokens[i].Start;
             }
 
-            var r = new TextRange(0, oldEnd);
-            var n = after.GetText(TextRange.FromBounds(0, newEnd));
+            var r = TextRange.FromBounds(0, oldEnd);
+            var oldTextBeforeFitstToken = before.GetText(r);
+            var newTextBeforeFirstToken = after.GetText(TextRange.FromBounds(0, newEnd));
 
-            if (r.Length > 0 || !string.IsNullOrEmpty(n)) {
+            if (oldTextBeforeFitstToken != newTextBeforeFirstToken) {
                 edits.Add(new TextEdit {
-                    newText = n,
+                    newText = newTextBeforeFirstToken,
                     range = r.ToLineRange(before)
                 });
             }
