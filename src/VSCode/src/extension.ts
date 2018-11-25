@@ -15,21 +15,22 @@ import { bool } from "getenv";
 let client: languageClient.LanguageClient;
 let rEngine: IREngine;
 let commands: Commands;
+let output: vscode.OutputChannel;
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export async function activate(context: vscode.ExtensionContext) {
+    output = vscode.window.createOutputChannel("R Tools Startup Log");
     const config = vscode.workspace.getConfiguration("r");
+    
     const check = config.get<boolean>("dependencyChecks");
-    if (check && !await deps.checkDotNet()) {
+    if (check && !await deps.checkDependencies(context, output)) {
         return;
     }
     
-    deps.ensureHostExecutable(context);
-
-    console.log("Activating R Language Server...");
+    output.appendLine("Activating R Language Server...");
     await activateLanguageServer(context);
-    console.log("Startup completed.");
+    output.appendLine("Startup completed.");
 }
 
 export async function activateLanguageServer(context: vscode.ExtensionContext) {
@@ -70,3 +71,4 @@ export async function deactivate() {
         client.stop();
     }
 }
+
