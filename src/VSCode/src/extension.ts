@@ -21,13 +21,20 @@ let output: vscode.OutputChannel;
 // your extension is activated the very first time the command is executed
 export async function activate(context: vscode.ExtensionContext) {
     output = vscode.window.createOutputChannel("R Tools Startup Log");
+
+    // Associat RMD with markdown editor
+    const files = vscode.workspace.getConfiguration("files");
+    const associations = files.get<{ ext: string, editor: string }>("associations");
+    associations["*.rmd"] = "markdown";
+    await files.update("associations", associations, vscode.ConfigurationTarget.Global);
+
     const config = vscode.workspace.getConfiguration("r");
-    
+
     const check = config.get<boolean>("dependencyChecks");
     if (check && !await deps.checkDependencies(context, output)) {
         return;
     }
-    
+
     output.appendLine("Activating R Language Server...");
     await activateLanguageServer(context);
     output.appendLine("Startup completed.");
@@ -48,7 +55,7 @@ export async function activateLanguageServer(context: vscode.ExtensionContext) {
     // Options to control the language client
     const clientOptions: languageClient.LanguageClientOptions = {
         // Register the server for R documents
-        documentSelector: [{language: RLanguage.language, scheme: 'file'}],
+        documentSelector: [{ language: RLanguage.language, scheme: 'file' }],
         synchronize: {
             configurationSection: RLanguage.language,
         },
@@ -71,4 +78,6 @@ export async function deactivate() {
         client.stop();
     }
 }
+
+
 

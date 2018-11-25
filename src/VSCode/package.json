@@ -2,7 +2,7 @@
   "name": "r",
   "displayName": "R Tools",
   "description": "R Tools (powered by Microsoft RTVS)",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "author": "Mikhail Arkhipov & Microsoft",
   "icon": "images/rIcon.png",
   "publisher": "Mikhail-Arkhipov",
@@ -30,7 +30,9 @@
     "Snippets"
   ],
   "activationEvents": [
-    "onLanguage:r"
+    "onLanguage:r",
+    "onLanguage:markdown",
+    "onCommand:r.executeInTerminal"
   ],
   "main": "./out/src/extension",
   "contributes": {
@@ -90,7 +92,8 @@
           "R Language"
         ],
         "extensions": [
-          ".r"
+          ".r",
+          ".rmd"
         ]
       }
     ],
