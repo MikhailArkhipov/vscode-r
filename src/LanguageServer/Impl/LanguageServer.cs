@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Common.Core;
@@ -322,7 +323,11 @@ namespace Microsoft.R.LanguageServer {
             var provider = _services.GetService<IRInteractiveWorkflowProvider>();
             var workflow = provider.GetOrCreate();
             var homePath = workflow.RSessions.Broker.ConnectionInfo.Uri.OriginalString.Replace('/', Path.DirectorySeparatorChar);
-            var binPath = $"bin{Path.DirectorySeparatorChar}x64{Path.DirectorySeparatorChar}R.exe";
+
+            var binPath = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+                ? Path.Combine("bin", "x64", "R.exe")
+                : Path.Combine("bin", "R");
+
             return Path.Combine(homePath, binPath);
         }
 
