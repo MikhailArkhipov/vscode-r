@@ -94,14 +94,14 @@ function InstallR(): void {
 }
 
 function IsLibZipInstalled(): boolean {
-    if (!os.IsMac) {
+    if (!os.IsMac()) {
         return true;
     }
     return fs.existsSync("/usr/local/opt/libzip/lib/libzip.5.dylib");
 }
 
 function isBrewInstalled(): boolean {
-    if (!os.IsMac) {
+    if (!os.IsMac()) {
         return true;
     }
     return fs.existsSync("/usr/local/bin/brew");
