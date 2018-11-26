@@ -2,10 +2,19 @@
 
 A [Visual Studio Code](https://code.visualstudio.com/) [extension](https://marketplace.visualstudio.com/VSCode) provides support for the [R language](https://www.r-project.org/) for R 3.2+. Features include syntax checking, completions, code formatting, formatting as you type, tooltips, linting.
 
+---
+### Supported platforms
+- Windows x64
+- Mac OS 10.12+
+- Linux distros supported by [.NET Core 2.1 Runtime](https://www.microsoft.com/net/download).
+
+---
 ![Completions](https://raw.githubusercontent.com/MikhailArkhipov/vscode-r/master/src/VSCode/images/ggplot.png)
 
+---
 ![Completions](https://raw.githubusercontent.com/MikhailArkhipov/vscode-r/master/src/VSCode/images/completions.png)
 
+---
 ## Prerequsites
 
 - [.NET Core 2.1 Runtime](https://www.microsoft.com/net/download)
