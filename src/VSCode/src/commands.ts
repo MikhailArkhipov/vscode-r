@@ -29,24 +29,16 @@ export class Commands {
         const disposables: Disposable[] = [];
         disposables.push(commands.registerCommand(CommandNames.Interrupt, () => this.r.interrupt()));
         disposables.push(commands.registerCommand(CommandNames.Reset, () => this.r.reset()));
-        disposables.push(commands.registerCommand(CommandNames.SourceFile, () => this.source()));
         disposables.push(commands.registerCommand(CommandNames.OpenTerminal, () => this.openTerminal()));
         disposables.push(commands.registerCommand(CommandNames.ExecuteInTerminal, () => this.executeInTerminal()));
         disposables.push(commands.registerCommand(CommandNames.SourceFileToTerminal, () => this.sourceToTerminal()));
         return disposables;
     }
 
-    private async source(fileUri?: Uri) {
-        const filePath = editor.getFilePath(fileUri);
-        if (filePath.length > 0) {
-            await this.r.source(filePath);
-        }
-    }
-
     private async sourceToTerminal(fileUri?: Uri) {
         const filePath = editor.getFilePath(fileUri);
         if (filePath.length > 0) {
-            await this.sendTextToTerminal(`source("${filePath}")`);
+            await this.sendTextToTerminal(`source("${filePath.replace(/\\/g, '/')}")`);
         }
     }
 

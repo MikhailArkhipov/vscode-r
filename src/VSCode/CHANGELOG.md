@@ -1,6 +1,14 @@
 # Changelog
 
-## 0.0.2 (26 Nov 2018)
+## 0.0.4 (7 dec 2018)
+
+### Fixes 
+
+1. Fixes [#11](https://github.com/MikhailArkhipov/vscode-r/issues/11) - 'source' file on Windows should be replacing backslashes with forward slashes.
+
+1. Fixes [#12](https://github.com/MikhailArkhipov/vscode-r/issues/12) - duplicate 'source' command was removed.
+
+## 0.0.3 (26 Nov 2018)
 
 ### Fixes 
 
