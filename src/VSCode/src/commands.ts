@@ -38,7 +38,11 @@ export class Commands {
     private async sourceToTerminal(fileUri?: Uri) {
         const filePath = editor.getFilePath(fileUri);
         if (filePath.length > 0) {
-            await this.sendTextToTerminal(`source("${filePath.replace(/\\/g, '/')}")`);
+            let p = filePath.replace(/\\/g, '/');
+            if(p.length > 0 && p[0] != "\"") {
+                p = p = `"${p}"`
+            }
+            await this.sendTextToTerminal(`source(${p})`);
         }
     }
 
