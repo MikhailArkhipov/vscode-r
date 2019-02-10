@@ -42,6 +42,37 @@ Use `R: Execute line or selection` commands to execute line or selection in the 
 ## Known issues
 R session in the editor does not automatically pick up new packages installed in the terminal. You may have to reload the window for the session to pick up newly installed modules.
 
+## Troubleshooting
+- **.NET Core not found** You can bypass .NET Core check by setting `dependencyChecks` setting to false.
+- **R Interpreter not found** 
+The broker (ASP.NET Core process) is configurable via `Microsoft.R.Host.Broker.Config.json`. Example:
+```
+"r":{"autoDetect":"<true|false>"}
+        Auto detect R interpreters. This option looks for installed CRAN R (>= 3.2) and Microsoft R Open (>= 3.2) packages. Default is true.
+```
+```
+"r":{"interpreters":[{"name":"<interpreter-name>","basePath":"<path>"},...]}
+        Add custom R interpreters. The format requires a name and the path to where the interpreter is installed. Example, for CRAN R the path is /usr/lib/R.  Note: CRAN R is detected automatically.
+```
+See also https://github.com/Microsoft/RTVS/issues/3265
+```json
+{
+"server.urls": "https://0.0.0.0:5444",
+  "R": {
+    "Interpreters": {
+      "0": {
+        "name": "MRO",
+        "basePath": "C:\\Program Files\\Microsoft\\MRO-3.3.2"
+      },
+      "1": {
+        "name": "MSSQL R Services",
+        "basePath": "C:\\Program Files\\Microsoft SQL Server\\MSSQL13.MSSQL01\\R_SERVICES"
+      }
+    }
+  }
+}
+```
+
 ## Not currently supported
 - Debugging
 - Remote or Docker connectivity
