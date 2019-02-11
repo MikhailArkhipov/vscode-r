@@ -1,6 +1,15 @@
 # Changelog
 
-## 0.0.5 (7 dec 2018)
+## 0.0.6 (10 Feb 2019)
+
+### Fixes 
+
+1. Fixes [#15](https://github.com/MikhailArkhipov/vscode-r/issues/15) - paths with whitespace are quoted incorrectly.
+
+2. Adds troubleshooting section to README.md.
+
+
+## 0.0.5 (7 Dec 2018)
 
 ### Fixes 
 
