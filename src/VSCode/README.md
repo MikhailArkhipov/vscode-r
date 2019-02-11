@@ -44,6 +44,7 @@ R session in the editor does not automatically pick up new packages installed in
 
 ## Troubleshooting
 - **.NET Core not found** You can bypass .NET Core check by setting `dependencyChecks` setting to false.
+- **Launching server using command dotnet failed.**. Most probably libzip is missing and extensions was unable to install it. Try installing [Homebrew](https://brew.sh/), then run `brew install libzip`.
 - **R Interpreter not found** 
 The broker (ASP.NET Core process) is configurable via `Microsoft.R.Host.Broker.Config.json`. Example:
 ```
