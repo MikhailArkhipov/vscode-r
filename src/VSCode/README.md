@@ -7,6 +7,7 @@ A [Visual Studio Code](https://code.visualstudio.com/) [extension](https://marke
 - Windows x64
 - Mac OS 10.12+
 - Linux distros supported by [.NET Core 2.1 Runtime](https://www.microsoft.com/net/download).
+- On Mac and Linux extension needs native library `libzip`. If `libzip` is missing, on Mac the extension attempts to install it via [Homebrew](https://brew.sh/). You may also attempt to install it manually bu running `brew install libzip`.
 
 ---
 ![Completions](https://raw.githubusercontent.com/MikhailArkhipov/vscode-r/master/src/VSCode/images/ggplot.png)
