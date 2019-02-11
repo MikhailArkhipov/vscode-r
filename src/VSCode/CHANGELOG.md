@@ -4,9 +4,9 @@
 
 ### Fixes 
 
-1. Fixes [#15](https://github.com/MikhailArkhipov/vscode-r/issues/15) - paths with whitespace are quoted incorrectly.
-
-2. Adds troubleshooting section to README.md.
+1. Fixes [#10](https://github.com/MikhailArkhipov/vscode-r/issues/10) - excessive CPU consumption by Microsoft.R.Host process on Mac and Linux.
+2. Fixes [#15](https://github.com/MikhailArkhipov/vscode-r/issues/15) - paths with whitespace are quoted incorrectly.
+3. Adds troubleshooting section to README.
 
 
 ## 0.0.5 (7 Dec 2018)

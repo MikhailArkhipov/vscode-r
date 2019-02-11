@@ -297,7 +297,7 @@ namespace rhost {
 
         void create_blob(const message& msg) {
             assert(!strcmp(msg.name(), "?CreateBlob"));
-            
+
             std::lock_guard<std::mutex> lock(blobs_mutex);
             blobs::blob_id id = ++next_blob_id;
 
@@ -305,7 +305,7 @@ namespace rhost {
             if (id != blobs::blob_id(double(id))) {
                 fatal_error("CreateBlob: Blob ID overflow");
             }
-            
+
             // Create a empty blob
             blobs[id] = blobs::blob();
 
@@ -338,7 +338,7 @@ namespace rhost {
                     if (archive) {
                         zip_close(archive);
                     }
-                });
+                    });
 
                 if (zip_err != ZIP_ER_OK) {
                     fatal_error("Error while creating compressed file.");
@@ -367,7 +367,7 @@ namespace rhost {
         blobs::blob_id create_compressed_blob(blobs::blob&& blob) {
             blobs::blob compressed_blob;
             compress_data(compressed_blob, blob.data(), blob.size());
-            
+
             std::lock_guard<std::mutex> lock(blobs_mutex);
             blobs::blob_id id = ++next_blob_id;
 
@@ -498,8 +498,8 @@ namespace rhost {
                 // Read all
                 respond_to_message(msg, it->second);
                 return;
-            } 
-            
+            }
+
             // Read at position and count
             size_t size = static_cast<size_t>(pos);
             size += static_cast<size_t>(count);
@@ -549,7 +549,7 @@ namespace rhost {
 
                 std::copy(blob.begin(), blob.end(), it->second.begin() + static_cast<size_t>(pos));
             }
-            
+
             respond_to_message(msg, ensure_fits_double(it->second.size()));
         }
 
@@ -859,13 +859,21 @@ namespace rhost {
                         is_waiting_for_wm = false;
                         R_ProcessEvents();
 #else
+                        usleep(2000);
                         if (ptr_R_ProcessEvents != nullptr) {
                             ptr_R_ProcessEvents();
                         }
+                        fd_set* what = R_checkActivity(0, 1);
                         is_waiting_for_wm = false;
-                        R_runHandlers(R_InputHandlers, R_checkActivity(0, 1));
+#ifdef __APPLE__ 
+                        if (what != NULL) {
+                            R_runHandlers(R_InputHandlers, what);
+                        }
+#else
+                        R_runHandlers(R_InputHandlers, what);
 #endif
-                        
+#endif
+
                     }, nullptr);
 
                     // In case anything in R_WaitEvent failed and unwound the context before we could reset.
