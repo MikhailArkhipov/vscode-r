@@ -6,7 +6,7 @@ A [Visual Studio Code](https://code.visualstudio.com/) [extension](https://marke
 ### Supported platforms
 - Windows x64
 - Mac OS 10.12+
-- Linux distros supported by [.NET Core 2.1 Runtime](https://www.microsoft.com/net/download).
+- Linux distros supported by [.NET Core 3.1 Runtime](https://www.microsoft.com/net/download).
 - On Mac and Linux extension needs native library `libzip`. If `libzip` is missing, on Mac the extension attempts to install it via [Homebrew](https://brew.sh/). You may also attempt to install it manually bu running `brew install libzip`.
 
 ---
@@ -18,7 +18,7 @@ A [Visual Studio Code](https://code.visualstudio.com/) [extension](https://marke
 ---
 ## Prerequsites
 
-- [.NET Core 2.1 Runtime](https://www.microsoft.com/net/download)
+- [.NET Core 3.1 Runtime](https://www.microsoft.com/net/download)
 - [R distribution (64-bit only)](https://cloud.r-project.org/)
 
 ## Quick start
