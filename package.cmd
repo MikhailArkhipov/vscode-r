@@ -8,7 +8,7 @@ rd /s /q ls
 md ls
 md ls\Host
 cd ..\..
-xcopy /S bin\Release\netcoreapp2.1\publish\*.* src\VsCode\ls
+xcopy /S bin\Release\netcoreapp3.1\publish\*.* src\VsCode\ls
 xcopy /S Host src\VsCode\ls\Host
 cd src\VsCode
 vsce package

@@ -10,7 +10,7 @@ import { exec, spawn } from "child_process";
 import { createDeferred } from "./deferred";
 
 var getenv = require('getenv');
-var opn = require('opn');
+var open = require('open');
 
 export async function checkDependencies(context: vscode.ExtensionContext, output: vscode.OutputChannel): Promise<boolean> {
     if (!await checkDotNet(output)) {
@@ -78,7 +78,7 @@ function IsDotNetInstalled(): boolean {
 }
 
 function InstallDotNet(): void {
-    opn("https://www.microsoft.com/net/download/core#/runtime");
+    open("https://www.microsoft.com/net/download/core#/runtime");
 }
 
 function InstallR(): void {
@@ -90,7 +90,7 @@ function InstallR(): void {
     } else {
         url = "https://cran.r-project.org/bin/linux/";
     }
-    opn(url);
+    open(url);
 }
 
 function IsLibZipInstalled(): boolean {

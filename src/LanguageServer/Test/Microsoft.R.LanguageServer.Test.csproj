@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
     <AssemblyName>Microsoft.R.LanguageServer.Test</AssemblyName>
     <RootNamespace>Microsoft.R.LanguageServer.Test</RootNamespace>
   </PropertyGroup>

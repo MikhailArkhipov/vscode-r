@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.0.7 (22 Mar 2020)
+
+### Updates 
+
+1. Upgrade .NET Core to 3.1.
+
 ## 0.0.6 (10 Feb 2019)
 
 ### Fixes 

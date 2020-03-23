@@ -36,7 +36,7 @@ namespace Microsoft.R.Editor.Completions.Engine {
 
             var providers = new List<IRCompletionListProvider>();
             if (ast.Comments.Contains(context.Position)) {
-                // No completion in comments except iif it is Roxygen
+                // No completion in comments except if it is Roxygen
                 providers.Add(new RoxygenTagCompletionProvider(_imageService));
                 return providers;
             }
@@ -62,7 +62,7 @@ namespace Microsoft.R.Editor.Completions.Engine {
                 // String token at least has opening quote
                 var quote = snapshot[tokenNode.Start];
                 if (tokenNode.Length == 1 || quote != snapshot[tokenNode.End - 1]) {
-                    // No completion at the end of underminated string
+                    // No completion at the end of unterminated string
                     return providers;
                 }
             }

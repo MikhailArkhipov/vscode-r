@@ -34,7 +34,7 @@ namespace Microsoft.R.LanguageServer {
         /// event. However, existing R formatters works by modifying underlying buffer.
         /// Therefore, in formatting operations we let formatter to change local copy 
         /// of the buffer, then calculate difference with the original state and send edits
-        /// to VS Code, which then will ivokes 'didChange'. Since local buffer is already 
+        /// to VS Code, which then will invokes 'didChange'. Since local buffer is already 
         /// up to date, we must ignore this call.
         /// </remarks>
         private static volatile bool _ignoreNextChange;
@@ -183,7 +183,7 @@ namespace Microsoft.R.LanguageServer {
                 var p = token.ToObject<DocumentSymbolParams>();
                 var doc = Documents.GetDocument(p.textDocument.uri);
                 return doc != null ? doc.GetSymbols(p.textDocument.uri) : new SymbolInformation[0];
-            });
+            }, ct);
         }
 
         [JsonRpcMethod("workspace/didChangeConfiguration")]
@@ -192,10 +192,7 @@ namespace Microsoft.R.LanguageServer {
             var settings = new LanguageServerSettings();
 
             var s = token["settings"];
-            if (s == null) {
-                return Task.CompletedTask;
-            }
-            var r = s["r"];
+            var r = s?["r"];
             if (r == null) {
                 return Task.CompletedTask;
             }
@@ -242,7 +239,7 @@ namespace Microsoft.R.LanguageServer {
 
             return MainThreadPriority.SendAsync(() => {
                 _services.GetService<ISettingsManager>().UpdateSettings(settings);
-            });
+            }, ct);
         }
 
         private T GetSetting<T>(JToken section, string settingName, T defaultValue) {

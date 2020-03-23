@@ -82,7 +82,6 @@ namespace Microsoft.R.Host.Broker.Start {
             var logger = app.ApplicationServices.GetService<ILogger<Startup>>();
             var lifetimeManager = app.ApplicationServices.GetService<LifetimeManager>();
             var interpreterManager = app.ApplicationServices.GetService<InterpreterManager>();
-            var securityManager = app.ApplicationServices.GetService<SecurityManager>();
 
             _logger = logger;
             var serverAddresses = app.ServerFeatures.Get<IServerAddressesFeature>();
