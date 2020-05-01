@@ -7,11 +7,8 @@ using System.Threading.Tasks;
 using Microsoft.Common.Core.Logging;
 using Microsoft.Common.Core.Services;
 using Microsoft.Common.Core.Test.Fakes.Shell;
-using Microsoft.Common.Core.Test.Logging;
 using Microsoft.Common.Core.Test.Stubs.Shell;
-using Microsoft.Common.Core.Test.Telemetry;
 using Microsoft.R.Common.Core.Output;
-using Microsoft.UnitTests.Core.Threading;
 using Microsoft.UnitTests.Core.XUnit;
 using Xunit.Sdk;
 
@@ -25,8 +22,6 @@ namespace Microsoft.Common.Core.Test.Fixtures {
             serviceManager
                 .AddService<IOutputService, TestOutputService>()
                 .AddService(new SecurityServiceStub())
-                .AddService(new MaxLoggingPermissions())
-                .AddService(new TelemetryTestService())
                 .AddService(new TestPlatformServices())
                 .AddService(new TestApplication());
         }

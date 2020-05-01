@@ -38,7 +38,6 @@ namespace Microsoft.R.LanguageServer.Server {
                     services
                         .AddService(new UIService(rpc))
                         .AddService(new Client(rpc))
-                        .AddService(new TelemetryService())
                         .AddService(messageFormatter.JsonSerializer);
 
                     var cts = new CancellationTokenSource();

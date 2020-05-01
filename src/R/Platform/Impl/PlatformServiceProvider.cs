@@ -2,7 +2,6 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using System.Runtime.InteropServices;
-using Microsoft.Common.Core.Logging;
 using Microsoft.Common.Core.OS.Linux;
 using Microsoft.Common.Core.OS.Mac;
 using Microsoft.Common.Core.Services;
@@ -10,11 +9,9 @@ using Microsoft.R.Platform.Interpreters;
 using Microsoft.R.Platform.Interpreters.Linux;
 using Microsoft.R.Platform.Interpreters.Mac;
 using Microsoft.R.Platform.IO;
-using Microsoft.R.Platform.Logging;
 using Microsoft.R.Platform.Windows;
 using Microsoft.R.Platform.Windows.Interpreters;
 using Microsoft.R.Platform.Windows.IO;
-using Microsoft.R.Platform.Windows.Logging;
 using Microsoft.R.Platform.Windows.OS;
 using Microsoft.R.Platform.Windows.Registry;
 
@@ -32,12 +29,10 @@ namespace Microsoft.R.Platform {
                     .AddService(new WindowsProcessServices())
                     .AddService(new RegistryImpl())
                     .AddService<IRInstallationService, WindowsRInstallation>()
-                    .AddService<ILoggingPermissions, WindowsLoggingPermissions>()
                     .AddService(new WindowsPlatformServices());
             } else {
                 services
-                    .AddService(new UnixFileSystem())
-                    .AddService(new UnixLoggingPermissions());
+                    .AddService(new UnixFileSystem());
 
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX)) {
                     services

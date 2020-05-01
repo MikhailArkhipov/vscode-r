@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.0.8 (01 May 2020)
+
+### Updates 
+
+1. Add support for R 4.0.
+
 ## 0.0.7 (22 Mar 2020)
 
 ### Updates 
