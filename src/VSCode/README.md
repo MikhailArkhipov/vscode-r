@@ -44,9 +44,18 @@ Use `R: Execute line or selection` commands to execute line or selection in the 
 R session in the editor does not automatically pick up new packages installed in the terminal. You may have to reload the window for the session to pick up newly installed modules.
 
 ## Troubleshooting
-- **.NET Core not found** You can bypass .NET Core check by setting `dependencyChecks` setting to false.
-- **Launching server using command dotnet failed.**. Most probably libzip is missing and extensions was unable to install it. Try installing [Homebrew](https://brew.sh/), then run `brew install libzip`.
-- **R Interpreter not found** 
+**.NET Core not found** 
+
+You can bypass .NET Core check by setting `dependencyChecks` setting to false.
+
+**Launching server using command dotnet failed.**. 
+
+Most probably libzip is missing and extensions was unable to install it. Try installing [Homebrew](https://brew.sh/), then run `brew install libzip`.
+
+**R Interpreter not found**
+
+Try using `r.intepreterPath` setting and specify path to R installation. The path should be root folder, like `C:\Program Files\R\R-3.4.3`, without `bin/x64`.
+
 The broker (ASP.NET Core process) is configurable via `Microsoft.R.Host.Broker.Config.json`. Example:
 ```
 "r":{"autoDetect":"<true|false>"}

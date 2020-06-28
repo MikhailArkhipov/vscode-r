@@ -51,7 +51,7 @@ namespace Microsoft.R.Platform.Windows.Interpreters {
             _fileSystem = fileSystem;
             Name = name;
             InstallPath = NormalizeRPath(path);
-            BinPath = Path.Combine(path, @"bin\x64");
+            BinPath = Path.Combine(path, "bin", "x64");
             Version = DetermineVersion();
             DocPath = Path.Combine(path, "doc");
             IncludePath = Path.Combine(path, "include");

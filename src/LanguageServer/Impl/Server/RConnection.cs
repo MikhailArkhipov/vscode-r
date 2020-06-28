@@ -3,10 +3,12 @@
 
 using System;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Common.Core;
+using Microsoft.Common.Core.IO;
 using Microsoft.Common.Core.Logging;
 using Microsoft.Common.Core.Services;
 using Microsoft.R.Components.InteractiveWorkflow;
@@ -16,6 +18,7 @@ using Microsoft.R.Host.Client.Host;
 using Microsoft.R.LanguageServer.InteractiveWorkflow;
 using Microsoft.R.LanguageServer.Settings;
 using Microsoft.R.Platform.Interpreters;
+using Microsoft.R.Platform.Windows.Interpreters;
 
 namespace Microsoft.R.LanguageServer.Server {
     /// <summary>
@@ -86,6 +89,12 @@ namespace Microsoft.R.LanguageServer.Server {
         public void Dispose() => _workflow?.Dispose();
 
         private IRInterpreterInfo GetREngine() {
+            var rs = _services.GetService<IREngineSettings>();
+            if (!string.IsNullOrEmpty(rs.InterpreterPath)) {
+                _ui.LogMessageAsync($"Using interpreter at '{rs.InterpreterPath}']", MessageType.Info).DoNotWait();
+                return new RInterpreterInfo("R", rs.InterpreterPath, _services.GetService<IFileSystem>());
+            }
+
             var ris = _services.GetService<IRInstallationService>();
             var engines = ris
                 .GetCompatibleEngines(new SupportedRVersionRange(3, 2, 4, 9))
@@ -103,8 +112,8 @@ namespace Microsoft.R.LanguageServer.Server {
                 _ui.LogMessageAsync($"\t[{i}] {engines[i].Name}", MessageType.Info).DoNotWait();
             }
             _ui.LogMessageAsync("You can specify the desired interpreter index in the R settings", MessageType.Info).DoNotWait();
+            _ui.LogMessageAsync("Of provide path to R using `r.interpreterPath` setting.", MessageType.Info).DoNotWait();
 
-            var rs = _services.GetService<IREngineSettings>();
             if (rs.InterpreterIndex < 0 || rs.InterpreterIndex > engines.Count) {
                 _ui.ShowMessageAsync($"Selected interpreter [{rs.InterpreterIndex}] does not exist. Using [0] instead", MessageType.Warning).DoNotWait();
                 rs.InterpreterIndex = 0;

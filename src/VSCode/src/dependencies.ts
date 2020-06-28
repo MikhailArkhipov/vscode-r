@@ -2,18 +2,19 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 "use strict";
 
-import * as fs from "fs";
-import * as vscode from "vscode";
-import * as os from "./os";
-import * as path from "path";
 import { exec, spawn } from "child_process";
+import * as fs from "fs";
+import * as path from "path";
+import * as vscode from "vscode";
+
 import { createDeferred } from "./deferred";
+import * as os from "./os";
 
-var getenv = require('getenv');
-var open = require('open');
+import getenv = require('getenv');
+import open = require('open');
 
-export async function checkDependencies(context: vscode.ExtensionContext, output: vscode.OutputChannel): Promise<boolean> {
-    if (!await checkDotNet(output)) {
+export async function checkDependencies(context: vscode.ExtensionContext): Promise<boolean> {
+    if (!await checkDotNet()) {
         return false;
     }
     
@@ -21,9 +22,9 @@ export async function checkDependencies(context: vscode.ExtensionContext, output
     
     if (!IsLibZipInstalled()) {
         if (!isBrewInstalled()) {
-            await installBrew(output);
+            await installBrew();
         }
-        await installLibZip(output);
+        await installLibZip();
     }
     return true;
 }
@@ -41,8 +42,8 @@ export async function checkDependencies(context: vscode.ExtensionContext, output
     return interpreterPath;
 }
 
-async function checkDotNet(output: vscode.OutputChannel): Promise<boolean> {
-    output.append("Checking for .NET Core... ");
+async function checkDotNet(): Promise<boolean> {
+    getOutput().append("Checking for .NET Core... ");
     if (!IsDotNetInstalled()) {
         if (await vscode.window.showErrorMessage("R Tools require .NET Core Runtime. Would you like to install it now?",
             "Yes", "No") === "Yes") {
@@ -51,14 +52,14 @@ async function checkDotNet(output: vscode.OutputChannel): Promise<boolean> {
         }
         return false;
     }
-    output.appendLine("OK");
+    getOutput().appendLine("OK");
     return true;
 }
 
 function ensureHostExecutable(context: vscode.ExtensionContext): void {
     if(!os.IsWindows()) {
         const osDir = os.IsMac() ? "Mac" : "Linux";
-        var hostBinPath = path.join(context.extensionPath, "ls", "Host", osDir, "Microsoft.R.Host");
+        const hostBinPath = path.join(context.extensionPath, "ls", "Host", osDir, "Microsoft.R.Host");
         fs.chmodSync(hostBinPath, "764");
     }
 }
@@ -107,31 +108,38 @@ function isBrewInstalled(): boolean {
     return fs.existsSync("/usr/local/bin/brew");
 }
 
-async function installBrew(output: vscode.OutputChannel): Promise<void> {
-    output.append("Installing Homebrew (required to install libzip library)... ");
-    await execute("/usr/bin/ruby", ["-e", "\"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)\""], output);
-    output.appendLine("OK");
+async function installBrew(): Promise<void> {
+    getOutput().append("Installing Homebrew (required to install libzip library)... ");
+    await execute("/usr/bin/ruby", ["-e", "\"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)\""]);
+    getOutput().appendLine("OK");
 }
 
-async function installLibZip(output: vscode.OutputChannel) {
-    output.append("Installing libzip (required for the R process executable)... ");
-    await execute("brew", ["install", "libzip"], output);
-    output.appendLine("OK");
+async function installLibZip() {
+    getOutput().append("Installing libzip (required for the R process executable)... ");
+    await execute("brew", ["install", "libzip"]);
+    getOutput().appendLine("OK");
 }
 
-function execute(command: string, args: string[], output: vscode.OutputChannel): Promise<void> {
+function execute(command: string, args: string[]): Promise<void> {
     const deferred = createDeferred<void>();
     const proc = spawn(command, args);
 
-    proc.stdout.on("data", (data: Buffer) => output.append(data.toString()));
-    proc.stderr.on("data", (data: Buffer) => output.append(data.toString()));
+    proc.stdout.on("data", (data: Buffer) => getOutput().append(data.toString()));
+    proc.stderr.on("data", (data: Buffer) => getOutput().append(data.toString()));
  
     proc.once("exit", (code, signal) => deferred.resolve())
     proc.once("close", (code, signal) => deferred.resolve())
     proc.once("error", (code, signal) => {
-        output.appendLine(signal);
+        getOutput().appendLine(signal);
         deferred.reject(code);
     });
     return deferred.promise;
 }
 
+let outputChannel: vscode.OutputChannel;
+function getOutput(): vscode.OutputChannel {
+    if(!outputChannel) {
+        outputChannel = vscode.window.createOutputChannel("R Tools Startup Log");
+    }
+    return outputChannel;
+}

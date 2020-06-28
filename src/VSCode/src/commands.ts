@@ -2,7 +2,8 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 "use strict";
 
-import {commands, Disposable, Uri, window, ViewColumn} from "vscode";
+import {commands, Disposable, Uri, ViewColumn,window} from "vscode";
+
 import * as editor from "./editor";
 import { ReplTerminal } from "./replTerminal";
 
@@ -39,7 +40,7 @@ export class Commands {
         const filePath = editor.getFilePath(fileUri);
         if (filePath.length > 0) {
             let p = filePath.replace(/\\/g, '/');
-            if(p.length > 0 && p[0] != "\"") {
+            if(p.length > 0 && p[0] !== "\"") {
                 p = p = `"${p}"`
             }
             await this.sendTextToTerminal(`source(${p})`);

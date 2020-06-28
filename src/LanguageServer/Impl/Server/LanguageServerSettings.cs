@@ -15,7 +15,14 @@ namespace Microsoft.R.LanguageServer.Server {
     /// 
     /// </remarks>
     public sealed class LanguageServerSettings {
-        public int Interpreter { get; set; }
+        /// <summary>
+        /// Interpreter index in discovered interpreters.
+        /// </summary>
+        public int InterpreterIndex { get; set; }
+        /// <summary>
+        /// Path to R installation. Overrides <see cref="InterpreterIndex"/>.
+        /// </summary>
+        public string InterpreterPath { get; set; }
         public EditorSettings Editor { get; set; } = new EditorSettings();
         public LinterSettings Linting { get; set; } = new LinterSettings();
     }

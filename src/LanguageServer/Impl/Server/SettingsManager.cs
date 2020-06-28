@@ -47,7 +47,8 @@ namespace Microsoft.R.LanguageServer.Server {
             _editorSettings.LintOptions = vscodeSettings.Linting;
             _editorSettings.RaiseChanged();
 
-            _engineSettings.InterpreterIndex = vscodeSettings.Interpreter;
+            _engineSettings.InterpreterIndex = vscodeSettings.InterpreterIndex;
+            _engineSettings.InterpreterPath = vscodeSettings.InterpreterPath;
 
             SettingsChanged?.Invoke(this, EventArgs.Empty);
         }
@@ -57,6 +58,7 @@ namespace Microsoft.R.LanguageServer.Server {
 #pragma warning disable 67
         private sealed class REngineSettings : IREngineSettings {
             public int InterpreterIndex { get; set; }
+            public string InterpreterPath { get; set; }
         }
 
         private sealed class REditorSettings : IREditorSettings {

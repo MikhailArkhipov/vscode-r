@@ -4,6 +4,7 @@
 
 import { EOL } from "os";
 import * as vscode from "vscode";
+
 import { RLanguage } from "./constants";
 
 export function getFilePath(fileUri?: vscode.Uri): string {

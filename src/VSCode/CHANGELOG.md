@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.0.9 (28 June 2020)
+
+### Updates 
+
+1. Provide `r.interpreterPath` manual setting for cases when R does not get discovered automatically.
+
 ## 0.0.8 (01 May 2020)
 
 ### Updates 

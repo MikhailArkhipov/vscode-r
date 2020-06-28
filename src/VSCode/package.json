@@ -2,7 +2,7 @@
   "name": "r",
   "displayName": "R Tools",
   "description": "R Tools (powered by Microsoft RTVS)",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "author": "Mikhail Arkhipov & Microsoft",
   "icon": "images/rIcon.png",
   "publisher": "Mikhail-Arkhipov",
@@ -21,7 +21,7 @@
     "R Tools"
   ],
   "engines": {
-    "vscode": "^1.28.0"
+    "vscode": "^1.46.0"
   },
   "categories": [
     "Programming Languages",
@@ -100,6 +100,10 @@
           "type": "number",
           "default": 0,
           "description": "R interpreter index."
+        },
+        "r.interpreterPath": {
+          "type": "string",
+          "description": "R interpreter path. Overrides R interpreter index."
         },
         "r.editor.formatOnType": {
           "type": "boolean",
@@ -277,7 +281,6 @@
   "scripts": {
     "vscode:prepublish": "tsc -p ./",
     "compile": "tsc -watch -p ./",
-    "postinstall": "node ./node_modules/vscode/bin/install",
     "test": "node ./node_modules/vscode/bin/test"
   },
   "devDependencies": {
@@ -291,10 +294,16 @@
     "@types/socket.io": "^2.1.4",
     "@types/socket.io-client": "^1.4.32",
     "@types/uuid": "^7.0.2",
+    "@types/vscode": "^1.46.0",
+    "@typescript-eslint/eslint-plugin": "^3.3.0",
+    "@typescript-eslint/parser": "^3.3.0",
+    "eslint": "^7.3.0",
+    "eslint-config-prettier": "^6.11.0",
+    "eslint-plugin-simple-import-sort": "^5.0.3",
     "mocha": "^7.1.1",
     "query-string": "^6.11.1",
     "typescript": "^3.1.6",
-    "vscode": "^1.1.36"
+    "vsce": "^1.77.0"
   },
   "dependencies": {
     "applicationinsights": "^1.7.3",

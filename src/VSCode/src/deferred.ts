@@ -14,8 +14,8 @@ export interface IDeferred<T> {
 class DeferredImpl<T> implements IDeferred<T> {
     private _resolve: (value?: T | PromiseLike<T>) => void;
     private _reject: (reason?: any) => void;
-    private _resolved: boolean = false;
-    private _rejected: boolean = false;
+    private _resolved = false;
+    private _rejected = false;
     private _promise: Promise<T>;
     constructor(private scope: any = null) {
         this._promise = new Promise<T>((res, rej) => {
@@ -24,10 +24,12 @@ class DeferredImpl<T> implements IDeferred<T> {
         });
     }
     resolve(value?: T | PromiseLike<T>) {
+        // eslint-disable-next-line prefer-rest-params
         this._resolve.apply(this.scope ? this.scope : this, arguments);
         this._resolved = true;
     }
     reject(reason?: any) {
+        // eslint-disable-next-line prefer-rest-params
         this._reject.apply(this.scope ? this.scope : this, arguments);
         this._rejected = true;
     }

@@ -197,7 +197,8 @@ namespace Microsoft.R.LanguageServer {
                 return Task.CompletedTask;
             }
 
-            settings.Interpreter = GetSetting(r, "interpreter", 0);
+            settings.InterpreterIndex = GetSetting(r, "interpreter", 0);
+            settings.InterpreterPath = GetSetting(r, "interpreterPath", string.Empty);
 
             var editor = r["editor"];
             settings.Editor.TabSize = GetSetting(editor, "tabSize", 2);

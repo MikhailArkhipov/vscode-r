@@ -4,5 +4,6 @@
 namespace Microsoft.R.LanguageServer.Settings {
     public interface IREngineSettings {
         int InterpreterIndex { get; set; }
+        string InterpreterPath { get; set; }
     }
 }

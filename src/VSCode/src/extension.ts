@@ -4,25 +4,23 @@
 
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
+import { bool } from "getenv";
 import * as vscode from "vscode";
 import * as languageClient from "vscode-languageclient";
+
 import { Commands } from "./commands";
 import { RLanguage } from "./constants";
 import * as deps from "./dependencies";
 import { REngine } from "./rengine";
-import { bool } from "getenv";
 
 let client: languageClient.LanguageClient;
 let rEngine: IREngine;
 let commands: Commands;
-let output: vscode.OutputChannel;
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export async function activate(context: vscode.ExtensionContext) {
-    output = vscode.window.createOutputChannel("R Tools Startup Log");
-
-    // Associat RMD with markdown editor
+    // Associate RMD with markdown editor
     const files = vscode.workspace.getConfiguration("files");
     const associations = files.get<{ ext: string, editor: string }>("associations");
     associations["*.rmd"] = "markdown";
@@ -31,13 +29,11 @@ export async function activate(context: vscode.ExtensionContext) {
     const config = vscode.workspace.getConfiguration("r");
 
     const check = config.get<boolean>("dependencyChecks");
-    if (check && !await deps.checkDependencies(context, output)) {
+    if (check && !await deps.checkDependencies(context)) {
         return;
     }
 
-    output.appendLine("Activating R Language Server...");
     await activateLanguageServer(context);
-    output.appendLine("Startup completed.");
 }
 
 export async function activateLanguageServer(context: vscode.ExtensionContext) {
