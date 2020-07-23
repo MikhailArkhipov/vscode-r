@@ -1,33 +1,34 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-"use strict";
+'use strict';
 
-import {commands, Disposable, Uri, ViewColumn,window} from "vscode";
+import { commands, Disposable, Uri, ViewColumn, window } from 'vscode';
 
-import * as editor from "./editor";
-import { ReplTerminal } from "./replTerminal";
+import { getFilePath, getSelectedText } from './editor';
+import { PlotView } from './plotView';
+import { REngine } from './rengine';
+import { ReplTerminal } from './replTerminal';
 
 // Must match package.json declarations
 // tslint:disable-next-line:no-namespace
 export namespace CommandNames {
-    export const Interrupt = "r.interrupt";
-    export const Reset = "r.reset";
-    export const SourceFile = "r.source";
-    export const OpenTerminal = "r.openTerminal";
-    export const ExecuteInTerminal = "r.executeInTerminal";
-    export const SourceFileToTerminal = "r.sourceToTerminal";
+    export const Execute = 'r.execute';
+    export const Interrupt = 'r.interrupt';
+    export const Reset = 'r.reset';
+    export const SourceFile = 'r.source';
+    export const OpenTerminal = 'r.openTerminal';
+    export const ExecuteInTerminal = 'r.executeInTerminal';
+    export const SourceFileToTerminal = 'r.sourceToTerminal';
 }
 
 export class Commands {
-    private r: IREngine;
-    private repl: IReplTerminal;
+    private repl: ReplTerminal;
 
-    constructor(r: IREngine) {
-        this.r = r;
-    }
+    constructor(private readonly r: REngine, private readonly extensionPath: string) {}
 
     public activateCommandsProvider(): Disposable[] {
         const disposables: Disposable[] = [];
+        disposables.push(commands.registerCommand(CommandNames.Execute, () => this.execute()));
         disposables.push(commands.registerCommand(CommandNames.Interrupt, () => this.r.interrupt()));
         disposables.push(commands.registerCommand(CommandNames.Reset, () => this.r.reset()));
         disposables.push(commands.registerCommand(CommandNames.OpenTerminal, () => this.openTerminal()));
@@ -36,19 +37,33 @@ export class Commands {
         return disposables;
     }
 
+    private clear() {
+        PlotView.currentPanel?.clear();
+    }
+
+    private async execute() {
+        const code = getSelectedText();
+        if (code.length > 0) {
+            const result = await this.r.execute(code);
+            PlotView.createOrShow(this.extensionPath);
+            PlotView.currentPanel.append(result);
+        }
+        await this.moveCaretDown();
+    }
+
     private async sourceToTerminal(fileUri?: Uri) {
-        const filePath = editor.getFilePath(fileUri);
+        const filePath = getFilePath(fileUri);
         if (filePath.length > 0) {
             let p = filePath.replace(/\\/g, '/');
-            if(p.length > 0 && p[0] !== "\"") {
-                p = p = `"${p}"`
+            if (p.length > 0 && p[0] !== '"') {
+                p = p = `"${p}"`;
             }
             await this.sendTextToTerminal(`source(${p})`);
         }
     }
 
     private async executeInTerminal() {
-        const code = editor.getSelectedText();
+        const code = getSelectedText();
         if (code.length > 0) {
             await this.sendTextToTerminal(code);
         }
@@ -84,11 +99,10 @@ export class Commands {
         await window.showTextDocument(window.activeTextEditor.document, ViewColumn.Active, true);
         const selectionEmpty = window.activeTextEditor.selection.isEmpty;
         if (selectionEmpty) {
-            await commands.executeCommand("cursorMove",
-                {
-                    by: "line",
-                    to: "down",
-                });
+            await commands.executeCommand('cursorMove', {
+                by: 'line',
+                to: 'down',
+            });
         }
     }
 }

@@ -91,7 +91,7 @@ namespace Microsoft.R.LanguageServer.Server {
         private IRInterpreterInfo GetREngine() {
             var rs = _services.GetService<IREngineSettings>();
             if (!string.IsNullOrEmpty(rs.InterpreterPath)) {
-                _ui.LogMessageAsync($"Using interpreter at '{rs.InterpreterPath}']", MessageType.Info).DoNotWait();
+                _ui.LogMessageAsync($"Using interpreter at '{rs.InterpreterPath}'", MessageType.Info).DoNotWait();
                 return new RInterpreterInfo("R", rs.InterpreterPath, _services.GetService<IFileSystem>());
             }
 
@@ -102,7 +102,7 @@ namespace Microsoft.R.LanguageServer.Server {
                 .ToList();
 
             if (engines.Count == 0) {
-                const string message = "Unable to find R intepreter. Please install R from https://cran.r-project.org";
+                const string message = "Unable to find R interpreter. Please install R from https://cran.r-project.org";
                 _ui.ShowMessageAsync(message, MessageType.Error).DoNotWait();
                 return null;
             }
