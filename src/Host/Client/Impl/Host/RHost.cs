@@ -3,60 +3,83 @@
 
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Net;
+using System.Net.Sockets;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Common.Core;
 using Microsoft.Common.Core.Diagnostics;
+using Microsoft.Common.Core.Json;
 using Microsoft.Common.Core.Logging;
-using Microsoft.Common.Core.Tasks;
-using Microsoft.Common.Core.Threading;
-using Microsoft.Common.Core.UI;
-using Microsoft.R.Host.Client.Host;
-using Microsoft.R.Host.Protocol;
+using Microsoft.Common.Core.Shell;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using WebSocketSharp;
+using WebSocketSharp.Server;
 using static System.FormattableString;
 
 namespace Microsoft.R.Host.Client {
-    public sealed partial class RHost : IDisposable, IRExpressionEvaluator, IRBlobService {
+    public sealed partial class RHost : IDisposable, IRExpressionEvaluator {
+        private readonly string[] parseStatusNames = { "NULL", "OK", "INCOMPLETE", "ERROR", "EOF" };
+
+        public const int DefaultPort = 5118;
+        public const string RHostExe = "Microsoft.R.Host.exe";
+        public const string RBinPathX64 = @"bin\x64";
+
+        private static readonly TimeSpan HeartbeatTimeout =
+#if DEBUG
+            // In debug mode, increase the timeout significantly, so that when the host is paused in debugger,
+            // the client won't immediately timeout and disconnect.
+            TimeSpan.FromMinutes(10);
+#else
+            TimeSpan.FromSeconds(5);
+#endif
+
         public static IRContext TopLevelContext { get; } = new RContext(RContextType.TopLevel);
 
-        public string Name { get; }
+        private static bool showConsole = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("RTVS_HOST_CONSOLE"));
 
-        private readonly IMessageTransport _transport;
-        private readonly CancellationTokenSource _cts;
-        private readonly ConcurrentDictionary<ulong, Request> _requests = new ConcurrentDictionary<ulong, Request>();
-        private readonly BinaryAsyncLock _disconnectLock = new BinaryAsyncLock();
+        private IMessageTransport _transport;
+        private readonly object _transportLock = new object();
+        private readonly TaskCompletionSource<IMessageTransport> _transportTcs = new TaskCompletionSource<IMessageTransport>();
 
+        private readonly CancellationTokenSource _cts = new CancellationTokenSource();
+        private readonly string _name;
+        private readonly IRCallbacks _callbacks;
+        private readonly LinesLog _log;
+        private readonly FileLogWriter _fileLogWriter;
+        private Process _process;
         private volatile Task _runTask;
-
         private int _rLoopDepth;
-        private long _lastMessageId;
-        private IRCallbacks _callbacks;
+        private long _lastMessageId = -1;
+        private readonly ConcurrentDictionary<string, EvaluationRequest> _evalRequests = new ConcurrentDictionary<string, EvaluationRequest>();
 
         private TaskCompletionSource<object> _cancelAllTcs;
         private CancellationTokenSource _cancelAllCts = new CancellationTokenSource();
 
-        public RHost(string name, IRCallbacks callbacks, IMessageTransport transport, IActionLog log) {
+        public int? ProcessId => _process?.Id;
+
+        public RHost(string name, IRCallbacks callbacks) {
             Check.ArgumentStringNullOrEmpty(nameof(name), name);
 
-            Name = name;
             _callbacks = callbacks;
-            _transport = transport;
-            Log = log;
-            _cts = new CancellationTokenSource();
-            _cts.Token.Register(() => { Log.RHostProcessExited(); });
+            _name = name;
+
+            _fileLogWriter = FileLogWriter.InTempFolder("Microsoft.R.Host.Client" + "_" + name);
+            _log = new LinesLog(_fileLogWriter);
         }
 
-        public IActionLog Log { get; }
+        public void Dispose() {
+            _cts.Cancel();
+        }
 
-        public void Dispose() => DisconnectAsync().DoNotWait();
-
-        public void FlushLog() => Log?.Flush();
+        public void FlushLog() {
+            _fileLogWriter?.Flush();
+        }
 
         private static Exception ProtocolError(FormattableString fs, object message = null) {
             var s = Invariant(fs);
@@ -68,64 +91,62 @@ namespace Microsoft.R.Host.Client {
         }
 
         private async Task<Message> ReceiveMessageAsync(CancellationToken ct) {
-            Message message;
+            var sb = new StringBuilder();
+
+            string json;
             try {
-                message = await _transport.ReceiveAsync(ct);
+                json = await _transport.ReceiveAsync(ct);
             } catch (MessageTransportException ex) when (ct.IsCancellationRequested) {
                 // Network errors during cancellation are expected, but should not be exposed to clients.
                 throw new OperationCanceledException(new OperationCanceledException().Message, ex);
             }
 
-            if (message != null) {
-                Log.Response(message.ToString(), _rLoopDepth);
-            } else {
-                Log.Response(_transport.CloseStatusDescription, _rLoopDepth);
+            _log.Response(json, _rLoopDepth);
+
+            var token = Json.ParseToken(json);
+
+            var value = token as JValue;
+            if (value != null && value.Value == null) {
+                return null;
             }
 
-            return message;
+            return new Message(token);
         }
 
-        private Message CreateMessage(string name, ulong requestId, JArray json, byte[] blob = null) {
-            ulong id = (ulong)Interlocked.Add(ref _lastMessageId, 2);
-            return new Message(id, requestId, name, json, blob);
+        private JArray CreateMessage(out string id, string name, params object[] args) {
+            long n = Interlocked.Add(ref _lastMessageId, 2);
+            id = "#" + n + "#";
+            return new JArray(id, name, args);
         }
 
-        private Message CreateRequestMessage(string name, JArray json, byte[] blob = null) {
-            Debug.Assert(name.StartsWithOrdinal("?"));
-            return CreateMessage(name, ulong.MaxValue, json, blob);
-        }
-
-        private async Task SendAsync(Message message, CancellationToken ct) {
+        private async Task SendAsync(JToken token, CancellationToken ct) {
             TaskUtilities.AssertIsOnBackgroundThread();
 
-            Log.Request(message.ToString(), _rLoopDepth);
+            var json = JsonConvert.SerializeObject(token);
+            _log.Request(json, _rLoopDepth);
 
             try {
-                await _transport.SendAsync(message, ct);
+                await _transport.SendAsync(json, ct);
             } catch (MessageTransportException ex) when (ct.IsCancellationRequested) {
                 // Network errors during cancellation are expected, but should not be exposed to clients.
                 throw new OperationCanceledException(new OperationCanceledException().Message, ex);
-            } catch (MessageTransportException ex) {
-                throw new RHostDisconnectedException(ex.Message, ex);
             }
         }
 
-        private async Task<ulong> NotifyAsync(string name, CancellationToken ct, params object[] args) {
-            Debug.Assert(name.StartsWithOrdinal("!"));
-            TaskUtilities.AssertIsOnBackgroundThread();
-
-            var message = CreateMessage(name, 0, new JArray(args));
+        private async Task<string> SendAsync(string name, CancellationToken ct, params object[] args) {
+            string id;
+            var message = CreateMessage(out id, name, args);
             await SendAsync(message, ct);
-            return message.Id;
+            return id;
         }
 
-        private async Task<ulong> RespondAsync(Message request, CancellationToken ct, params object[] args) {
-            Debug.Assert(request.Name.StartsWithOrdinal("?"));
+        private async Task<string> RespondAsync(Message request, CancellationToken ct, params object[] args) {
             TaskUtilities.AssertIsOnBackgroundThread();
 
-            var message = CreateMessage(":" + request.Name.Substring(1), request.Id, new JArray(args));
+            string id;
+            var message = CreateMessage(out id, ":", request.Id, request.Name, args);
             await SendAsync(message, ct);
-            return message.Id;
+            return id;
         }
 
         private static RContext[] GetContexts(Message message) {
@@ -141,13 +162,10 @@ namespace Microsoft.R.Host.Client {
 
         private void CancelAll() {
             var tcs = Volatile.Read(ref _cancelAllTcs);
-            tcs?.TrySetResult(true);
-        }
-
-        private async Task ShowLocalizedDialogFormat(Message request, MessageButtons buttons, CancellationToken ct) {
-            TaskUtilities.AssertIsOnBackgroundThread();
-            var response = await ShowDialog(new RContext[0], GetLocalizedString(request), buttons, ct);
-            await RespondAsync(request, ct, response);
+            if (tcs != null) {
+                Volatile.Write(ref _cancelAllCts, new CancellationTokenSource());
+                tcs.TrySetResult(true);
+            }
         }
 
         private async Task ShowDialog(Message request, MessageButtons buttons, CancellationToken ct) {
@@ -157,14 +175,7 @@ namespace Microsoft.R.Host.Client {
             var contexts = GetContexts(request);
             var s = request.GetString(1, "s", allowNull: true);
 
-            var response = await ShowDialog(contexts, s, buttons, ct);
-            await RespondAsync(request, ct, response);
-        }
-
-        private async Task<string> ShowDialog(RContext[] contexts, string message, MessageButtons buttons, CancellationToken ct) {
-            TaskUtilities.AssertIsOnBackgroundThread();
-
-            MessageButtons input = await _callbacks.ShowDialog(contexts, message, buttons, ct);
+            MessageButtons input = await _callbacks.ShowDialog(contexts, s, buttons, ct);
             ct.ThrowIfCancellationRequested();
 
             string response;
@@ -179,12 +190,13 @@ namespace Microsoft.R.Host.Client {
                     response = "Y";
                     break;
                 default: {
-                        var error = Invariant($"YesNoCancel: callback returned an invalid value: {input}");
-                        Trace.Fail(error);
-                        throw new InvalidOperationException(error);
+                        FormattableString error = $"YesNoCancel: callback returned an invalid value: {input}";
+                        Trace.Fail(Invariant(error));
+                        throw new InvalidOperationException(Invariant(error));
                     }
             }
-            return response;
+
+            await RespondAsync(request, ct, response);
         }
 
         private async Task ReadConsole(Message request, CancellationToken ct) {
@@ -205,132 +217,56 @@ namespace Microsoft.R.Host.Client {
             await RespondAsync(request, ct, input);
         }
 
-        public async Task<ulong> CreateBlobAsync(CancellationToken cancellationToken) {
-            if (_runTask == null) {
-                throw new InvalidOperationException("Host was not started");
-            }
-
-            using (CancellationTokenUtilities.Link(ref cancellationToken, _cts.Token)) {
-                try {
-                    await TaskUtilities.SwitchToBackgroundThread();
-                    var request = await CreateBlobRequest.CreateAsync(this, cancellationToken);
-                    return await request.Task;
-                } catch (OperationCanceledException ex) when (_cts.IsCancellationRequested) {
-                    throw new RHostDisconnectedException(Resources.Error_RHostIsStopped, ex);
-                }
-            }
+        public Task<REvaluationResult> EvaluateAsync(string expression, REvaluationKind kind, CancellationToken ct) {
+            return ct.IsCancellationRequested || _runTask == null || _runTask.IsCompleted
+                ? Task.FromCanceled<REvaluationResult>(new CancellationToken(true))
+                : EvaluateAsyncBackground(expression, kind, ct);
         }
 
-        public Task DestroyBlobsAsync(IEnumerable<ulong> ids, CancellationToken cancellationToken) =>
-            cancellationToken.IsCancellationRequested || _runTask == null || _runTask.IsCompleted
-                ? Task.FromCanceled(new CancellationToken(true))
-                : DestroyBlobsAsyncWorker(ids.ToArray(), cancellationToken);
-
-        private async Task DestroyBlobsAsyncWorker(ulong[] ids, CancellationToken cancellationToken) {
+        private async Task<REvaluationResult> EvaluateAsyncBackground(string expression, REvaluationKind kind, CancellationToken ct) {
             await TaskUtilities.SwitchToBackgroundThread();
-            await NotifyAsync("!DestroyBlob", cancellationToken, ids.Select(x => (object)x));
+
+            JArray message;
+            var request = new EvaluationRequest(this, expression, kind, out message);
+            _evalRequests[request.Id] = request;
+
+            await SendAsync(message, ct);
+            return await request.CompletionSource.Task;
         }
 
-        public async Task<byte[]> BlobReadAllAsync(ulong blobId, CancellationToken cancellationToken = default(CancellationToken)) {
-            if (_runTask == null) {
-                throw new InvalidOperationException("Host was not started");
+        private void ProcessEvaluationResult(Message response) {
+            EvaluationRequest request; ;
+            if (!_evalRequests.TryRemove(response.RequestId, out request)) {
+                throw ProtocolError($"Unexpected response to evaluation request {response.RequestId} that is not pending.");
             }
 
-            using (CancellationTokenUtilities.Link(ref cancellationToken, _cts.Token)) {
-                try {
-                    await TaskUtilities.SwitchToBackgroundThread();
-                    var request = await BlobReadRequest.ReadAllAsync(this, blobId, cancellationToken);
-                    return await request.Task;
-                } catch (OperationCanceledException ex) when (_cts.IsCancellationRequested) {
-                    throw new RHostDisconnectedException(Resources.Error_RHostIsStopped, ex);
-                }
-            }
-        }
-
-        public async Task<byte[]> BlobReadAsync(ulong blobId, long position, long count, CancellationToken cancellationToken = default(CancellationToken)) {
-            if (_runTask == null) {
-                throw new InvalidOperationException("Host was not started");
+            response.ExpectArguments(1, 3);
+            var firstArg = response[0] as JValue;
+            if (firstArg != null && firstArg.Value == null) {
+                request.CompletionSource.SetCanceled();
             }
 
-            using (CancellationTokenUtilities.Link(ref cancellationToken, _cts.Token)) {
-                try {
-                    await TaskUtilities.SwitchToBackgroundThread();
-                    var request = await BlobReadRequest.ReadAsync(this, blobId, position, count, cancellationToken);
-                    return await request.Task;
-                } catch (OperationCanceledException ex) when (_cts.IsCancellationRequested) {
-                    throw new RHostDisconnectedException(Resources.Error_RHostIsStopped, ex);
-                }
-            }
-        }
-
-        public async Task<long> BlobWriteAsync(ulong blobId, byte[] data, long position, CancellationToken cancellationToken = default(CancellationToken)) {
-            if (_runTask == null) {
-                throw new InvalidOperationException("Host was not started");
+            if (response.Name != request.MessageName) {
+                throw ProtocolError($"Mismatched host response ['{response.Id}',':','{response.Name}',...] to evaluation request ['{request.Id}','{request.MessageName}','{request.Expression}']");
             }
 
-            using (CancellationTokenUtilities.Link(ref cancellationToken, _cts.Token)) {
-                try {
-                    await TaskUtilities.SwitchToBackgroundThread();
-                    var request = await BlobWriteRequest.WriteAsync(this, blobId, data, position, cancellationToken);
-                    return await request.Task;
-                } catch (OperationCanceledException ex) when (_cts.IsCancellationRequested) {
-                    throw new RHostDisconnectedException(Resources.Error_RHostIsStopped, ex);
-                }
-            }
-        }
+            response.ExpectArguments(3);
+            var parseStatus = response.GetEnum<RParseStatus>(0, "parseStatus", parseStatusNames);
+            var error = response.GetString(1, "error", allowNull: true);
 
-        public async Task<long> GetBlobSizeAsync(ulong blobId, CancellationToken cancellationToken = default(CancellationToken)) {
-            if (_runTask == null) {
-                throw new InvalidOperationException("Host was not started");
+            REvaluationResult result;
+            if (request.Kind.HasFlag(REvaluationKind.NoResult)) {
+                result = new REvaluationResult(error, parseStatus);
+            } else {
+                result = new REvaluationResult(response[2], error, parseStatus);
             }
-
-            using (CancellationTokenUtilities.Link(ref cancellationToken, _cts.Token)) {
-                try {
-                    await TaskUtilities.SwitchToBackgroundThread();
-                    var request = await BlobSizeRequest.GetSizeAsync(this, blobId, cancellationToken);
-                    return await request.Task;
-                } catch (OperationCanceledException ex) when (_cts.IsCancellationRequested) {
-                    throw new RHostDisconnectedException(Resources.Error_RHostIsStopped, ex);
-                }
-            }
-        }
-
-        public async Task<long> SetBlobSizeAsync(ulong blobId, long size, CancellationToken cancellationToken = default(CancellationToken)) {
-            if (_runTask == null) {
-                throw new InvalidOperationException("Host was not started");
-            }
-
-            using (CancellationTokenUtilities.Link(ref cancellationToken, _cts.Token)) {
-                try {
-                    await TaskUtilities.SwitchToBackgroundThread();
-                    var request = await BlobSizeRequest.GetSizeAsync(this, blobId, cancellationToken);
-                    return await request.Task;
-                } catch (OperationCanceledException ex) when (_cts.IsCancellationRequested) {
-                    throw new RHostDisconnectedException(Resources.Error_RHostIsStopped, ex);
-                }
-            }
-        }
-
-        public async Task<REvaluationResult> EvaluateAsync(string expression, REvaluationKind kind, CancellationToken cancellationToken) {
-            if (_runTask == null) {
-                throw new InvalidOperationException("Host was not started");
-            }
-
-            using (CancellationTokenUtilities.Link(ref cancellationToken, _cts.Token)) {
-                try {
-                    await TaskUtilities.SwitchToBackgroundThread();
-                    var request = await EvaluationRequest.SendAsync(this, expression, kind, cancellationToken);
-                    return await request.Task;
-                } catch (OperationCanceledException ex) when (_cts.IsCancellationRequested) {
-                    throw new RHostDisconnectedException(Resources.Error_RHostIsStopped, ex);
-                }
-            }
+            request.CompletionSource.SetResult(result);
         }
 
         /// <summary>
         /// Cancels any ongoing evaluations or interaction processing.
         /// </summary>
-        public async Task CancelAllAsync(CancellationToken cancellationToken = default(CancellationToken)) {
+        public async Task CancelAllAsync() {
             if (_runTask == null) {
                 // Nothing to cancel.
                 return;
@@ -344,35 +280,27 @@ namespace Microsoft.R.Host.Client {
                 return;
             }
 
-            using (tcs.RegisterForCancellation(_cts.Token))
-            using (tcs.RegisterForCancellation(cancellationToken)) {
-                try {
-                    // Cancel any pending callbacks
-                    _cancelAllCts.Cancel();
-                    var cts = CancellationTokenSource.CreateLinkedTokenSource(_cts.Token, cancellationToken);
-                    try {
-                        await NotifyAsync("!//", cts.Token);
-                    } catch (OperationCanceledException) {
-                        return;
-                    } catch (MessageTransportException) {
-                        return;
-                    } finally {
-                        cts.Dispose();
-                    }
+            try {
+                // Cancel any pending callbacks
+                _cancelAllCts.Cancel();
 
-                    await tcs.Task;
-                } finally {
-                    Volatile.Write(ref _cancelAllTcs, null);
+                try {
+                    await SendAsync("/", _cts.Token, null);
+                } catch (OperationCanceledException) {
+                    return;
+                } catch (MessageTransportException) {
+                    return;
                 }
+
+                await tcs.Task;
+            } finally {
+                Volatile.Write(ref _cancelAllTcs, null);
             }
         }
 
-        public Task RequestShutdownAsync(bool saveRData) =>
-            NotifyAsync("!Shutdown", _cts.Token, saveRData);
-
         public async Task DisconnectAsync() {
             if (_runTask == null) {
-                return;
+                throw new InvalidOperationException("Not connected to host.");
             }
 
             await TaskUtilities.SwitchToBackgroundThread();
@@ -382,18 +310,13 @@ namespace Microsoft.R.Host.Client {
             // client, cancel this token to indicate that we're shutting down the host - SendAsync and
             // ReceiveAsync will take care of wrapping any WSE into OperationCanceledException.
             _cts.Cancel();
-            var token = await _disconnectLock.WaitAsync();
-            if (!token.IsSet) {
-                try {
-                    // Don't use _cts, since it's already cancelled. We want to try to send this message in
-                    // any case, and we'll catch MessageTransportException if no-one is on the other end anymore.
-                    await _transport.CloseAsync();
-                    token.Set();
-                } catch (Exception ex) when (ex is OperationCanceledException || ex is MessageTransportException) {
-                    token.Set();
-                } finally {
-                    token.Reset();
-                }
+
+            try {
+                // Don't use _cts, since it's already cancelled. We want to try to send this message in
+                // any case, and we'll catch MessageTransportException if no-one is on the other end anymore.
+                await SendAsync(JValue.CreateNull(), new CancellationToken());
+            } catch (OperationCanceledException) {
+            } catch (MessageTransportException) {
             }
 
             try {
@@ -405,77 +328,50 @@ namespace Microsoft.R.Host.Client {
             }
         }
 
-        private async Task<Message> RunLoop(CancellationToken loopCt) {
+        private async Task<Message> RunLoop(CancellationToken ct) {
             TaskUtilities.AssertIsOnBackgroundThread();
-            var cancelAllCtsLink = CancellationTokenSource.CreateLinkedTokenSource(loopCt, _cancelAllCts.Token);
-            var ct = cancelAllCtsLink.Token;
+
             try {
-                Log.EnterRLoop(_rLoopDepth++);
-                while (!loopCt.IsCancellationRequested) {
-                    var message = await ReceiveMessageAsync(loopCt);
+                _log.EnterRLoop(_rLoopDepth++);
+                while (!ct.IsCancellationRequested) {
+                    var message = await ReceiveMessageAsync(ct);
                     if (message == null) {
                         return null;
-                    } else if (message.IsResponse) {
-                        Request request;
-                        if (!_requests.TryRemove(message.RequestId, out request)) {
-                            throw ProtocolError($"Mismatched response - no request with such ID:", message);
-                        } else if (message.Name != ":" + request.MessageName.Substring(1)) {
-                            throw ProtocolError($"Mismatched response - message name does not match request '{request.MessageName}':", message);
+                    } else if (message.RequestId != null) {
+                        if (message.Name.StartsWithIgnoreCase("=")) {
+                            ProcessEvaluationResult(message);
+                            continue;
+                        } else {
+                            throw ProtocolError($"Unrecognized host response message name:", message);
                         }
-
-                        request.Handle(this, message);
-                        continue;
                     }
 
                     try {
                         switch (message.Name) {
-                            case "!End":
-                                message.ExpectArguments(1);
-                                await _callbacks.Shutdown(message.GetBoolean(0, "rdataSaved"));
-                                break;
-
-                            case "!CanceledAll":
+                            case "\\":
                                 CancelAll();
                                 break;
 
-                            case "?YesNoCancel":
-                                ShowDialog(message, MessageButtons.YesNoCancel, ct)
+                            case "?":
+                                ShowDialog(message, MessageButtons.YesNoCancel, CancellationTokenSource.CreateLinkedTokenSource(ct, _cancelAllCts.Token).Token)
                                     .SilenceException<MessageTransportException>()
                                     .DoNotWait();
                                 break;
 
-                            case "?YesNo":
-                                ShowDialog(message, MessageButtons.YesNo, ct)
+                            case "??":
+                                ShowDialog(message, MessageButtons.YesNo, CancellationTokenSource.CreateLinkedTokenSource(ct, _cancelAllCts.Token).Token)
                                     .SilenceException<MessageTransportException>()
                                     .DoNotWait();
                                 break;
 
-                            case "?OkCancel":
-                                ShowDialog(message, MessageButtons.OKCancel, ct)
+                            case "???":
+                                ShowDialog(message, MessageButtons.OKCancel, CancellationTokenSource.CreateLinkedTokenSource(ct, _cancelAllCts.Token).Token)
                                     .SilenceException<MessageTransportException>()
                                     .DoNotWait();
                                 break;
 
-                            case "?LocYesNoCancel":
-                                ShowLocalizedDialogFormat(message, MessageButtons.YesNoCancel, ct)
-                                    .SilenceException<MessageTransportException>()
-                                    .DoNotWait();
-                                break;
-
-                            case "?LocYesNo":
-                                ShowLocalizedDialogFormat(message, MessageButtons.YesNo, ct)
-                                    .SilenceException<MessageTransportException>()
-                                    .DoNotWait();
-                                break;
-
-                            case "?LocOkCancel":
-                                ShowLocalizedDialogFormat(message, MessageButtons.OKCancel, ct)
-                                    .SilenceException<MessageTransportException>()
-                                    .DoNotWait();
-                                break;
-
-                            case "?>":
-                                ReadConsole(message, ct)
+                            case ">":
+                                ReadConsole(message, CancellationTokenSource.CreateLinkedTokenSource(ct, _cancelAllCts.Token).Token)
                                     .SilenceException<MessageTransportException>()
                                     .DoNotWait();
                                 break;
@@ -489,52 +385,40 @@ namespace Microsoft.R.Host.Client {
                                     ct);
                                 break;
 
-                            case "!ShowMessage":
+                            case "![]":
                                 message.ExpectArguments(1);
                                 await _callbacks.ShowMessage(message.GetString(0, "s", allowNull: true), ct);
                                 break;
 
-                            case "!+":
+                            case "~+":
                                 await _callbacks.Busy(true, ct);
                                 break;
-                            case "!-":
+                            case "~-":
                                 await _callbacks.Busy(false, ct);
                                 break;
 
-                            case "!SetWD":
+                            case "setwd":
                                 _callbacks.DirectoryChanged();
                                 break;
 
-                            case "!Library":
-                                await _callbacks.ViewLibrary(ct);
+                            case "library":
+                                await _callbacks.ViewLibrary();
                                 break;
 
-                            case "!ShowFile":
+                            case "show_file":
                                 message.ExpectArguments(3);
-                                // Do not await since it blocks callback from calling the host again
-                                _callbacks.ShowFile(
+                                await _callbacks.ShowFile(
                                     message.GetString(0, "file"),
                                     message.GetString(1, "tabName"),
-                                    message.GetBoolean(2, "delete.file"),
-                                    ct).DoNotWait();
+                                    message.GetBoolean(2, "delete.file"));
                                 break;
 
-                            case "?EditFile":
+                            case "View":
                                 message.ExpectArguments(2);
-                                // Opens file in editor and blocks until file is closed.
-                                var content = await _callbacks.EditFileAsync(message.GetString(0, "name", allowNull: true), message.GetString(1, "file", allowNull: true), ct);
-                                ct.ThrowIfCancellationRequested();
-                                await RespondAsync(message, ct, content);
+                                _callbacks.ViewObject(message.GetString(0, "x"), message.GetString(1, "title"));
                                 break;
 
-                            case "!View":
-                                message.ExpectArguments(2);
-                                _callbacks.ViewObject(message.GetString(0, "x"), message.GetString(1, "title"), ct)
-                                    .SilenceException<MessageTransportException>()
-                                    .DoNotWait();
-                                break;
-
-                            case "!Plot":
+                            case "Plot":
                                 await _callbacks.Plot(
                                     new PlotMessage(
                                         Guid.Parse(message.GetString(0, "device_id")),
@@ -542,122 +426,50 @@ namespace Microsoft.R.Host.Client {
                                         message.GetString(2, "file_path"),
                                         message.GetInt32(3, "device_num"),
                                         message.GetInt32(4, "active_plot_index"),
-                                        message.GetInt32(5, "plot_count"),
-                                        message.Blob),
+                                        message.GetInt32(5, "plot_count")),
                                     ct);
                                 break;
 
-                            case "?Locator":
+                            case "Locator":
                                 var locatorResult = await _callbacks.Locator(Guid.Parse(message.GetString(0, "device_id")), ct);
                                 ct.ThrowIfCancellationRequested();
                                 await RespondAsync(message, ct, locatorResult.Clicked, locatorResult.X, locatorResult.Y);
                                 break;
 
-                            case "?PlotDeviceCreate":
+                            case "PlotDeviceCreate":
                                 var plotDeviceResult = await _callbacks.PlotDeviceCreate(Guid.Parse(message.GetString(0, "device_id")), ct);
                                 ct.ThrowIfCancellationRequested();
                                 await RespondAsync(message, ct, plotDeviceResult.Width, plotDeviceResult.Height, plotDeviceResult.Resolution);
                                 break;
 
-                            case "!PlotDeviceDestroy":
+                            case "PlotDeviceDestroy":
                                 await _callbacks.PlotDeviceDestroy(Guid.Parse(message.GetString(0, "device_id")), ct);
                                 break;
 
-                            case "!WebBrowser":
-                                _callbacks.WebBrowser(message.GetString(0, "url"), ct)
-                                    .DoNotWait();
-                                break;
-
-                            case "?BeforePackagesInstalled":
-                                await _callbacks.BeforePackagesInstalledAsync(ct);
-                                ct.ThrowIfCancellationRequested();
-                                await RespondAsync(message, ct, true);
-                                break;
-
-                            case "?AfterPackagesInstalled":
-                                await _callbacks.AfterPackagesInstalledAsync(ct);
-                                ct.ThrowIfCancellationRequested();
-                                await RespondAsync(message, ct, true);
-                                break;
-
-                            case "!PackagesRemoved":
-                                _callbacks.PackagesRemoved();
-                                break;
-
-                            case "!FetchFile":
-                                var remoteFileName = message.GetString(0, "file_remote_name");
-                                var remoteBlobId = message.GetUInt64(1, "blob_id");
-                                var localPath = message.GetString(2, "file_local_path");
-                                Task.Run(async () => {
-                                    var destPath = await _callbacks.FetchFileAsync(remoteFileName, remoteBlobId, localPath, ct);
-                                    if (!message.GetBoolean(3, "silent")) {
-                                        await _callbacks.WriteConsoleEx(destPath, OutputType.Error, ct);
-                                    }
-                                }).DoNotWait();
-                                break;
-
-                            case "!LocMessage":
-                                _callbacks.WriteConsoleEx(GetLocalizedString(message) + Environment.NewLine, OutputType.Output, ct).DoNotWait();
-                                break;
-
-                            case "!LocWarning":
-                                _callbacks.WriteConsoleEx(GetLocalizedString(message) + Environment.NewLine, OutputType.Error, ct).DoNotWait();
+                            case "open_url":
+                                await _callbacks.Browser(message.GetString(0, "help_url"));
                                 break;
 
                             default:
                                 throw ProtocolError($"Unrecognized host message name:", message);
                         }
-
-                        if (_cancelAllCts.IsCancellationRequested) {
-                            ct = UpdateCancelAllCtsLink(ref cancelAllCtsLink, loopCt);
-                        }
-                    } catch (OperationCanceledException) when (_cancelAllCts.IsCancellationRequested) {
-                        // Canceled via _cancelAllCts - update cancelAllCtsLink and move on
-                        ct = UpdateCancelAllCtsLink(ref cancelAllCtsLink, loopCt);
+                    } catch (OperationCanceledException) when (!ct.IsCancellationRequested) {
+                        // Cancelled via _cancelAllCts - just move onto the next message.
                     }
                 }
             } finally {
-                // asyncronously-running handlers like ReadConsole and ShowDialog that were started in the loop should be canceled
-                cancelAllCtsLink.Cancel();
-                cancelAllCtsLink.Dispose();
-                Log.ExitRLoop(--_rLoopDepth);
+                _log.ExitRLoop(--_rLoopDepth);
             }
 
             return null;
         }
 
-        private string GetLocalizedString(Message message) {
-            var s = _callbacks.GetLocalizedString(message.GetString(0, "id"));
-            if (message.ArgumentCount == 2) {
-                var args = message.GetArgument(1, "a", JTokenType.Array).Select(o => o.Value<object>()).ToArray();
-                s = string.Format(CultureInfo.CurrentCulture, s, args);
-            }
-            return s;
-        }
-
-        private CancellationToken UpdateCancelAllCtsLink(ref CancellationTokenSource cancelAllCtsLink, CancellationToken loopCt) {
-            cancelAllCtsLink.Dispose();
-            Interlocked.Exchange(ref _cancelAllCts, new CancellationTokenSource());
-            cancelAllCtsLink = CancellationTokenSource.CreateLinkedTokenSource(loopCt, _cancelAllCts.Token);
-            return cancelAllCtsLink.Token;
-        }
-
         private async Task RunWorker(CancellationToken ct) {
             TaskUtilities.AssertIsOnBackgroundThread();
 
-            // Spin until the worker task is registered.
-            while (_runTask == null) {
-                await Task.Yield();
-            }
-
             try {
                 var message = await ReceiveMessageAsync(ct);
-                if (message == null) {
-                    // Socket is closed before connection is established. Just exit.
-                    return;
-                }
-
-                if (!message.IsNotification || message.Name != "!Microsoft.R.Host") {
+                if (message.Name != "Microsoft.R.Host" || message.RequestId != null) {
                     throw ProtocolError($"Microsoft.R.Host handshake expected:", message);
                 }
 
@@ -674,49 +486,163 @@ namespace Microsoft.R.Host.Client {
                     throw ProtocolError($"Unexpected host response message:", message);
                 }
             } finally {
-                // Signal cancellation to any callbacks that haven't returned yet.
-                _cts.Cancel();
-
                 await _callbacks.Disconnected();
             }
         }
 
-        public async Task Run(CancellationToken cancellationToken = default(CancellationToken)) {
+        public async Task Run(IMessageTransport transport, CancellationToken ct) {
             TaskUtilities.AssertIsOnBackgroundThread();
 
             if (_runTask != null) {
                 throw new InvalidOperationException("This host is already running.");
             }
 
-            var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _cts.Token);
+            if (transport != null) {
+                lock (_transportLock) {
+                    _transport = transport;
+                }
+            } else if (_transport == null) {
+                throw new ArgumentNullException(nameof(transport));
+            }
 
             try {
-                _runTask = RunWorker(cts.Token);
-                await _runTask;
-            } catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested || _cts.Token.IsCancellationRequested) {
+                await (_runTask = RunWorker(ct));
+            } catch (OperationCanceledException) when (ct.IsCancellationRequested) {
                 // Expected cancellation, do not propagate, just exit process
-            } catch (MessageTransportException ex) when (cancellationToken.IsCancellationRequested || _cts.Token.IsCancellationRequested) {
+            } catch (MessageTransportException ex) when (ct.IsCancellationRequested) {
                 // Network errors during cancellation are expected, but should not be exposed to clients.
                 throw new OperationCanceledException(new OperationCanceledException().Message, ex);
             } catch (Exception ex) {
-                var message = "Exception in RHost run loop:\n" + ex;
-                Log.WriteLine(LogVerbosity.Minimal, MessageCategory.Error, message);
-                Debug.Fail(message);
+                Trace.Fail("Exception in RHost run loop:\n" + ex);
                 throw;
-            } finally {
-                cts.Dispose();
-
-                // Signal cancellation to any callbacks that haven't returned yet.
-                _cts.Cancel();
-
-                _requests.Clear();
             }
         }
 
-        public void DetachCallback() {
-            Interlocked.Exchange(ref _callbacks, new NullRCallbacks());
+        private WebSocketMessageTransport CreateWebSocketMessageTransport() {
+            lock (_transportLock) {
+                if (_transport != null) {
+                    throw new MessageTransportException("More than one incoming connection.");
+                }
+
+                var transport = new WebSocketMessageTransport();
+                _transportTcs.SetResult(_transport = transport);
+                return transport;
+            }
         }
 
-        public Task GetRHostRunTask() => _runTask;
+        public async Task CreateAndRun(string rHome, string rhostDirectory = null, string rCommandLineArguments = null, int timeout = 3000, CancellationToken ct = default(CancellationToken)) {
+            await TaskUtilities.SwitchToBackgroundThread();
+
+            rhostDirectory = rhostDirectory ?? Path.GetDirectoryName(typeof(RHost).Assembly.GetAssemblyPath());
+            rCommandLineArguments = rCommandLineArguments ?? string.Empty;
+
+            string rhostExe = Path.Combine(rhostDirectory, RHostExe);
+            string rBinPath = Path.Combine(rHome, RBinPathX64);
+
+            if (!File.Exists(rhostExe)) {
+                throw new RHostBinaryMissingException();
+            }
+
+            // Grab an available port from the ephemeral port range (per RFC 6335 8.1.2) for the server socket.
+
+            WebSocketServer server = null;
+            var rnd = new Random();
+            const int ephemeralRangeStart = 49152;
+            var ports =
+                from port in Enumerable.Range(ephemeralRangeStart, 0x10000 - ephemeralRangeStart)
+                let pos = rnd.NextDouble()
+                orderby pos
+                select port;
+
+            foreach (var port in ports) {
+                ct.ThrowIfCancellationRequested();
+
+                server = new WebSocketServer(IPAddress.Loopback, port) {
+                    ReuseAddress = false,
+                    WaitTime = HeartbeatTimeout,
+                };
+                server.AddWebSocketService("/", CreateWebSocketMessageTransport);
+
+                try {
+                    server.Start();
+                    break;
+                } catch (SocketException ex) {
+                    if (ex.SocketErrorCode == SocketError.AddressAlreadyInUse) {
+                        server = null;
+                    } else {
+                        throw new MessageTransportException(ex);
+                    }
+                } catch (WebSocketException ex) {
+                    throw new MessageTransportException(ex);
+                }
+            }
+
+            if (server == null) {
+                throw new MessageTransportException(new SocketException((int)SocketError.AddressAlreadyInUse));
+            }
+
+            var psi = new ProcessStartInfo {
+                FileName = rhostExe,
+                UseShellExecute = false
+            };
+
+            var shortHome = new StringBuilder(NativeMethods.MAX_PATH);
+            NativeMethods.GetShortPathName(rHome, shortHome, shortHome.Capacity);
+            psi.EnvironmentVariables["R_HOME"] = shortHome.ToString();
+
+            psi.EnvironmentVariables["PATH"] = rBinPath + ";" + Environment.GetEnvironmentVariable("PATH");
+
+            if (_name != null) {
+                psi.Arguments += " --rhost-name " + _name;
+            }
+
+            psi.Arguments += Invariant($" --rhost-connect ws://127.0.0.1:{server.Port}");
+
+            if (!showConsole) {
+                psi.CreateNoWindow = true;
+            }
+
+            if (!string.IsNullOrWhiteSpace(rCommandLineArguments)) {
+                psi.Arguments += Invariant($" {rCommandLineArguments}");
+            }
+
+            using (this)
+            using (_process = Process.Start(psi)) {
+                _log.RHostProcessStarted(psi);
+                _process.EnableRaisingEvents = true;
+                _process.Exited += delegate { Dispose(); };
+
+                try {
+                    ct = CancellationTokenSource.CreateLinkedTokenSource(ct, _cts.Token).Token;
+
+                    // Timeout increased to allow more time in test and code coverage runs.
+                    await Task.WhenAny(_transportTcs.Task, Task.Delay(timeout)).Unwrap();
+                    if (!_transportTcs.Task.IsCompleted) {
+                        _log.FailedToConnectToRHost();
+                        throw new RHostTimeoutException("Timed out waiting for R host process to connect");
+                    }
+
+                    await Run(null, ct);
+                } catch (Exception) {
+                    // TODO: delete when we figure out why host occasionally times out in code coverage runs.
+                    //await _log.WriteFormatAsync(MessageCategory.Error, "Exception running R Host: {0}", ex.Message);
+                    throw;
+                } finally {
+                    if (!_process.HasExited) {
+                        try {
+                            _process.WaitForExit(500);
+                            if (!_process.HasExited) {
+                                _process.Kill();
+                                _process.WaitForExit();
+                            }
+                        } catch (InvalidOperationException) {
+                        }
+                    }
+                    _log.RHostProcessExited();
+                }
+            }
+        }
+
+        internal Task GetRHostRunTask() => _runTask;
     }
 }

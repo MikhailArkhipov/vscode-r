@@ -3,7 +3,6 @@
 
 using System;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,7 +13,6 @@ using Microsoft.Common.Core.Services;
 using Microsoft.R.Components.InteractiveWorkflow;
 using Microsoft.R.Editor.Functions;
 using Microsoft.R.Host.Client;
-using Microsoft.R.Host.Client.Host;
 using Microsoft.R.LanguageServer.InteractiveWorkflow;
 using Microsoft.R.LanguageServer.Settings;
 using Microsoft.R.Platform.Interpreters;
@@ -91,7 +89,7 @@ namespace Microsoft.R.LanguageServer.Server {
         private IRInterpreterInfo GetREngine() {
             var rs = _services.GetService<IREngineSettings>();
             if (!string.IsNullOrEmpty(rs.InterpreterPath)) {
-                _ui.LogMessageAsync($"Using interpreter at '{rs.InterpreterPath}']", MessageType.Info).DoNotWait();
+                _ui.LogMessageAsync($"Using interpreter at '{rs.InterpreterPath}'", MessageType.Info).DoNotWait();
                 return new RInterpreterInfo("R", rs.InterpreterPath, _services.GetService<IFileSystem>());
             }
 
@@ -102,7 +100,7 @@ namespace Microsoft.R.LanguageServer.Server {
                 .ToList();
 
             if (engines.Count == 0) {
-                const string message = "Unable to find R intepreter. Please install R from https://cran.r-project.org";
+                const string message = "Unable to find R interpreter. Please install R from https://cran.r-project.org";
                 _ui.ShowMessageAsync(message, MessageType.Error).DoNotWait();
                 return null;
             }
@@ -112,7 +110,7 @@ namespace Microsoft.R.LanguageServer.Server {
                 _ui.LogMessageAsync($"\t[{i}] {engines[i].Name}", MessageType.Info).DoNotWait();
             }
             _ui.LogMessageAsync("You can specify the desired interpreter index in the R settings", MessageType.Info).DoNotWait();
-            _ui.LogMessageAsync("Of provide path to R using `r.interpreterPath` setting.", MessageType.Info).DoNotWait();
+            _ui.LogMessageAsync("or provide path to R using `r.interpreterPath` setting.", MessageType.Info).DoNotWait();
 
             if (rs.InterpreterIndex < 0 || rs.InterpreterIndex > engines.Count) {
                 _ui.ShowMessageAsync($"Selected interpreter [{rs.InterpreterIndex}] does not exist. Using [0] instead", MessageType.Warning).DoNotWait();
