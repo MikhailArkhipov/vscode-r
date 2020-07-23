@@ -1,11 +1,8 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 'use strict';
-import * as path from 'path';
-import { Uri, ViewColumn, WebviewPanel, window } from 'vscode';
+import { ViewColumn, WebviewPanel, window } from 'vscode';
 import { Disposable } from 'vscode';
-
-import { createDeferred } from './deferred';
 
 export class PlotView implements Disposable {
     public static currentPanel: PlotView | undefined;
@@ -16,7 +13,7 @@ export class PlotView implements Disposable {
         const viewColumn = PlotView.getViewColumn();
         // If we already have a panel, show it.
         if (PlotView.currentPanel) {
-            PlotView.currentPanel.panel.reveal(viewColumn);
+            PlotView.currentPanel.panel.reveal(viewColumn, true);
             return;
         }
 

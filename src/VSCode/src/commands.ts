@@ -92,7 +92,7 @@ export class Commands {
 
     private async moveCaretDown() {
         // Take focus back to the editor
-        await window.showTextDocument(window.activeTextEditor.document, ViewColumn.Active, true);
+        await window.showTextDocument(window.activeTextEditor.document, window.activeTextEditor.viewColumn, false);
         const selectionEmpty = window.activeTextEditor.selection.isEmpty;
         if (selectionEmpty) {
             await commands.executeCommand('cursorMove', {
