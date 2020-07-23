@@ -10,51 +10,33 @@ import { createDeferred } from './deferred';
 export class PlotView implements Disposable {
     public static currentPanel: PlotView | undefined;
     public static readonly viewType = 'plot';
-
-    private uri: Uri;
-    private buffer = '';
     private disposables: Disposable[] = [];
 
-    public static createOrShow(extensionPath: string) {
+    public static createOrShow() {
+        const viewColumn = PlotView.getViewColumn();
         // If we already have a panel, show it.
         if (PlotView.currentPanel) {
-            PlotView.currentPanel.panel.reveal(ViewColumn.Two);
+            PlotView.currentPanel.panel.reveal(viewColumn);
             return;
         }
 
         // Otherwise, create a new panel.
-        const panel = window.createWebviewPanel(PlotView.viewType, 'Plot', ViewColumn.Two, {
-            // Enable javascript in the webview
-            enableScripts: true,
-            // And restrict the webview to only loading content from our extension's `media` directory.
-            localResourceRoots: [Uri.file(path.join(extensionPath, 'media'))],
+        const panel = window.createWebviewPanel(PlotView.viewType, 'Plot', {
+            viewColumn,
+            preserveFocus: true,
         });
 
-        PlotView.currentPanel = new PlotView(panel, extensionPath);
+        PlotView.currentPanel = new PlotView(panel);
     }
 
-    public static revive(panel: WebviewPanel, extensionPath: string) {
-        PlotView.currentPanel = new PlotView(panel, extensionPath);
+    public static revive(panel: WebviewPanel) {
+        PlotView.currentPanel = new PlotView(panel);
     }
 
-    private constructor(private readonly panel: WebviewPanel, private readonly extensionPath: string) {
-        // Set the webview's initial html content
-        this.clear();
-
+    private constructor(private readonly panel: WebviewPanel) {
         // Listen for when the panel is disposed
         // This happens when the user closes the panel or when the panel is closed programatically
         this.panel.onDidDispose(() => this.dispose(), null, this.disposables);
-
-        // Update the content based on view changes
-        // this.panel.onDidChangeViewState(
-        //     (e) => {
-        //         if (this.panel.visible) {
-        //             this.update();
-        //         }
-        //     },
-        //     null,
-        //     this.disposables
-        // );
     }
 
     public dispose() {
@@ -66,12 +48,6 @@ export class PlotView implements Disposable {
             if (x) {
                 x.dispose();
             }
-        }
-    }
-
-    public clear() {
-        if (PlotView.currentPanel) {
-            PlotView.currentPanel.panel.webview.html = this.generateResultsView('');
         }
     }
 
@@ -96,5 +72,20 @@ export class PlotView implements Disposable {
             </html>`;
 
         return htmlContent;
+    }
+
+    private static getViewColumn(): ViewColumn {
+        const column = window.activeTextEditor ? window.activeTextEditor.viewColumn : ViewColumn.One;
+        switch (column) {
+            case ViewColumn.One:
+                return ViewColumn.Two;
+            case ViewColumn.Two:
+                return ViewColumn.Three;
+            case ViewColumn.Three:
+                return ViewColumn.Four;
+            case ViewColumn.Four:
+                return ViewColumn.Five;
+        }
+        return ViewColumn.One;
     }
 }

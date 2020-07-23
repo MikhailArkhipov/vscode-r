@@ -67,11 +67,11 @@ export async function activateLanguageServer(context: ExtensionContext) {
 
     window.registerWebviewPanelSerializer(PlotView.viewType, {
         async deserializeWebviewPanel(webviewPanel: WebviewPanel, state: any) {
-            PlotView.revive(webviewPanel, context.extensionPath);
+            PlotView.revive(webviewPanel);
         },
     });
 
-    commands = new Commands(rEngine, context.extensionPath);
+    commands = new Commands(rEngine);
     context.subscriptions.push(...commands.activateCommandsProvider());
 }
 
