@@ -353,10 +353,6 @@ namespace Microsoft.R.Host.Client.Session {
                 return null;
             }
 
-            if (connectionInfo.IsUrlBased) {
-                return new RemoteBrokerClient(name, this, connectionInfo, _services, _console, cancellationToken);
-            }
-
             return new LocalBrokerClient(name, connectionInfo, _services, _console, this);
         }
 

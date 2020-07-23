@@ -36,7 +36,7 @@ namespace Microsoft.R.Host.Client.Host {
             // Allow "true" and non-zero integer to enable, otherwise disable.
             var rtvsShowConsole = Environment.GetEnvironmentVariable("RTVS_SHOW_CONSOLE");
             if (!bool.TryParse(rtvsShowConsole, out ShowConsole)) {
-                if (int.TryParse(rtvsShowConsole, out int n) && n != 0) {
+                if (int.TryParse(rtvsShowConsole, out var n) && n != 0) {
                     ShowConsole = true;
                 }
             }

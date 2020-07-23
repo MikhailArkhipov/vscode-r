@@ -144,7 +144,7 @@ namespace Microsoft.R.Host.Client.Session {
                 return CanceledBeginInteractionTask;
             }
 
-            RSessionRequestSource requestSource = new RSessionRequestSource(isVisible, cancellationToken);
+            var requestSource = new RSessionRequestSource(isVisible, cancellationToken);
             _pendingRequestSources.Post(requestSource);
 
             return _isHostRunning ? requestSource.CreateRequestTask : CanceledBeginInteractionTask;
@@ -175,44 +175,6 @@ namespace Microsoft.R.Host.Client.Session {
             }
         }
 
-        public Task<ulong> CreateBlobAsync(CancellationToken ct = default(CancellationToken)) =>
-            DoBlobServiceAsync(_host?.CreateBlobAsync(ct));
-
-        public Task DestroyBlobsAsync(IEnumerable<ulong> blobIds, CancellationToken ct = default(CancellationToken)) =>
-            DoBlobServiceAsync(new Lazy<Task<long>>(async () => {
-                var task = _host?.DestroyBlobsAsync(blobIds, ct) ?? Task.CompletedTask;
-                await task;
-                return 0;
-            }).Value);
-
-        public Task<byte[]> BlobReadAllAsync(ulong blobId, CancellationToken ct = default(CancellationToken)) =>
-            DoBlobServiceAsync(_host?.BlobReadAllAsync(blobId, ct));
-
-        public Task<byte[]> BlobReadAsync(ulong blobId, long position, long count, CancellationToken ct = default(CancellationToken)) =>
-            DoBlobServiceAsync(_host?.BlobReadAsync(blobId, position, count, ct));
-
-        public Task<long> BlobWriteAsync(ulong blobId, byte[] data, long position, CancellationToken ct = default(CancellationToken)) =>
-            DoBlobServiceAsync(_host?.BlobWriteAsync(blobId, data, position, ct));
-
-        public Task<long> GetBlobSizeAsync(ulong blobId, CancellationToken ct = default(CancellationToken)) =>
-            DoBlobServiceAsync(_host?.GetBlobSizeAsync(blobId, ct));
-
-        public Task<long> SetBlobSizeAsync(ulong blobId, long size, CancellationToken ct = default(CancellationToken)) =>
-            DoBlobServiceAsync(_host?.SetBlobSizeAsync(blobId, size, ct));
-
-        private async Task<T> DoBlobServiceAsync<T>(Task<T> work) {
-            if (!IsHostRunning) {
-                throw new RHostDisconnectedException();
-            }
-
-            await _initializedTcs.Task;
-
-            try {
-                return await work;
-            } catch (MessageTransportException) when (!IsHostRunning) {
-                throw new RHostDisconnectedException();
-            }
-        }
 
         public async Task CancelAllAsync(CancellationToken cancellationToken = default(CancellationToken)) {
             using (_disposeToken.Link(ref cancellationToken)) {

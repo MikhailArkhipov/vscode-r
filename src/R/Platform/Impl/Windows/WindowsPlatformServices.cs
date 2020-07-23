@@ -11,13 +11,12 @@ using Microsoft.Common.Core.Shell;
 namespace Microsoft.R.Platform.Windows {
     internal sealed class WindowsPlatformServices : IPlatformServices {
         private string _appDataFolder;
-
         public IntPtr ApplicationWindowHandle => IntPtr.Zero;
 
         public string ApplicationDataFolder {
             get {
                 if (_appDataFolder == null) {
-                    string folder = @".\";
+                    var folder = @".\";
                     NativeMethods.SHGetKnownFolderPath(NativeMethods.KNOWNFOLDERID_LocalAppData, 0, IntPtr.Zero, out var path);
                     if (path != IntPtr.Zero) {
                         folder = Marshal.PtrToStringUni(path);
