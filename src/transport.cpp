@@ -114,6 +114,8 @@ namespace rhost {
 
             void stdouterr_to_message() {
                 int stdout_fd[2] = {}, stderr_fd[2] = {};
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-result"
 #ifdef _WIN32
                 _pipe(stdout_fd, pipeSize, _O_TEXT);
                 _pipe(stderr_fd, pipeSize, _O_TEXT);
@@ -121,6 +123,7 @@ namespace rhost {
                 pipe(stdout_fd);
                 pipe(stderr_fd);
 #endif
+#pragma GCC diagnostic pop
 
                 dup2(stdout_fd[1], fileno(stdout));
                 dup2(stderr_fd[1], fileno(stderr));
@@ -153,8 +156,11 @@ namespace rhost {
             output = fdopen(dup(fileno(stdout)), "wb");
             setvbuf(output, NULL, _IONBF, 0);
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-result"
             // Redirect stdin null device, so that it will not interfere with the protocol.
             freopen(devNull, "rb", stdin);
+#pragma GCC diagnostic pop
 
             // This is needed to redirect any code that writes to stdout or stderr directly (instead of 
             // via R_WriteConsole) will be sent to client as a message.
