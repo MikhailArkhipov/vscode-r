@@ -859,13 +859,23 @@ namespace rhost {
                         is_waiting_for_wm = false;
                         R_ProcessEvents();
 #else
+                        // Throttle polling on Unix platforms
+                        usleep(2000);
+
                         if (ptr_R_ProcessEvents != nullptr) {
                             ptr_R_ProcessEvents();
                         }
+
+                        fd_set* what = R_checkActivity(0, 1);                        
                         is_waiting_for_wm = false;
-                        R_runHandlers(R_InputHandlers, R_checkActivity(0, 1));
+#ifdef __APPLE__ 
+                        if (what != NULL) {
+                            R_runHandlers(R_InputHandlers, what);
+                        }
+#else
+                        R_runHandlers(R_InputHandlers, what);
 #endif
-                        
+#endif                       
                     }, nullptr);
 
                     // In case anything in R_WaitEvent failed and unwound the context before we could reset.
