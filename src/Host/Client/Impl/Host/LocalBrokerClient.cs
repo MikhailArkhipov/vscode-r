@@ -36,7 +36,7 @@ namespace Microsoft.R.Host.Client.Host {
             // Allow "true" and non-zero integer to enable, otherwise disable.
             var rtvsShowConsole = Environment.GetEnvironmentVariable("RTVS_SHOW_CONSOLE");
             if (!bool.TryParse(rtvsShowConsole, out ShowConsole)) {
-                if (int.TryParse(rtvsShowConsole, out int n) && n != 0) {
+                if (int.TryParse(rtvsShowConsole, out var n) && n != 0) {
                     ShowConsole = true;
                 }
             }
@@ -46,10 +46,9 @@ namespace Microsoft.R.Host.Client.Host {
             : base(name, connectionInfo, _credentials, console, services, sessionProvider) {
             _rHome = connectionInfo.Uri.LocalPath;
             _services = services;
-            IsVerified = true;
         }
 
-        public override async Task<RHost> ConnectAsync(HostConnectionInfo connectionInfo, CancellationToken cancellationToken = default(CancellationToken)) {
+        public override async Task<RHost> ConnectAsync(HostConnectionInfo connectionInfo, CancellationToken cancellationToken = default) {
             await EnsureBrokerStartedAsync(cancellationToken);
             return await base.ConnectAsync(connectionInfo, cancellationToken);
         }

@@ -24,7 +24,7 @@ namespace Microsoft.R.Components.PackageManager {
         /// </exception>
         /// <exception cref="OperationCanceledException">
         /// </exception>
-        Task<IReadOnlyList<RPackage>> GetInstalledPackagesAsync(CancellationToken cancellationToken = default(CancellationToken));
+        Task<IReadOnlyList<RPackage>> GetInstalledPackagesAsync(CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Get the list of packages that are available from the repositories
@@ -41,7 +41,7 @@ namespace Microsoft.R.Components.PackageManager {
         /// </exception>
         /// <exception cref="OperationCanceledException">
         /// </exception>
-        Task<IReadOnlyList<RPackage>> GetAvailablePackagesAsync(CancellationToken cancellationToken = default(CancellationToken));
+        Task<IReadOnlyList<RPackage>> GetAvailablePackagesAsync(CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Install a package by sending install.packages() to the REPL.
@@ -52,7 +52,7 @@ namespace Microsoft.R.Components.PackageManager {
         ///     for the session ie. the first one in .libPaths().
         /// </param>
         /// <param name="cancellationToken"></param>
-        Task InstallPackageAsync(string name, string libraryPath, CancellationToken cancellationToken = default(CancellationToken));
+        Task InstallPackageAsync(string name, string libraryPath, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Uninstall a package by evaluating rtvs:::package_uninstall.
@@ -69,7 +69,7 @@ namespace Microsoft.R.Components.PackageManager {
         /// if the package was found to be installed and loaded in the REPL or 
         /// loaded by another process.
         /// </returns>
-        Task<PackageLockState> UninstallPackageAsync(string name, string libraryPath, CancellationToken cancellationToken = default(CancellationToken));
+        Task<PackageLockState> UninstallPackageAsync(string name, string libraryPath, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Uninstall and Install a package by evaluating rtvs:::package_update.
@@ -86,7 +86,7 @@ namespace Microsoft.R.Components.PackageManager {
         /// if the package was found to be installed and loaded in the REPL or 
         /// loaded by another process.
         /// </returns>
-        Task<PackageLockState> UpdatePackageAsync(string name, string libraryPath, CancellationToken cancellationToken = default(CancellationToken));
+        Task<PackageLockState> UpdatePackageAsync(string name, string libraryPath, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Load a package by sending library() to the REPL.
@@ -97,14 +97,14 @@ namespace Microsoft.R.Components.PackageManager {
         ///     for the session ie. in .libPaths().
         /// </param>
         /// <param name="cancellationToken"></param>
-        Task LoadPackageAsync(string name, string libraryPath, CancellationToken cancellationToken = default(CancellationToken));
+        Task LoadPackageAsync(string name, string libraryPath, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Unload a package by sending detach() to the REPL.
         /// </summary>
         /// <param name="name">Package name.</param>
         /// <param name="cancellationToken"></param>
-        Task UnloadPackageAsync(string name, CancellationToken cancellationToken = default(CancellationToken));
+        Task UnloadPackageAsync(string name, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Package names that are currently loaded.
@@ -115,7 +115,7 @@ namespace Microsoft.R.Components.PackageManager {
         /// </exception>
         /// <exception cref="OperationCanceledException">
         /// </exception>
-        Task<string[]> GetLoadedPackagesAsync(CancellationToken cancellationToken = default(CancellationToken));
+        Task<string[]> GetLoadedPackagesAsync(CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Path of selected library folder, as returned .libPaths().
@@ -126,7 +126,7 @@ namespace Microsoft.R.Components.PackageManager {
         /// </exception>
         /// <exception cref="OperationCanceledException">
         /// </exception>
-        Task<string> GetLibraryPathAsync(CancellationToken cancellationToken = default(CancellationToken));
+        Task<string> GetLibraryPathAsync(CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Check if the dll for the specified package is locked by the REPL
@@ -136,7 +136,7 @@ namespace Microsoft.R.Components.PackageManager {
         /// <param name="libraryPath">Library path (in any format).</param>
         /// <param name="cancellationToken"></param>
         /// <returns>Lock state.</returns>
-        Task<PackageLockState> GetPackageLockStateAsync(string name, string libraryPath, CancellationToken cancellationToken = default(CancellationToken));
+        Task<PackageLockState> GetPackageLockStateAsync(string name, string libraryPath, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Indicates if the current session is remote

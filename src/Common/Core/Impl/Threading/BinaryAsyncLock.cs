@@ -23,7 +23,7 @@ namespace Microsoft.Common.Core.Threading {
             _tail = isSet ? new TokenSource(CompletedTask) : null;
         }
 
-        public Task<IBinaryAsyncLockToken> WaitAsync(CancellationToken cancellationToken = default(CancellationToken)) {
+        public Task<IBinaryAsyncLockToken> WaitAsync(CancellationToken cancellationToken = default) {
             while (true) {
                 if (cancellationToken.IsCancellationRequested) {
                     return Task.FromCanceled<IBinaryAsyncLockToken>(cancellationToken);
@@ -67,7 +67,7 @@ namespace Microsoft.Common.Core.Threading {
         /// and if it fails, it means that another thread has updated the property or the tail, so method tries again with that new tail.
         /// If replacing tail succeeded, method stops adding Set tokens. If there are no unreleased set tokens, new tail task is set to completed.
         /// </remarks>
-        public Task<IBinaryAsyncLockToken> ResetAsync(CancellationToken cancellationToken = default(CancellationToken)) {
+        public Task<IBinaryAsyncLockToken> ResetAsync(CancellationToken cancellationToken = default) {
             while (true) {
                 if (cancellationToken.IsCancellationRequested) {
                     return Task.FromCanceled<IBinaryAsyncLockToken>(cancellationToken);

@@ -4,7 +4,6 @@
 using System;
 using Microsoft.Common.Core.Services;
 using Microsoft.R.Components.ConnectionManager;
-using Microsoft.R.Components.Containers;
 using Microsoft.R.Components.History;
 using Microsoft.R.Components.PackageManager;
 using Microsoft.R.Components.Plots;
@@ -14,7 +13,6 @@ namespace Microsoft.R.Components.InteractiveWorkflow {
     public interface IRInteractiveWorkflow : IDisposable {
         IServiceContainer Services { get; }
         IConnectionManager Connections { get; }
-        IContainerManager Containers { get; }
         IConsole Console { get; }
         IRHistory History { get; }
         IRPackageManager Packages { get; }

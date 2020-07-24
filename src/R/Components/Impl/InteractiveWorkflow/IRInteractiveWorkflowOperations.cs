@@ -31,7 +31,7 @@ namespace Microsoft.R.Components.InteractiveWorkflow {
         Task CancelAsync();
         void SourceFiles(IEnumerable<string> files, bool echo);
 
-        Task SourceFileAsync(string file, bool echo, Encoding encoding = null, CancellationToken cancellationToken = default(CancellationToken));
+        Task SourceFileAsync(string file, bool echo, Encoding encoding = null, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Attempts to launch Shiny app. Invokes 'library(shiny)'

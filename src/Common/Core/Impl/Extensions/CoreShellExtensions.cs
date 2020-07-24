@@ -12,15 +12,15 @@ using Microsoft.Common.Core.UI;
 
 namespace Microsoft.Common.Core.Shell {
     public static class CoreShellExtensions {
-        public static MainThreadAwaitable SwitchToMainThreadAsync(this ICoreShell coreShell, CancellationToken cancellationToken = default(CancellationToken))
+        public static MainThreadAwaitable SwitchToMainThreadAsync(this ICoreShell coreShell, CancellationToken cancellationToken = default)
              => coreShell.MainThread().SwitchToAsync(cancellationToken);
 
-        public static async Task ShowErrorMessageAsync(this ICoreShell coreShell, string message, CancellationToken cancellationToken = default(CancellationToken)) {
+        public static async Task ShowErrorMessageAsync(this ICoreShell coreShell, string message, CancellationToken cancellationToken = default) {
             await coreShell.SwitchToMainThreadAsync(cancellationToken);
             coreShell.UI().ShowErrorMessage(message);
         }
 
-        public static async Task<MessageButtons> ShowMessageAsync(this IServiceContainer services, string message, MessageButtons buttons, CancellationToken cancellationToken = default(CancellationToken)) {
+        public static async Task<MessageButtons> ShowMessageAsync(this IServiceContainer services, string message, MessageButtons buttons, CancellationToken cancellationToken = default) {
             await services.MainThread().SwitchToAsync(cancellationToken);
             return services.UI().ShowMessage(message, buttons);
         }

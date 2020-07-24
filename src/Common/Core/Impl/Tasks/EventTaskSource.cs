@@ -29,9 +29,9 @@ namespace Microsoft.Common.Core.Tasks {
             _handlerConverter = handlerConverter;
         }
 
-        public Task<TEventArgs> Create(T instance, CancellationToken cancellationToken = default(CancellationToken)) => Create(instance, null, cancellationToken);
+        public Task<TEventArgs> Create(T instance, CancellationToken cancellationToken = default) => Create(instance, null, cancellationToken);
 
-        public Task<TEventArgs> Create(T instance, Action<TEventArgs> callback, CancellationToken cancellationToken = default(CancellationToken)) {
+        public Task<TEventArgs> Create(T instance, Action<TEventArgs> callback, CancellationToken cancellationToken = default) {
             var tcs = new TaskCompletionSource<TEventArgs>();
             var reference = new HandlerReference(instance, tcs, _unsubscribe, _handlerConverter, callback);
             if (cancellationToken != CancellationToken.None) {
@@ -75,7 +75,7 @@ namespace Microsoft.Common.Core.Tasks {
 
                 var instance = _instance;
                 var unsubscribe = _unsubscribe;
-                _instance = default(T);
+                _instance = default;
                 _unsubscribe = null;
                 unsubscribe(instance, Handler);
                 return tcs;

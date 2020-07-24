@@ -36,11 +36,11 @@ namespace Microsoft.R.Components.ConnectionManager {
         /// </summary>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        Task DisconnectAsync(CancellationToken cancellationToken = default(CancellationToken));
+        Task DisconnectAsync(CancellationToken cancellationToken = default);
 
-        Task ConnectAsync(IConnectionInfo connection, CancellationToken cancellationToken = default(CancellationToken));
-        Task ReconnectAsync(CancellationToken cancellationToken = default(CancellationToken));
-        Task TestConnectionAsync(IConnectionInfo connection, CancellationToken cancellationToken = default(CancellationToken));
+        Task ConnectAsync(IConnectionInfo connection, CancellationToken cancellationToken = default);
+        Task ReconnectAsync(CancellationToken cancellationToken = default);
+        Task TestConnectionAsync(IConnectionInfo connection, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Tries to connect to the connection that was last used during previous work session
@@ -48,6 +48,6 @@ namespace Microsoft.R.Components.ConnectionManager {
         /// </summary>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        Task<bool> TryConnectToPreviouslyUsedAsync(CancellationToken cancellationToken = default(CancellationToken));
+        Task<bool> TryConnectToPreviouslyUsedAsync(CancellationToken cancellationToken = default);
     }
 }

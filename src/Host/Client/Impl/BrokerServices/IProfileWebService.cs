@@ -6,6 +6,6 @@ using System.Threading.Tasks;
 
 namespace Microsoft.R.Host.Client.BrokerServices {
     public interface IProfileWebService {
-        Task DeleteAsync(CancellationToken cancellationToken = default(CancellationToken));
+        Task DeleteAsync(CancellationToken cancellationToken = default);
     }
 }

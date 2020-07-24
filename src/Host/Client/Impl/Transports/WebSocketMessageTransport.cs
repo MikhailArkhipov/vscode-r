@@ -21,7 +21,7 @@ namespace Microsoft.R.Host.Client {
             _socket = socket;
         }
 
-        public async Task CloseAsync(CancellationToken cancellationToken = default(CancellationToken)) {
+        public async Task CloseAsync(CancellationToken cancellationToken = default) {
             await _sendLock.WaitAsync(cancellationToken);
             try {
                 await _socket.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "", cancellationToken);
@@ -32,7 +32,7 @@ namespace Microsoft.R.Host.Client {
             }
         }
 
-        public async Task<Message> ReceiveAsync(CancellationToken cancellationToken = default(CancellationToken)) {
+        public async Task<Message> ReceiveAsync(CancellationToken cancellationToken = default) {
             const int blockSize = 0x10000;
             var buffer = new MemoryStream(blockSize);
 
@@ -66,7 +66,7 @@ namespace Microsoft.R.Host.Client {
             }
         }
 
-        public async Task SendAsync(Message message, CancellationToken cancellationToken = default(CancellationToken)) {
+        public async Task SendAsync(Message message, CancellationToken cancellationToken = default) {
             var data = message.ToBytes();
             await _sendLock.WaitAsync(cancellationToken);
             try {

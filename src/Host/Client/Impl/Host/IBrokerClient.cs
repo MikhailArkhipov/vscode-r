@@ -9,13 +9,9 @@ namespace Microsoft.R.Host.Client.Host {
     public interface IBrokerClient : IDisposable {
         BrokerConnectionInfo ConnectionInfo { get; }
         string Name { get; }
-        bool IsRemote { get; }
-        bool IsVerified { get; }
-
-        Task<RHost> ConnectAsync(HostConnectionInfo connectionInfo, CancellationToken cancellationToken = default(CancellationToken));
-        Task TerminateSessionAsync(string name, CancellationToken cancellationToken = default(CancellationToken));
-        Task<string> HandleUrlAsync(string url, CancellationToken cancellationToken = default(CancellationToken));
-        Task<T> GetHostInformationAsync<T>(CancellationToken cancellationToken = default(CancellationToken));
-        Task DeleteProfileAsync(CancellationToken cancellationToken = default(CancellationToken));
+        Task<RHost> ConnectAsync(HostConnectionInfo connectionInfo, CancellationToken cancellationToken = default);
+        Task TerminateSessionAsync(string name, CancellationToken cancellationToken = default);
+        Task<string> HandleUrlAsync(string url, CancellationToken cancellationToken = default);
+        Task<T> GetHostInformationAsync<T>(CancellationToken cancellationToken = default);
     }
 }

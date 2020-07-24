@@ -95,7 +95,7 @@ namespace Microsoft.R.Host.Broker.Sessions {
                 return new ApiErrorResult(BrokerApiError.PipeAlreadyConnected);
             }
 
-            return new WebSocketPipeAction(id, pipe, _sessionLogger);
+            return new WebSocketPipeAction(pipe, _sessionLogger);
         }
     }
 }

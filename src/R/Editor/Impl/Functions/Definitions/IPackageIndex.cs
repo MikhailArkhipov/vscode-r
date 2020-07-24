@@ -12,7 +12,7 @@ namespace Microsoft.R.Editor.Functions {
         /// <summary>
         /// Creates index of packages available in the provided R session
         /// </summary>
-        Task BuildIndexAsync(CancellationToken cancellationToken = default(CancellationToken));
+        Task BuildIndexAsync(CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Writes index cache to disk
@@ -28,13 +28,13 @@ namespace Microsoft.R.Editor.Functions {
         /// Retrieves R package information by name. If package is not in the index,
         /// attempts to locate the package in the current R session.
         /// </summary>
-        Task<IPackageInfo> GetPackageInfoAsync(string packageName, CancellationToken cancellationToken = default(CancellationToken));
+        Task<IPackageInfo> GetPackageInfoAsync(string packageName, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Retrieves information on multilple R packages. If one of the packages 
         /// is not in the index, attempts to locate the package in the current R session.
         /// </summary>
-        Task<IEnumerable<IPackageInfo>> GetPackagesInfoAsync(IEnumerable<string> packageNames, CancellationToken cancellationToken = default(CancellationToken));
+        Task<IEnumerable<IPackageInfo>> GetPackagesInfoAsync(IEnumerable<string> packageNames, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Path to the cache.

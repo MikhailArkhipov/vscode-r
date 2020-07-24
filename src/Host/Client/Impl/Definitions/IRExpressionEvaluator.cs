@@ -47,7 +47,7 @@ namespace Microsoft.R.Host.Client {
         /// If <paramref name="cancellationToken"/> become canceled before method is completed, task will be <see cref="TaskStatus.Canceled"/>
         /// with <see cref="OperationCanceledException"/>. 
         /// </returns>
-        Task<REvaluationResult> EvaluateAsync(string expression, REvaluationKind kind, CancellationToken cancellationToken = default(CancellationToken));
+        Task<REvaluationResult> EvaluateAsync(string expression, REvaluationKind kind, CancellationToken cancellationToken = default);
     }
 
     public static class RExpressionEvaluatorExtensions {
@@ -55,7 +55,7 @@ namespace Microsoft.R.Host.Client {
         /// Like <see cref="IRExpressionEvaluator.EvaluateAsync"/>, but takes a <see cref="FormattableString"/> for the expression,
         /// and uses <see cref="CultureInfo.InvariantCulture"/> to format it.
         /// </summary>
-        public static Task<REvaluationResult> EvaluateAsync(this IRExpressionEvaluator evaluator, FormattableString expression, REvaluationKind kind, CancellationToken cancellationToken = default(CancellationToken)) =>
+        public static Task<REvaluationResult> EvaluateAsync(this IRExpressionEvaluator evaluator, FormattableString expression, REvaluationKind kind, CancellationToken cancellationToken = default) =>
             evaluator.EvaluateAsync(Invariant(expression), kind, cancellationToken);
 
         /// <summary>
@@ -82,7 +82,7 @@ namespace Microsoft.R.Host.Client {
         /// with <see cref="OperationCanceledException"/>. If <see cref="REvaluationResult.ParseStatus"/> was not <see cref="RParseStatus.OK"/>, or 
         /// <see cref="REvaluationResult.Error"/> was not <see langword="null"/>, task will be <see cref="TaskStatus.Faulted"/> with <see cref="REvaluationException"/>.
         /// </returns>
-        public static async Task<T> EvaluateAsync<T>(this IRExpressionEvaluator evaluator, string expression, REvaluationKind kind, CancellationToken cancellationToken = default(CancellationToken)) {
+        public static async Task<T> EvaluateAsync<T>(this IRExpressionEvaluator evaluator, string expression, REvaluationKind kind, CancellationToken cancellationToken = default) {
             bool isRaw = typeof(T) == typeof(byte[]);
             if (isRaw) {
                 kind |= REvaluationKind.RawResult;
@@ -104,7 +104,7 @@ namespace Microsoft.R.Host.Client {
         /// Like <see cref="EvaluateAsync{T}(IRExpressionEvaluator, string, REvaluationKind, CancellationToken)"/>, but takes a
         /// <see cref="FormattableString"/> for the expression, and uses <see cref="CultureInfo.InvariantCulture"/> to format it.
         /// </summary>
-        public static Task<T> EvaluateAsync<T>(this IRExpressionEvaluator evaluator, FormattableString expression, REvaluationKind kind, CancellationToken cancellationToken = default(CancellationToken)) =>
+        public static Task<T> EvaluateAsync<T>(this IRExpressionEvaluator evaluator, FormattableString expression, REvaluationKind kind, CancellationToken cancellationToken = default) =>
             evaluator.EvaluateAsync<T>(Invariant(expression), kind, cancellationToken);
 
         /// <summary>
@@ -115,7 +115,7 @@ namespace Microsoft.R.Host.Client {
         /// Use in lieu of <see cref="EvaluateAsync{T}(IRExpressionEvaluator, string, REvaluationKind, CancellationToken)"/> for
         /// evaluations that are performed solely for their side effects, when the result is not inspected.
         /// </remarks>
-        public static async Task ExecuteAsync(this IRExpressionEvaluator evaluator, string expression, REvaluationKind kind, CancellationToken cancellationToken = default(CancellationToken)) {
+        public static async Task ExecuteAsync(this IRExpressionEvaluator evaluator, string expression, REvaluationKind kind, CancellationToken cancellationToken = default) {
             var res = await evaluator.EvaluateAsync(expression, kind | REvaluationKind.NoResult, cancellationToken);
             ThrowOnError(expression, res);
             Trace.Assert(res.Result == null);
@@ -125,21 +125,21 @@ namespace Microsoft.R.Host.Client {
         /// Like <see cref="ExecuteAsync(IRExpressionEvaluator, string, REvaluationKind, CancellationToken)"/>, but uses
         /// <see cref="REvaluationKind.Mutating"/> for <c>kind</c>
         /// </summary>
-        public static Task ExecuteAsync(this IRExpressionEvaluator evaluator, string expression, CancellationToken cancellationToken = default(CancellationToken)) =>
+        public static Task ExecuteAsync(this IRExpressionEvaluator evaluator, string expression, CancellationToken cancellationToken = default) =>
             evaluator.ExecuteAsync(expression, REvaluationKind.Mutating, cancellationToken);
 
         /// <summary>
         /// Like <see cref="ExecuteAsync(IRExpressionEvaluator, string, REvaluationKind, CancellationToken)"/>, but takes a
         /// <see cref="FormattableString"/> for the expression, and uses <see cref="CultureInfo.InvariantCulture"/> to format it.
         /// </summary>
-        public static Task ExecuteAsync(this IRExpressionEvaluator evaluator, FormattableString expression, REvaluationKind kind, CancellationToken cancellationToken = default(CancellationToken)) =>
+        public static Task ExecuteAsync(this IRExpressionEvaluator evaluator, FormattableString expression, REvaluationKind kind, CancellationToken cancellationToken = default) =>
             evaluator.ExecuteAsync(Invariant(expression), kind, cancellationToken);
 
         /// <summary>
         /// Like <see cref="ExecuteAsync(IRExpressionEvaluator, FormattableString, REvaluationKind, CancellationToken)"/>, but uses
         /// <see cref="REvaluationKind.Mutating"/> for <c>kind</c>
         /// </summary>
-        public static Task ExecuteAsync(this IRExpressionEvaluator evaluator, FormattableString expression, CancellationToken cancellationToken = default(CancellationToken)) =>
+        public static Task ExecuteAsync(this IRExpressionEvaluator evaluator, FormattableString expression, CancellationToken cancellationToken = default) =>
             evaluator.ExecuteAsync(expression, REvaluationKind.Mutating, cancellationToken);
 
         private static void ThrowOnError(string expression, REvaluationResult res) {

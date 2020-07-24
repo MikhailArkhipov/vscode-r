@@ -8,6 +8,6 @@ namespace Microsoft.Common.Core.Threading {
     }
 
     public interface IExclusiveReaderLock {
-        Task<IAsyncReaderWriterLockToken> WaitAsync(CancellationToken cancellationToken = default(CancellationToken));
+        Task<IAsyncReaderWriterLockToken> WaitAsync(CancellationToken cancellationToken = default);
     }
 }

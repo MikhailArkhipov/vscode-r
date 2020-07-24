@@ -30,23 +30,6 @@ namespace Odachi.AspNetCore.Authentication.Basic {
             var events = Events as BasicEvents;
 
             try {
-                // .NET Core as of 2.0 does not support HTTP auth on sockets
-                // This is alternative solution to anonymous access in SessionController.GetPipe()
-                // but it only works for local connections (which may be OK for VSC but it won't work
-                // in VSC with remote or Docker containers.
-
-                //if (Uri.TryCreate(CurrentUri, UriKind.Absolute, out var uri)) {
-                //    if (uri.IsLoopback && !Request.IsHttps) {
-                //        var claims = new[] {
-                //            new Claim(ClaimTypes.Name, "RTVS"),
-                //            new Claim(Claims.RUser, string.Empty),
-                //        };
-                //        var principal = new ClaimsPrincipal(new ClaimsIdentity(claims, BasicDefaults.AuthenticationScheme));
-                //        var t = new AuthenticationTicket(principal, new AuthenticationProperties(), Scheme.Name);
-                //        return AuthenticateResult.Success(t);
-                //    }
-                //}
-
                 // retrieve authorization header
                 string authorization = Request.Headers[HeaderNames.Authorization];
 

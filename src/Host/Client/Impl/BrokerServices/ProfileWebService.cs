@@ -15,7 +15,7 @@ namespace Microsoft.R.Host.Client.BrokerServices {
             : base(httpClient, credentialsDecorator, log) {
         }
 
-        public Task DeleteAsync(CancellationToken cancellationToken = default(CancellationToken)) =>
+        public Task DeleteAsync(CancellationToken cancellationToken = default) =>
             HttpDeleteAsync(Uri, cancellationToken);
     }
 }

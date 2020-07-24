@@ -44,7 +44,7 @@ namespace Microsoft.R.Core.AST.DataTypes {
                     return (T)vector.Value[index];
                 }
 
-                return default(T);
+                return default;
             }
             set => vector.Value[index] = value;
         }

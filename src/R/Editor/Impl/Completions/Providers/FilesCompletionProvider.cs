@@ -88,11 +88,7 @@ namespace Microsoft.R.Editor.Completions.Providers {
                 if (!string.IsNullOrEmpty(directory)) {
                     IEnumerable<ICompletionEntry> entries;
 
-                    if (_forceR || _workflow.RSession.IsRemote) {
-                        entries = await GetRemoteDirectoryItemsAsync(directory);
-                    } else {
-                        entries = GetLocalDirectoryItems(directory);
-                    }
+                    entries = GetLocalDirectoryItems(directory);
                     completions.AddRange(entries);
                 }
             } catch (IOException) { } catch (UnauthorizedAccessException) { } catch (ArgumentException) { } catch (TimeoutException) { }
@@ -100,26 +96,6 @@ namespace Microsoft.R.Editor.Completions.Providers {
             return completions;
         }
         #endregion
-
-        private Task<List<ICompletionEntry>> GetRemoteDirectoryItemsAsync(string directory) {
-            return Task.Run(async () => {
-                var session = _workflow.RSession;
-                var completions = new List<ICompletionEntry>();
-
-                try {
-                    var rPath = directory.ToRPath().ToRStringLiteral();
-                    var files = await session.EvaluateAsync<JArray>(Invariant($"as.list(list.files(path = {rPath}, include.dirs = FALSE))"), REvaluationKind.Normal);
-                    var dirs = await session.EvaluateAsync<JArray>(Invariant($"as.list(list.dirs(path = {rPath}, full.names = FALSE, recursive = FALSE))"), REvaluationKind.Normal);
-
-                    var folderGlyph = _imageService.GetImage(ImageType.OpenFolder);
-                    completions.AddRange(dirs.Select(d => new EditorCompletionEntry((string) d, (string) d + "/", string.Empty, folderGlyph)));
-                    completions.AddRange(files.Select(f => new EditorCompletionEntry((string) f, (string) f, string.Empty, folderGlyph)));
-
-                } catch (RException) { } catch (OperationCanceledException) { }
-
-                return completions;
-            });
-        }
 
         private IEnumerable<ICompletionEntry> GetLocalDirectoryItems(string directory) {
             if (_fs.DirectoryExists(directory)) {

@@ -89,7 +89,7 @@ namespace Microsoft.R.Editor.Functions {
         /// </summary>
         public IEnumerable<IPackageInfo> Packages => _packages.Values;
 
-        public async Task BuildIndexAsync(CancellationToken ct = default(CancellationToken)) {
+        public async Task BuildIndexAsync(CancellationToken ct = default) {
             var lockToken = await _buildIndexLock.WaitAsync(ct);
             await BuildIndexAsync(lockToken, ct);
         }
@@ -138,7 +138,7 @@ namespace Microsoft.R.Editor.Functions {
         /// Retrieves R package information by name. If package is not in the index,
         /// attempts to locate the package in the current R session.
         /// </summary>
-        public async Task<IPackageInfo> GetPackageInfoAsync(string packageName, CancellationToken ct = default(CancellationToken)) {
+        public async Task<IPackageInfo> GetPackageInfoAsync(string packageName, CancellationToken ct = default) {
             packageName = packageName.TrimQuotes().Trim();
             var package = GetPackageInfo(packageName);
             if (package != null) {
@@ -153,7 +153,7 @@ namespace Microsoft.R.Editor.Functions {
         /// Retrieves information on multilple R packages. If one of the packages 
         /// is not in the index, attempts to locate the package in the current R session.
         /// </summary>
-        public async Task<IEnumerable<IPackageInfo>> GetPackagesInfoAsync(IEnumerable<string> packageNames, CancellationToken ct = default(CancellationToken)) {
+        public async Task<IEnumerable<IPackageInfo>> GetPackagesInfoAsync(IEnumerable<string> packageNames, CancellationToken ct = default) {
             var list = new List<IPackageInfo>();
             var missing = new List<string>();
 
@@ -227,7 +227,7 @@ namespace Microsoft.R.Editor.Functions {
             }
         }
 
-        private async Task UpdateInstalledPackagesAsync(CancellationToken ct = default(CancellationToken)) {
+        private async Task UpdateInstalledPackagesAsync(CancellationToken ct = default) {
             if (!_updatePending) {
                 return;
             }
@@ -286,7 +286,7 @@ namespace Microsoft.R.Editor.Functions {
             return list;
         }
 
-        private async Task<IEnumerable<RPackage>> GetInstalledPackagesAsync(CancellationToken ct = default(CancellationToken)) {
+        private async Task<IEnumerable<RPackage>> GetInstalledPackagesAsync(CancellationToken ct = default) {
             await _host.StartSessionAsync(ct);
             var result = await _host.Session.InstalledPackagesAsync();
             return result.Select(p => p.ToObject<RPackage>());

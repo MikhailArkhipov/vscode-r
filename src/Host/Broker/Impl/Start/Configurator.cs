@@ -7,7 +7,6 @@ using System;
 using System.IO;
 using System.Net;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Server.Kestrel.Https;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -42,7 +41,7 @@ namespace Microsoft.R.Host.Broker.Start {
                     .AddDebug()
                     .AddConsole(LogLevel.Trace);
 
-            var s = Configuration.GetValue<string>(WebHostDefaults.ServerUrlsKey, null) ?? "https://0.0.0.0:5444";
+            var s = Configuration.GetValue<string>(WebHostDefaults.ServerUrlsKey, null) ?? "http://0.0.0.0:5444";
             if (Uri.TryCreate(s, UriKind.Absolute, out var uri)) {
                 Url = uri;
             }
@@ -61,8 +60,7 @@ namespace Microsoft.R.Host.Broker.Start {
                 });
 
             if (Url?.IsLoopback != true) {
-                var httpsOptions = ConfigureHttps();
-                builder.UseKestrel(options => options.Listen(IPAddress.Any, Url.Port, lo => lo.UseHttps(httpsOptions)));
+                builder.UseKestrel(options => options.Listen(IPAddress.Any, Url.Port));
             } else {
                 builder.UseKestrel();
             }
@@ -70,24 +68,7 @@ namespace Microsoft.R.Host.Broker.Start {
             return builder;
         }
 
-        private HttpsConnectionAdapterOptions ConfigureHttps() {
-            var securityOptions = Configuration.GetSecuritySection().Get<SecurityOptions>();
-
-            var logger = LoggerFactory.CreateLogger<TlsConfiguration>();
-            var tlsConfig = new TlsConfiguration(logger, securityOptions);
-
-            var httpsOptions = tlsConfig.GetHttpsOptions();
-            if (httpsOptions == null) {
-
-                logger.LogCritical(Resources.Critical_NoTlsCertificate, securityOptions.X509CertificateName);
-                if (!IsService) {
-                    Environment.Exit((int)BrokerExitCodes.NoCertificate);
-                }
-            }
-            return httpsOptions;
-        }
-
-        private static IConfigurationRoot LoadConfiguration(ILoggerFactory loggerFactory, string[] args) {
+ private static IConfigurationRoot LoadConfiguration(ILoggerFactory loggerFactory, string[] args) {
             var configPath = new ConfigurationBuilder()
                 .AddCommandLine(args)
                 .Build()

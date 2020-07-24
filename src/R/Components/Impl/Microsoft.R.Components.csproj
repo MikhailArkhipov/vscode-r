@@ -18,11 +18,6 @@
     <PackageReference Include="System.Net.Http" Version="4.3.3" />
   </ItemGroup>
   <ItemGroup>
-    <None Update="Containers\Implementation\Dockerfile">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
     <Dockerfile Include="Containers\Implementation\Dockerfile" />
   </ItemGroup>
   <ItemGroup>

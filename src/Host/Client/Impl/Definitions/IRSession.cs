@@ -15,7 +15,7 @@ namespace Microsoft.R.Host.Client {
         /// Fires when R Host process is connected and is about to enter R loop
         /// </summary>
         event EventHandler<RConnectedEventArgs> Connected;
-        
+
         /// <summary>
         /// RTVS related R initialization is completed and RTVS package is loaded.
         /// </summary>
@@ -37,11 +37,6 @@ namespace Microsoft.R.Host.Client {
         Task HostStarted { get; }
 
         /// <summary>
-        /// The session is remote
-        /// </summary>
-        bool IsRemote { get; }
-
-        /// <summary>
         /// Session is currently processing user request.
         /// </summary>
         bool IsProcessing { get; }
@@ -54,12 +49,12 @@ namespace Microsoft.R.Host.Client {
 
         bool RestartOnBrokerSwitch { get; set; }
 
-        Task<IRSessionInteraction> BeginInteractionAsync(bool isVisible = true, CancellationToken cancellationToken = default(CancellationToken));
+        Task<IRSessionInteraction> BeginInteractionAsync(bool isVisible = true, CancellationToken cancellationToken = default);
 
-        Task CancelAllAsync(CancellationToken cancellationToken = default(CancellationToken));
-        Task StartHostAsync(RHostStartupInfo startupInfo, IRSessionCallback callback, int timeout = 3000, CancellationToken cancellationToken = default(CancellationToken));
-        Task EnsureHostStartedAsync(RHostStartupInfo startupInfo, IRSessionCallback callback, int timeout = 3000, CancellationToken cancellationToken = default(CancellationToken));
-        Task StopHostAsync(bool waitForShutdown = true, CancellationToken cancellationToken = default(CancellationToken));
+        Task CancelAllAsync(CancellationToken cancellationToken = default);
+        Task StartHostAsync(RHostStartupInfo startupInfo, IRSessionCallback callback, int timeout = 3000, CancellationToken cancellationToken = default);
+        Task EnsureHostStartedAsync(RHostStartupInfo startupInfo, IRSessionCallback callback, int timeout = 3000, CancellationToken cancellationToken = default);
+        Task StopHostAsync(bool waitForShutdown = true, CancellationToken cancellationToken = default);
 
         IDisposable DisableMutatedOnReadConsole();
 

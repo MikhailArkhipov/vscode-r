@@ -113,19 +113,19 @@ namespace Microsoft.R.Host.Client {
 
         public static RBlobStream Create(IRBlobService blobService) => CreateAsync(blobService).GetAwaiter().GetResult();
 
-        public static async Task<RBlobStream> CreateAsync(IRBlobService blobService, CancellationToken ct = default(CancellationToken)) {
+        public static async Task<RBlobStream> CreateAsync(IRBlobService blobService, CancellationToken ct = default) {
             var blobId = await blobService.CreateBlobAsync(ct);
             return new RBlobStream(new RBlobInfo(blobId), true, blobService);
         }
 
         public static RBlobStream Open(IRBlobInfo blobInfo, IRBlobService blobService) => new RBlobStream(blobInfo, false, blobService);
 
-        public static Task<RBlobStream> OpenAsync(IRBlobInfo blobInfo, IRBlobService blobService, CancellationToken ct = default(CancellationToken)) 
+        public static Task<RBlobStream> OpenAsync(IRBlobInfo blobInfo, IRBlobService blobService, CancellationToken ct = default) 
             => Task.FromResult(Open(blobInfo, blobService));
 
         public static void Destroy(IRBlobInfo blobInfo, IRBlobService blobService) => blobService.DestroyBlobsAsync(new ulong[] { blobInfo.Id }).GetAwaiter().GetResult();
 
-        public static Task DestroyAsync(IRBlobInfo blobInfo, IRBlobService blobService, CancellationToken ct = default(CancellationToken)) 
+        public static Task DestroyAsync(IRBlobInfo blobInfo, IRBlobService blobService, CancellationToken ct = default) 
             => blobService.DestroyBlobsAsync(new [] { blobInfo.Id }, ct);
     }
 }

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.R.Host.Client {
     public interface IObjectViewer {
-        Task ViewObjectDetails(IRSession session, string environmentExpression, string expression, string title, CancellationToken cancellationToken = default(CancellationToken));
+        Task ViewObjectDetails(IRSession session, string environmentExpression, string expression, string title, CancellationToken cancellationToken = default);
         Task ViewFile(string fileName, string tabName, bool deleteFile, CancellationToken cancellationToken);
     }
 }

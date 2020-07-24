@@ -14,7 +14,7 @@ namespace Microsoft.R.LanguageServer.Threading {
         /// <param name="mainThread"></param>
         /// <param name="action"></param>
         /// <param name="cancellationToken"></param>
-        public static async Task SendAsync(this IMainThread mainThread, Action action, CancellationToken cancellationToken = default(CancellationToken)) {
+        public static async Task SendAsync(this IMainThread mainThread, Action action, CancellationToken cancellationToken = default) {
             await mainThread.SwitchToAsync(cancellationToken);
             action();
         }
@@ -25,7 +25,7 @@ namespace Microsoft.R.LanguageServer.Threading {
         /// <param name="mainThread"></param>
         /// <param name="action"></param>
         /// <param name="cancellationToken"></param>
-        public static async Task<T> SendAsync<T>(this IMainThread mainThread, Func<T> action, CancellationToken cancellationToken = default(CancellationToken)) {
+        public static async Task<T> SendAsync<T>(this IMainThread mainThread, Func<T> action, CancellationToken cancellationToken = default) {
             await mainThread.SwitchToAsync(cancellationToken);
             return action();
         }

@@ -15,17 +15,17 @@ namespace Microsoft.R.Host.Client {
         /// <summary>
         /// Displays error message in the host-specific UI
         /// </summary>
-        Task ShowErrorMessage(string message, CancellationToken cancellationToken = default(CancellationToken));
+        Task ShowErrorMessage(string message, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Displays message with specified buttons in a host-specific UI
         /// </summary>
-        Task<MessageButtons> ShowMessageAsync(string message, MessageButtons buttons, CancellationToken cancellationToken = default(CancellationToken));
+        Task<MessageButtons> ShowMessageAsync(string message, MessageButtons buttons, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Displays R help URL in a browser or in the host provided window
         /// </summary>
-        Task ShowHelpAsync(string url, CancellationToken cancellationToken = default(CancellationToken));
+        Task ShowHelpAsync(string url, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Displays R plot in the host app-provided window
@@ -63,23 +63,23 @@ namespace Microsoft.R.Host.Client {
         /// Opens viewer for the given object
         /// </summary>
         /// <returns></returns>
-        Task ViewObjectAsync(string expression, string title, CancellationToken cancellationToken = default(CancellationToken));
+        Task ViewObjectAsync(string expression, string title, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Present package list or package manager
         /// </summary>
         /// <param name="cancellationToken"></param>
-        Task ViewLibraryAsync(CancellationToken cancellationToken = default(CancellationToken));
+        Task ViewLibraryAsync(CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Presents file content
         /// </summary>
-        Task ViewFile(string fileName, string tabName, bool deleteFile, CancellationToken cancellationToken = default(CancellationToken));
+        Task ViewFile(string fileName, string tabName, bool deleteFile, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Edits file or deparsed object
         /// </summary>
-        Task<string> EditFileAsync(string content, string fileName, CancellationToken cancellationToken = default(CancellationToken));
+        Task<string> EditFileAsync(string content, string fileName, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Saves data to file sent from RHost.

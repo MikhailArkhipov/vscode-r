@@ -52,7 +52,7 @@ namespace Microsoft.Common.Core {
             }
         }
 
-        public static Task WhenAllCancelOnFailure(params Func<CancellationToken, Task>[]  functions) => WhenAllCancelOnFailure(functions, default(CancellationToken));
+        public static Task WhenAllCancelOnFailure(params Func<CancellationToken, Task>[]  functions) => WhenAllCancelOnFailure(functions, default);
 
         public static Task WhenAllCancelOnFailure<TSource>(IEnumerable<TSource> source, Func<TSource, CancellationToken, Task> taskFactory, CancellationToken cancellationToken) {
             var functions = source.Select(s => SourceToFunctionConverter(s, taskFactory));
@@ -83,7 +83,7 @@ namespace Microsoft.Common.Core {
             var state = new WhenAllCancelOnFailureContinuationState(functionsArray.Length, tcs, cts);
             foreach (var function in functionsArray) {
                 Task.Run(() => function(cts.Token)
-                    .ContinueWith(WhenAllCancelOnFailureContinuation, state, default(CancellationToken), TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default));
+                    .ContinueWith(WhenAllCancelOnFailureContinuation, state, default, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default));
             }
 
             return tcs.Task;

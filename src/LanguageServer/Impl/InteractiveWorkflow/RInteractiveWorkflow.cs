@@ -4,7 +4,6 @@
 using Microsoft.Common.Core.Disposables;
 using Microsoft.Common.Core.Services;
 using Microsoft.R.Components.ConnectionManager;
-using Microsoft.R.Components.Containers;
 using Microsoft.R.Components.History;
 using Microsoft.R.Components.InteractiveWorkflow;
 using Microsoft.R.Components.PackageManager;
@@ -14,14 +13,11 @@ using Microsoft.R.Host.Client.Session;
 
 namespace Microsoft.R.LanguageServer.InteractiveWorkflow {
     internal sealed class RInteractiveWorkflow: IRInteractiveWorkflow {
-        private readonly IServiceContainer _services;
         private readonly DisposableBag _disposableBag;
 
-        public IServiceContainer Services => _services;
-        public IConsole Console => _services.GetService<IConsole>();
-        public IRSessionProvider RSessions => _services.GetService<IRSessionProvider>();
-        public IContainerManager Containers { get; }
-
+        public IServiceContainer Services { get; }
+        public IConsole Console => Services.GetService<IConsole>();
+        public IRSessionProvider RSessions => Services.GetService<IRSessionProvider>();
         public IRSession RSession { get; }
         public IConnectionManager Connections { get; }
         public IRHistory History { get; }
@@ -30,7 +26,7 @@ namespace Microsoft.R.LanguageServer.InteractiveWorkflow {
         public IRInteractiveWorkflowOperations Operations { get; }
 
         public RInteractiveWorkflow(IServiceContainer services) {
-            _services = services.Extend()
+            Services = services.Extend()
                 .AddService<IRInteractiveWorkflow>(this)
                 .AddService<IConsole, Console>()
                 .AddService<IRSessionProvider, RSessionProvider>();

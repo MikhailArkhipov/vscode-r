@@ -23,7 +23,7 @@ namespace Microsoft.R.DataInspection {
             string expression,
             REvaluationResultProperties properties,
             string repr,
-            CancellationToken cancellationToken = default(CancellationToken)
+            CancellationToken cancellationToken = default
         ) =>
             session.TryEvaluateAndDescribeAsync(REnvironments.GlobalEnv, expression, null, properties, repr, cancellationToken);
 
@@ -58,7 +58,7 @@ namespace Microsoft.R.DataInspection {
             string name,
             REvaluationResultProperties properties,
             string repr,
-            CancellationToken cancellationToken = default(CancellationToken)
+            CancellationToken cancellationToken = default
         ) {
             if (environmentExpression == null) {
                 throw new ArgumentNullException(nameof(environmentExpression));
@@ -84,7 +84,7 @@ namespace Microsoft.R.DataInspection {
             string expression,
             REvaluationResultProperties properties,
             string repr,
-            CancellationToken cancellationToken = default(CancellationToken)
+            CancellationToken cancellationToken = default
         ) =>
             session.EvaluateAndDescribeAsync(REnvironments.GlobalEnv, expression, null, properties, repr, cancellationToken);
 
@@ -99,7 +99,7 @@ namespace Microsoft.R.DataInspection {
             string name,
             REvaluationResultProperties properties,
             string repr,
-            CancellationToken cancellationToken = default(CancellationToken)
+            CancellationToken cancellationToken = default
         ) {
             var info = await session.TryEvaluateAndDescribeAsync(environmentExpression, expression, name, properties, repr, cancellationToken);
 
@@ -146,7 +146,7 @@ namespace Microsoft.R.DataInspection {
             REvaluationResultProperties properties,
             string repr,
             int? maxCount = null,
-            CancellationToken cancellationToken = default(CancellationToken)
+            CancellationToken cancellationToken = default
         ) {
             await TaskUtilities.SwitchToBackgroundThread();
 

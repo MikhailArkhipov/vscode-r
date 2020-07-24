@@ -22,12 +22,12 @@ namespace Microsoft.R.Editor.Functions {
         /// <summary>
         /// Starts intellisense session.
         /// </summary>
-        Task StartSessionAsync(CancellationToken ct = default(CancellationToken));
+        Task StartSessionAsync(CancellationToken ct = default);
 
         /// <summary>
         /// Stops the intellisense session
         /// </summary>
-        Task StopSessionAsync(CancellationToken ct = default(CancellationToken));
+        Task StopSessionAsync(CancellationToken ct = default);
 
         /// <summary>
         /// Given function name returns package the function belongs to.
@@ -48,6 +48,6 @@ namespace Microsoft.R.Editor.Functions {
         /// <summary>
         /// Retrieves names of packages loaded into the interactive session.
         /// </summary>
-        Task<IEnumerable<string>> GetLoadedPackageNamesAsync(CancellationToken ct = default(CancellationToken));
+        Task<IEnumerable<string>> GetLoadedPackageNamesAsync(CancellationToken ct = default);
     }
 }

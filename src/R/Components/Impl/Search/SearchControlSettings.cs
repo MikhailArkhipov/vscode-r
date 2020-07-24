@@ -24,7 +24,7 @@ namespace Microsoft.R.Components.Search {
             set => SetValue(value);
         }
 
-        private T GetValue<T>([CallerMemberName] string propertyName = null) => TryGetValue(propertyName, out T value) ? value : default(T);
+        private T GetValue<T>([CallerMemberName] string propertyName = null) => TryGetValue(propertyName, out T value) ? value : default;
 
         private void SetValue<T>(T value, [CallerMemberName] string propertyName = null) => _values[propertyName] = value;
 
@@ -34,7 +34,7 @@ namespace Microsoft.R.Components.Search {
                 return true;
             }
 
-            value = default(T);
+            value = default;
             return false;
         }
     }

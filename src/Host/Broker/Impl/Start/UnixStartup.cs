@@ -10,7 +10,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.R.Host.Broker.RHost;
-using Microsoft.R.Host.Broker.Security.Unix;
 using Microsoft.R.Host.Broker.Services;
 using Microsoft.R.Platform.Interpreters;
 using Microsoft.R.Platform.Interpreters.Linux;
@@ -27,7 +26,6 @@ namespace Microsoft.R.Host.Broker.Start {
 
             services
                 .AddSingleton<IFileSystem, UnixFileSystem>()
-                .AddSingleton<IPlatformAuthenticationService, LinuxAuthenticationService>()
                 .AddSingleton<IRHostProcessService, RHostProcessService>();
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX)) {

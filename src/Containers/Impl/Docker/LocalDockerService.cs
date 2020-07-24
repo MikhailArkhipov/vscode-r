@@ -55,7 +55,7 @@ namespace Microsoft.R.Containers.Docker {
             return ExecuteCommandAsync(Invariant($"{command} {buildOptions}"), command, -1, true, ct);
         }
 
-        public async Task<IEnumerable<IContainer>> ListContainersAsync(bool getAll = true, CancellationToken ct = default(CancellationToken)) {
+        public async Task<IEnumerable<IContainer>> ListContainersAsync(bool getAll = true, CancellationToken ct = default) {
             await TaskUtilities.SwitchToBackgroundThread();
 
             var command = "ps";
@@ -67,7 +67,7 @@ namespace Microsoft.R.Containers.Docker {
             return arr.Select(c => new LocalDockerContainer(c));
         }
 
-        public async Task<IEnumerable<ContainerImage>> ListImagesAsync(bool getAll = true, CancellationToken ct = default(CancellationToken)) {
+        public async Task<IEnumerable<ContainerImage>> ListImagesAsync(bool getAll = true, CancellationToken ct = default) {
             await TaskUtilities.SwitchToBackgroundThread();
 
             var command = "images";
@@ -171,7 +171,7 @@ namespace Microsoft.R.Containers.Docker {
 
         protected abstract LocalDocker GetLocalDocker();
 
-        private async Task<string> ExecuteCommandAsync(string arguments, string outputPrefix, int timeoutms, bool failOnTimeout = true, CancellationToken ct = default(CancellationToken)) {
+        private async Task<string> ExecuteCommandAsync(string arguments, string outputPrefix, int timeoutms, bool failOnTimeout = true, CancellationToken ct = default) {
             var printOutput = outputPrefix != null;
 
             await TaskUtilities.SwitchToBackgroundThread();

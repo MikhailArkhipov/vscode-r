@@ -9,14 +9,5 @@ namespace Microsoft.R.Components.ConnectionManager {
         BrokerConnectionInfo BrokerConnectionInfo { get; }
 
         Uri Uri { get; }
-
-        string ContainerName { get; }
-
-        /// <summary>
-        /// If true, the connection is to a remote machine
-        /// </summary>
-        bool IsRemote { get; }
-
-        bool IsContainer { get; }
     }
 }

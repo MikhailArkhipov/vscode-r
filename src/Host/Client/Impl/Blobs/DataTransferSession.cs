@@ -153,7 +153,7 @@ namespace Microsoft.R.Host.Client {
         /// <param name="remoteFile"></param>
         /// <param name="stream"></param>
         /// <param name="doCleanUp"></param>
-        public async Task CopyToFileStreamAsync(string remoteFile, Stream stream, bool doCleanUp = true, IProgress<long> progress = null, CancellationToken cancellationToken = default(CancellationToken)) {
+        public async Task CopyToFileStreamAsync(string remoteFile, Stream stream, bool doCleanUp = true, IProgress<long> progress = null, CancellationToken cancellationToken = default) {
             var filePath = remoteFile.ToRPath().ToRStringLiteral();
             IRBlobInfo blob = new RBlobInfo(await _session.EvaluateAsync<ulong>($"rtvs:::create_blob(readBin({filePath}, 'raw', file.info({filePath})$size))", REvaluationKind.Normal, cancellationToken));
             using (var blobStream = await RBlobStream.OpenAsync(blob, _blobService, cancellationToken)) {

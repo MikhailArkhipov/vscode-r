@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.Common.Core.Threading {
     public static class MainThreadExtensions {
-        public static MainThreadAwaitable SwitchToAsync(this IMainThread mainThread, CancellationToken cancellationToken = default(CancellationToken))
+        public static MainThreadAwaitable SwitchToAsync(this IMainThread mainThread, CancellationToken cancellationToken = default)
             => new MainThreadAwaitable(mainThread, cancellationToken);
 
         public static bool CheckAccess(this IMainThread mainThread)
@@ -31,12 +31,12 @@ namespace Microsoft.Common.Core.Threading {
             }
         }
 
-        public static async Task SendAsync(this IMainThread mainThread, Action action, CancellationToken cancellationToken = default(CancellationToken)) {
+        public static async Task SendAsync(this IMainThread mainThread, Action action, CancellationToken cancellationToken = default) {
             await mainThread.SwitchToAsync(cancellationToken);
             action();
         }
 
-        public static async Task<T> SendAsync<T>(this IMainThread mainThread, Func<T> action, CancellationToken cancellationToken = default(CancellationToken)) {
+        public static async Task<T> SendAsync<T>(this IMainThread mainThread, Func<T> action, CancellationToken cancellationToken = default) {
             await mainThread.SwitchToAsync(cancellationToken);
             return action();
         }

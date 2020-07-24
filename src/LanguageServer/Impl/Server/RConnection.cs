@@ -57,14 +57,14 @@ namespace Microsoft.R.LanguageServer.Server {
             }
 
             var log = _services.Log();
-            var info = BrokerConnectionInfo.Create(_services.Security(), "VSCR", e.InstallPath, string.Empty, false);
+            var info = BrokerConnectionInfo.Create("(local)", e.InstallPath, string.Empty);
 
             var start = DateTime.Now;
             var message = $"Starting R Process with {e.InstallPath}...";
             _ui.LogMessageAsync(message, MessageType.Info).DoNotWait();
 
             log.Write(LogVerbosity.Normal, MessageCategory.General, $"Switching local broker to {e.InstallPath}");
-            if (await _workflow.RSessions.TrySwitchBrokerAsync("VSCR", info, ct)) {
+            if (await _workflow.RSessions.TrySwitchBrokerAsync("(local)", info, ct)) {
                 try {
                     await _workflow.RSession.StartHostAsync(new RHostStartupInfo(), new RSessionCallback(), Debugger.IsAttached ? 100000 : 20000, ct);
                 } catch (Exception ex) {

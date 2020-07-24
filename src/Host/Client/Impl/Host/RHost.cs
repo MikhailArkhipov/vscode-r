@@ -231,7 +231,7 @@ namespace Microsoft.R.Host.Client {
             await NotifyAsync("!DestroyBlob", cancellationToken, ids.Select(x => (object)x));
         }
 
-        public async Task<byte[]> BlobReadAllAsync(ulong blobId, CancellationToken cancellationToken = default(CancellationToken)) {
+        public async Task<byte[]> BlobReadAllAsync(ulong blobId, CancellationToken cancellationToken = default) {
             if (_runTask == null) {
                 throw new InvalidOperationException("Host was not started");
             }
@@ -247,7 +247,7 @@ namespace Microsoft.R.Host.Client {
             }
         }
 
-        public async Task<byte[]> BlobReadAsync(ulong blobId, long position, long count, CancellationToken cancellationToken = default(CancellationToken)) {
+        public async Task<byte[]> BlobReadAsync(ulong blobId, long position, long count, CancellationToken cancellationToken = default) {
             if (_runTask == null) {
                 throw new InvalidOperationException("Host was not started");
             }
@@ -263,7 +263,7 @@ namespace Microsoft.R.Host.Client {
             }
         }
 
-        public async Task<long> BlobWriteAsync(ulong blobId, byte[] data, long position, CancellationToken cancellationToken = default(CancellationToken)) {
+        public async Task<long> BlobWriteAsync(ulong blobId, byte[] data, long position, CancellationToken cancellationToken = default) {
             if (_runTask == null) {
                 throw new InvalidOperationException("Host was not started");
             }
@@ -279,7 +279,7 @@ namespace Microsoft.R.Host.Client {
             }
         }
 
-        public async Task<long> GetBlobSizeAsync(ulong blobId, CancellationToken cancellationToken = default(CancellationToken)) {
+        public async Task<long> GetBlobSizeAsync(ulong blobId, CancellationToken cancellationToken = default) {
             if (_runTask == null) {
                 throw new InvalidOperationException("Host was not started");
             }
@@ -295,7 +295,7 @@ namespace Microsoft.R.Host.Client {
             }
         }
 
-        public async Task<long> SetBlobSizeAsync(ulong blobId, long size, CancellationToken cancellationToken = default(CancellationToken)) {
+        public async Task<long> SetBlobSizeAsync(ulong blobId, long size, CancellationToken cancellationToken = default) {
             if (_runTask == null) {
                 throw new InvalidOperationException("Host was not started");
             }
@@ -330,7 +330,7 @@ namespace Microsoft.R.Host.Client {
         /// <summary>
         /// Cancels any ongoing evaluations or interaction processing.
         /// </summary>
-        public async Task CancelAllAsync(CancellationToken cancellationToken = default(CancellationToken)) {
+        public async Task CancelAllAsync(CancellationToken cancellationToken = default) {
             if (_runTask == null) {
                 // Nothing to cancel.
                 return;
@@ -681,7 +681,7 @@ namespace Microsoft.R.Host.Client {
             }
         }
 
-        public async Task Run(CancellationToken cancellationToken = default(CancellationToken)) {
+        public async Task Run(CancellationToken cancellationToken = default) {
             TaskUtilities.AssertIsOnBackgroundThread();
 
             if (_runTask != null) {

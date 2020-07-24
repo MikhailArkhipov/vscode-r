@@ -17,16 +17,16 @@ namespace Microsoft.R.Components.PackageManager.ViewModel {
         bool HasErrors { get; }
         bool IsRemoteSession { get; }
 
-        Task SwitchToAvailablePackagesAsync(CancellationToken cancellationToken = default(CancellationToken));
-        Task SwitchToInstalledPackagesAsync(CancellationToken cancellationToken = default(CancellationToken));
-        Task SwitchToLoadedPackagesAsync(CancellationToken cancellationToken = default(CancellationToken));
-        Task ReloadCurrentTabAsync(CancellationToken cancellationToken = default(CancellationToken));
+        Task SwitchToAvailablePackagesAsync(CancellationToken cancellationToken = default);
+        Task SwitchToInstalledPackagesAsync(CancellationToken cancellationToken = default);
+        Task SwitchToLoadedPackagesAsync(CancellationToken cancellationToken = default);
+        Task ReloadCurrentTabAsync(CancellationToken cancellationToken = default);
         void SelectPackage(IRPackageViewModel package);
-        Task InstallAsync(IRPackageViewModel package, CancellationToken cancellationToken = default(CancellationToken));
-        Task UpdateAsync(IRPackageViewModel package, CancellationToken cancellationToken = default(CancellationToken));
-        Task UninstallAsync(IRPackageViewModel package, CancellationToken cancellationToken = default(CancellationToken));
-        Task LoadAsync(IRPackageViewModel package, CancellationToken cancellationToken = default(CancellationToken));
-        Task UnloadAsync(IRPackageViewModel package, CancellationToken cancellationToken = default(CancellationToken));
-        Task DefaultActionAsync(CancellationToken cancellationToken = default(CancellationToken));
+        Task InstallAsync(IRPackageViewModel package, CancellationToken cancellationToken = default);
+        Task UpdateAsync(IRPackageViewModel package, CancellationToken cancellationToken = default);
+        Task UninstallAsync(IRPackageViewModel package, CancellationToken cancellationToken = default);
+        Task LoadAsync(IRPackageViewModel package, CancellationToken cancellationToken = default);
+        Task UnloadAsync(IRPackageViewModel package, CancellationToken cancellationToken = default);
+        Task DefaultActionAsync(CancellationToken cancellationToken = default);
     }
 }

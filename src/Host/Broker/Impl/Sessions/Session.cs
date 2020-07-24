@@ -92,15 +92,14 @@ namespace Microsoft.R.Host.Broker.Sessions {
             _pipe = new MessagePipe(messageLogger);
         }
 
-        public void StartHost(string logFolder, ILogger outputLogger, LogVerbosity verbosity) {
+        public void StartHost(string logFolder, LogVerbosity verbosity) {
             if (_hostEnd != null) {
                 throw new InvalidOperationException("Host process is already running");
             }
 
             var profilePath = _principal.FindFirst(Claims.RUserProfileDir)?.Value;
-            var useridentity = User as WindowsIdentity;
             // In remote broker User Identity type is always WindowsIdentity
-            var suppressUI = useridentity == null ? string.Empty : "--rhost-suppress-ui ";
+            var suppressUI = !(User is WindowsIdentity useridentity) ? string.Empty : "--rhost-suppress-ui ";
             var isRepl = _isInteractive ? "--rhost-interactive " : string.Empty;
             var logFolderParam = string.IsNullOrEmpty(logFolder) ? string.Empty : Invariant($"--rhost-log-dir \"{logFolder}\"");
             var rDirPath = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? Interpreter.BinPath : Interpreter.InstallPath;
@@ -159,9 +158,7 @@ namespace Microsoft.R.Host.Broker.Sessions {
             using (stream) {
                 while (true) {
                     try {
-                        byte[] message;
-                        message = await pipe.ReadAsync(_applicationLifetime.ApplicationStopping);
-
+                        var message = await pipe.ReadAsync(_applicationLifetime.ApplicationStopping);
                         var sizeBuf = BitConverter.GetBytes(message.Length);
 
                         await stream.WriteAsync(sizeBuf, 0, sizeBuf.Length);

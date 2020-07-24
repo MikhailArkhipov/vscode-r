@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using Microsoft.Common.Core.Logging;
 using Microsoft.Common.Core.Services;
 using Microsoft.Common.Core.Test.Fakes.Shell;
-using Microsoft.Common.Core.Test.Stubs.Shell;
 using Microsoft.R.Common.Core.Output;
 using Microsoft.UnitTests.Core.XUnit;
 using Xunit.Sdk;
@@ -21,7 +20,6 @@ namespace Microsoft.Common.Core.Test.Fixtures {
         protected virtual void SetupServices(IServiceManager serviceManager, ITestInput testInput) {
             serviceManager
                 .AddService<IOutputService, TestOutputService>()
-                .AddService(new SecurityServiceStub())
                 .AddService(new TestPlatformServices())
                 .AddService(new TestApplication());
         }

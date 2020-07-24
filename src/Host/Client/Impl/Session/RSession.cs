@@ -22,7 +22,6 @@ using static System.FormattableString;
 
 namespace Microsoft.R.Host.Client.Session {
     public sealed class RSession : IRSession, IRCallbacks {
-        private static readonly string RemotePromptPrefix = "\u26b9";
         private static readonly string DefaultPrompt = "> ";
 
         private static readonly Task<IRSessionInteraction> CanceledBeginInteractionTask;
@@ -50,7 +49,6 @@ namespace Microsoft.R.Host.Client.Session {
         private TaskCompletionSourceEx<object> _hostStartedTcs;
         private RSessionRequestSource _currentRequestSource;
         private TaskCompletionSourceEx<object> _initializedTcs;
-        private readonly IFileSystem _fileSystem;
         private readonly Action _onDispose;
         private readonly IExclusiveReaderLock _initializationLock;
         private readonly BinaryAsyncLock _stopHostLock;
@@ -70,7 +68,6 @@ namespace Microsoft.R.Host.Client.Session {
         public int MaxLength { get; private set; } = 0x1000;
         public bool IsHostRunning => _isHostRunning;
         public Task HostStarted => _hostStartedTcs.Task;
-        public bool IsRemote => BrokerClient.IsRemote;
         public bool IsProcessing { get; private set; }
         public bool IsReadingUserInput => _readUserInputReentrancyCounter.Count > 0;
 
@@ -89,11 +86,10 @@ namespace Microsoft.R.Host.Client.Session {
             CanceledBeginInteractionTask = TaskUtilities.CreateCanceled<IRSessionInteraction>(new RHostDisconnectedException());
         }
 
-        public RSession(int id, string name, IFileSystem fileSystem, IBrokerClient brokerClient, IExclusiveReaderLock initializationLock, Action onDispose) {
+        public RSession(int id, string name, IBrokerClient brokerClient, IExclusiveReaderLock initializationLock, Action onDispose) {
             Id = id;
             Name = name;
             BrokerClient = brokerClient;
-            _fileSystem = fileSystem;
             _onDispose = onDispose;
 
             _disposeToken = DisposeToken.Create<RSession>();
@@ -116,7 +112,7 @@ namespace Microsoft.R.Host.Client.Session {
             if (string.IsNullOrEmpty(requestedPrompt)) {
                 requestedPrompt = DefaultPrompt;
             }
-            return IsRemote ? RemotePromptPrefix + requestedPrompt : requestedPrompt;
+            return requestedPrompt;
         }
 
         private void OnMutated() {
@@ -137,7 +133,7 @@ namespace Microsoft.R.Host.Client.Session {
             _onDispose();
         }
 
-        public Task<IRSessionInteraction> BeginInteractionAsync(bool isVisible = true, CancellationToken cancellationToken = default(CancellationToken)) {
+        public Task<IRSessionInteraction> BeginInteractionAsync(bool isVisible = true, CancellationToken cancellationToken = default) {
             _disposeToken.ThrowIfDisposed();
 
             if (!_isHostRunning) {
@@ -150,12 +146,12 @@ namespace Microsoft.R.Host.Client.Session {
             return _isHostRunning ? requestSource.CreateRequestTask : CanceledBeginInteractionTask;
         }
 
-        public Task<REvaluationResult> EvaluateAsync(string expression, REvaluationKind kind = REvaluationKind.Normal, CancellationToken cancellationToken = default(CancellationToken)) {
+        public Task<REvaluationResult> EvaluateAsync(string expression, REvaluationKind kind = REvaluationKind.Normal, CancellationToken cancellationToken = default) {
             _processingChangeDirectoryCommand = expression.StartsWithOrdinal("setwd");
             return EvaluateAsync(expression, kind, true, cancellationToken);
         }
 
-        private async Task<REvaluationResult> EvaluateAsync(string expression, REvaluationKind kind, bool waitUntilInitialized, CancellationToken cancellationToken = default(CancellationToken)) {
+        private async Task<REvaluationResult> EvaluateAsync(string expression, REvaluationKind kind, bool waitUntilInitialized, CancellationToken cancellationToken = default) {
             if (!IsHostRunning) {
                 throw new RHostDisconnectedException();
             }
@@ -175,29 +171,29 @@ namespace Microsoft.R.Host.Client.Session {
             }
         }
 
-        public Task<ulong> CreateBlobAsync(CancellationToken ct = default(CancellationToken)) =>
+        public Task<ulong> CreateBlobAsync(CancellationToken ct = default) =>
             DoBlobServiceAsync(_host?.CreateBlobAsync(ct));
 
-        public Task DestroyBlobsAsync(IEnumerable<ulong> blobIds, CancellationToken ct = default(CancellationToken)) =>
+        public Task DestroyBlobsAsync(IEnumerable<ulong> blobIds, CancellationToken ct = default) =>
             DoBlobServiceAsync(new Lazy<Task<long>>(async () => {
                 var task = _host?.DestroyBlobsAsync(blobIds, ct) ?? Task.CompletedTask;
                 await task;
                 return 0;
             }).Value);
 
-        public Task<byte[]> BlobReadAllAsync(ulong blobId, CancellationToken ct = default(CancellationToken)) =>
+        public Task<byte[]> BlobReadAllAsync(ulong blobId, CancellationToken ct = default) =>
             DoBlobServiceAsync(_host?.BlobReadAllAsync(blobId, ct));
 
-        public Task<byte[]> BlobReadAsync(ulong blobId, long position, long count, CancellationToken ct = default(CancellationToken)) =>
+        public Task<byte[]> BlobReadAsync(ulong blobId, long position, long count, CancellationToken ct = default) =>
             DoBlobServiceAsync(_host?.BlobReadAsync(blobId, position, count, ct));
 
-        public Task<long> BlobWriteAsync(ulong blobId, byte[] data, long position, CancellationToken ct = default(CancellationToken)) =>
+        public Task<long> BlobWriteAsync(ulong blobId, byte[] data, long position, CancellationToken ct = default) =>
             DoBlobServiceAsync(_host?.BlobWriteAsync(blobId, data, position, ct));
 
-        public Task<long> GetBlobSizeAsync(ulong blobId, CancellationToken ct = default(CancellationToken)) =>
+        public Task<long> GetBlobSizeAsync(ulong blobId, CancellationToken ct = default) =>
             DoBlobServiceAsync(_host?.GetBlobSizeAsync(blobId, ct));
 
-        public Task<long> SetBlobSizeAsync(ulong blobId, long size, CancellationToken ct = default(CancellationToken)) =>
+        public Task<long> SetBlobSizeAsync(ulong blobId, long size, CancellationToken ct = default) =>
             DoBlobServiceAsync(_host?.SetBlobSizeAsync(blobId, size, ct));
 
         private async Task<T> DoBlobServiceAsync<T>(Task<T> work) {
@@ -214,7 +210,7 @@ namespace Microsoft.R.Host.Client.Session {
             }
         }
 
-        public async Task CancelAllAsync(CancellationToken cancellationToken = default(CancellationToken)) {
+        public async Task CancelAllAsync(CancellationToken cancellationToken = default) {
             using (_disposeToken.Link(ref cancellationToken)) {
                 var exception = new OperationCanceledException();
                 ClearPendingRequests(exception);
@@ -229,10 +225,10 @@ namespace Microsoft.R.Host.Client.Session {
             }
         }
 
-        public Task EnsureHostStartedAsync(RHostStartupInfo startupInfo, IRSessionCallback callback, int timeout = 3000, CancellationToken cancellationToken = default(CancellationToken))
+        public Task EnsureHostStartedAsync(RHostStartupInfo startupInfo, IRSessionCallback callback, int timeout = 3000, CancellationToken cancellationToken = default)
             => StartHostAsync(startupInfo, callback, timeout, false, cancellationToken);
 
-        public Task StartHostAsync(RHostStartupInfo startupInfo, IRSessionCallback callback, int timeout = 3000, CancellationToken cancellationToken = default(CancellationToken))
+        public Task StartHostAsync(RHostStartupInfo startupInfo, IRSessionCallback callback, int timeout = 3000, CancellationToken cancellationToken = default)
             => StartHostAsync(startupInfo, callback, timeout, true, cancellationToken);
 
         private async Task StartHostAsync(RHostStartupInfo startupInfo, IRSessionCallback callback, int timeout, bool throwIfStarted, CancellationToken cancellationToken) {
@@ -269,7 +265,7 @@ namespace Microsoft.R.Host.Client.Session {
             await StartHostAsyncBackground(host, cancellationToken);
         }
 
-        private async Task StartHostAsyncBackground(RHost host, CancellationToken cancellationToken = default(CancellationToken)) {
+        private async Task StartHostAsyncBackground(RHost host, CancellationToken cancellationToken = default) {
             TaskUtilities.AssertIsOnBackgroundThread();
 
             ResetInitializationTcs();
@@ -314,7 +310,7 @@ namespace Microsoft.R.Host.Client.Session {
             }
         }
 
-        public async Task StopHostAsync(bool waitForShutdown = true, CancellationToken cancellationToken = default(CancellationToken)) {
+        public async Task StopHostAsync(bool waitForShutdown = true, CancellationToken cancellationToken = default) {
             using (_disposeToken.Link(ref cancellationToken)) {
                 await TaskUtilities.SwitchToBackgroundThread();
 
@@ -397,7 +393,7 @@ namespace Microsoft.R.Host.Client.Session {
         private async Task AfterHostStarted(RHostStartupInfo startupInfo) {
             var evaluator = new BeforeInitializedRExpressionEvaluator(this);
             try {
-                await LoadRtvsPackage(evaluator, IsRemote);
+                await LoadRtvsPackage(evaluator);
 
                 var suggest_mro = await evaluator.EvaluateAsync<bool>("!exists('Revo.version')", REvaluationKind.Normal);
                 if (suggest_mro) {
@@ -405,7 +401,7 @@ namespace Microsoft.R.Host.Client.Session {
                 }
 
                 var wd = startupInfo.WorkingDirectory;
-                if (!IsRemote && !string.IsNullOrEmpty(wd)) {
+                if (!string.IsNullOrEmpty(wd)) {
                     try {
                         await evaluator.SetWorkingDirectoryAsync(wd);
                     } catch (REvaluationException) {
@@ -415,7 +411,7 @@ namespace Microsoft.R.Host.Client.Session {
                     await evaluator.SetDefaultWorkingDirectoryAsync();
                 }
 
-                if (!startupInfo.IsInteractive || IsRemote) {
+                if (!startupInfo.IsInteractive) {
                     // If session is non-interactive (such as intellisense) or it is remote
                     // we need to set up UI suppression overrides.
                     try {
@@ -492,10 +488,10 @@ namespace Microsoft.R.Host.Client.Session {
 
         private const int rtvsPackageVersion = 1;
 
-        private async Task LoadRtvsPackage(IRExpressionEvaluator eval, bool isRemote) {
+        private async Task LoadRtvsPackage(IRExpressionEvaluator eval) {
             // Load RTVS R package before doing anything in R since the calls
             // below calls may depend on functions exposed from the RTVS package
-            var libPath = isRemote ? await GetRemoteRtvsPackagePath(eval) : Path.GetDirectoryName(typeof(RHost).GetTypeInfo().Assembly.GetAssemblyPath());
+            var libPath = Path.GetDirectoryName(typeof(RHost).GetTypeInfo().Assembly.GetAssemblyPath());
 
             await eval.ExecuteAsync(Invariant($@"
 if (!base::isNamespaceLoaded('rtvs')) {{
@@ -505,24 +501,6 @@ if (rtvs:::version != {rtvsPackageVersion}) {{
     warning('This R session was created using an incompatible version of RTVS, and may misbehave or crash when used with this version. Click ""Reset"" to replace it with a new clean session.');
 }}
 "));
-        }
-
-        private async Task<string> GetRemoteRtvsPackagePath(IRExpressionEvaluator eval) {
-            var isWindows = await eval.IsRSessionPlatformWindowsAsync();
-            if (!isWindows) {
-                // Remote Linux
-                return "/usr/share/rtvs";
-            }
-            // Check if there is 'rtvs' folder on remote
-            var rtvsExists = await eval.FileExistsAsync("./rtvs/NAMESPACE");
-            if (rtvsExists) {
-                return ".";
-            }
-            // Most probably tests are running remote broker locally
-            var locator = BrokerExecutableLocator.Create(_fileSystem);
-            var hostDirectory = Path.GetDirectoryName(locator.GetHostExecutablePath());
-            rtvsExists = _fileSystem.FileExists(Path.Combine(hostDirectory, @"rtvs\NAMESPACE"));
-            return rtvsExists ? hostDirectory : Path.GetFullPath(Path.Combine(hostDirectory, @"..\.."));
         }
 
         private static Task SuppressUI(IRExpressionEvaluator eval) =>
@@ -556,8 +534,7 @@ if (rtvs:::version != {rtvsPackageVersion}) {{
         Task IRCallbacks.Shutdown(bool rDataSaved) => Task.CompletedTask;
 
         private void ClearPendingRequests(OperationCanceledException exception) {
-            RSessionRequestSource requestSource;
-            while (_pendingRequestSources.TryReceive(out requestSource)) {
+            while (_pendingRequestSources.TryReceive(out var requestSource)) {
                 requestSource.TryCancel(exception);
             }
 
@@ -652,9 +629,6 @@ if (rtvs:::version != {rtvsPackageVersion}) {{
             WriteErrorAsync(format.FormatCurrent(args));
 
         private async Task WriteOutputAsync(string text) => await ((IRCallbacks)this).WriteConsoleEx(text + "\n", OutputType.Output, CancellationToken.None);
-
-        private Task WriteOutputAsync(string format, params object[] args) =>
-            WriteOutputAsync(format.FormatCurrent(args));
 
         Task IRCallbacks.WriteConsoleEx(string buf, OutputType otype, CancellationToken ct) {
             Output?.Invoke(this, new ROutputEventArgs(otype, buf));
