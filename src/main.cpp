@@ -28,7 +28,6 @@
 #include "eval.h"
 #include "detours.h"
 #include "grdeviceside.h"
-#include "grdevicesxaml.h"
 #include "exports.h"
 #include "transport.h"
 

@@ -49,7 +49,7 @@ if(WIN32)
     
     add_definitions(-DUNICODE -D_UNICODE)
     
-    target_link_libraries(Microsoft.R.Host "rstrmgr")
+    target_link_libraries(Microsoft.R.Host "Bcrypt")
 
     find_library(MinHook_LIBRARY NAMES libMinHook.a)
     if(NOT MinHook_LIBRARY)
@@ -76,7 +76,7 @@ if(WIN32)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -I\"${R_PATH}/include\"")
 
     # Copy MinGW dependencies to output directory alongside .exe.
-    set(DLL_dependencies "libwinpthread-1.dll" "libzip.dll" "lrstrmgr.dll" "zlib1.dll")
+    set(DLL_dependencies "libwinpthread-1.dll" "libzip.dll" "zlib1.dll" "liblzma-5.dll" "libbz2-1.dll")
     foreach(dep ${DLL_dependencies})
         configure_file("$ENV{MSYSTEM_PREFIX}/bin/${dep}" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${dep}" COPYONLY)
     endforeach()
