@@ -23,14 +23,10 @@ namespace Microsoft.R.Host.Client.Host {
         public string Name => _broker.Name;
         public bool HasBroker => !(_broker is NullBrokerClient);
 
-        public Task<T> GetHostInformationAsync<T>(CancellationToken cancellationToken) => _broker.GetHostInformationAsync<T>(cancellationToken);
-
         public Task<RHost> ConnectAsync(HostConnectionInfo connectionInfo, CancellationToken cancellationToken = default) 
             => _broker.ConnectAsync(connectionInfo, cancellationToken);
 
         public Task TerminateSessionAsync(string name, CancellationToken cancellationToken = default)
             => _broker.TerminateSessionAsync(name, cancellationToken);
-
-        public Task<string> HandleUrlAsync(string url, CancellationToken cancellationToken) => _broker.HandleUrlAsync(url, cancellationToken);
     }
 }

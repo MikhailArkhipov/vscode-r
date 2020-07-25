@@ -139,7 +139,6 @@ namespace Microsoft.R.Host.Client.Session {
                     var oldBroker = _brokerProxy.Set(new NullBrokerClient());
                     oldBroker?.Dispose();
                 } finally {
-                    await CheckInterpretersAsync(_disposeToken.CancellationToken, lockToken.Reentrancy);
                     lockToken.Dispose();
                 }
 
@@ -204,7 +203,6 @@ namespace Microsoft.R.Host.Client.Session {
                     }
                     throw;
                 } finally {
-                    await CheckInterpretersAsync(_disposeToken.CancellationToken, lockToken.Reentrancy);
                     lockToken.Dispose();
                 }
 
@@ -325,17 +323,6 @@ namespace Microsoft.R.Host.Client.Session {
             }
 
             return new LocalBrokerClient(name, connectionInfo, _services, _console, this);
-        }
-
-        private async Task CheckInterpretersAsync(CancellationToken cancellationToken = default, ReentrancyToken reentrancyToken = default) {
-            using (await _connectArwl.ReaderLockAsync(cancellationToken, reentrancyToken)) {
-                try {
-                    var interpreters = await Broker.GetHostInformationAsync<IEnumerable<InterpreterInfo>>(cancellationToken);
-                    IsConnected = interpreters != null && interpreters.Any();
-                } catch (Exception) when (!cancellationToken.IsCancellationRequested) {
-                    IsConnected = false;
-                }
-            }
         }
     }
 }

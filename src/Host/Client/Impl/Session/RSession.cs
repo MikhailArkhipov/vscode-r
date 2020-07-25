@@ -11,13 +11,11 @@ using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
 using Microsoft.Common.Core;
 using Microsoft.Common.Core.Disposables;
-using Microsoft.Common.Core.IO;
 using Microsoft.Common.Core.Logging;
 using Microsoft.Common.Core.Tasks;
 using Microsoft.Common.Core.Threading;
 using Microsoft.Common.Core.UI;
 using Microsoft.R.Host.Client.Host;
-using Microsoft.R.Platform.Host;
 using static System.FormattableString;
 
 namespace Microsoft.R.Host.Client.Session {
@@ -665,14 +663,15 @@ if (rtvs:::version != {rtvsPackageVersion}) {{
         /// <param name="url"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        async Task IRCallbacks.WebBrowser(string url, CancellationToken cancellationToken) {
-            var callback = _callback;
-            if (callback != null) {
-                var newUrl = await BrokerClient.HandleUrlAsync(url, cancellationToken);
-                if (newUrl != null) {
-                    await callback.ShowHelpAsync(newUrl, cancellationToken);
-                }
-            }
+        Task IRCallbacks.WebBrowser(string url, CancellationToken cancellationToken) {
+            return Task.CompletedTask;
+            //var callback = _callback;
+            //if (callback != null) {
+            //var newUrl = await BrokerClient.HandleUrlAsync(url, cancellationToken);
+            //if (newUrl != null) {
+            //    await callback.ShowHelpAsync(newUrl, cancellationToken);
+            //}
+            //}
         }
 
         Task IRCallbacks.ViewLibrary(CancellationToken cancellationToken) {
@@ -714,11 +713,6 @@ if (rtvs:::version != {rtvsPackageVersion}) {{
         }
 
         void IRCallbacks.PackagesRemoved() => PackagesRemoved?.Invoke(this, EventArgs.Empty);
-
-        Task<string> IRCallbacks.FetchFileAsync(string remoteFileName, ulong remoteBlobId, string localPath, CancellationToken cancellationToken) {
-            var callback = _callback;
-            return callback != null ? callback.FetchFileAsync(remoteFileName, remoteBlobId, localPath, cancellationToken) : Task.FromResult(string.Empty);
-        }
 
         string IRCallbacks.GetLocalizedString(string id) =>
             _callback?.GetLocalizedString(id);

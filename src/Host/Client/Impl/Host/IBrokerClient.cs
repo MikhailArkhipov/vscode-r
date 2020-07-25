@@ -11,7 +11,5 @@ namespace Microsoft.R.Host.Client.Host {
         string Name { get; }
         Task<RHost> ConnectAsync(HostConnectionInfo connectionInfo, CancellationToken cancellationToken = default);
         Task TerminateSessionAsync(string name, CancellationToken cancellationToken = default);
-        Task<string> HandleUrlAsync(string url, CancellationToken cancellationToken = default);
-        Task<T> GetHostInformationAsync<T>(CancellationToken cancellationToken = default);
     }
 }

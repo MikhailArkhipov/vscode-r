@@ -5,7 +5,6 @@ using System;
 using System.ComponentModel;
 using System.IO;
 using System.Runtime.InteropServices;
-using System.Security.Claims;
 using System.Security.Principal;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,7 +15,6 @@ using Microsoft.Common.Core.OS;
 using Microsoft.Extensions.Logging;
 using Microsoft.R.Host.Broker.Interpreters;
 using Microsoft.R.Host.Broker.Pipes;
-using Microsoft.R.Host.Broker.Security;
 using Microsoft.R.Host.Broker.Services;
 using Microsoft.R.Host.Protocol;
 using static System.FormattableString;
@@ -28,7 +26,6 @@ namespace Microsoft.R.Host.Broker.Sessions {
         private readonly bool _isInteractive;
         private readonly ILogger _sessionLogger;
         private readonly MessagePipe _pipe;
-        private readonly ClaimsPrincipal _principal;
         private volatile IMessagePipeEnd _hostEnd;
         private IProcess _process;
 
@@ -73,15 +70,12 @@ namespace Microsoft.R.Host.Broker.Sessions {
             , IApplicationLifetime applicationLifetime
             , ILogger sessionLogger
             , ILogger messageLogger
-            , ClaimsPrincipal principal
             , Interpreter interpreter
             , string id
             , string commandLineArguments
             , bool isInteractive) {
-            _principal = principal;
             Manager = manager;
             Interpreter = interpreter;
-            User = principal.Identity;
             Id = id;
             CommandLineArguments = commandLineArguments;
             _processService = processService;
@@ -97,7 +91,6 @@ namespace Microsoft.R.Host.Broker.Sessions {
                 throw new InvalidOperationException("Host process is already running");
             }
 
-            var profilePath = _principal.FindFirst(Claims.RUserProfileDir)?.Value;
             // In remote broker User Identity type is always WindowsIdentity
             var suppressUI = !(User is WindowsIdentity useridentity) ? string.Empty : "--rhost-suppress-ui ";
             var isRepl = _isInteractive ? "--rhost-interactive " : string.Empty;
@@ -105,8 +98,8 @@ namespace Microsoft.R.Host.Broker.Sessions {
             var rDirPath = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? Interpreter.BinPath : Interpreter.InstallPath;
             var arguments = Invariant($"{suppressUI}{isRepl}--rhost-r-dir \"{rDirPath}\" --rhost-name \"{Id}\" {logFolderParam} --rhost-log-verbosity {(int)verbosity} {CommandLineArguments}");
 
-            _sessionLogger.LogInformation(Resources.Info_StartingRHost, Id, User.Name, arguments);
-            _process = _processService.StartHost(Interpreter, profilePath, User.Name, _principal, arguments);
+            _sessionLogger.LogInformation(Resources.Info_StartingRHost, Id, arguments);
+            _process = _processService.StartHost(Interpreter, arguments);
 
             _process.Exited += delegate {
                 _hostEnd?.Dispose();
@@ -117,7 +110,7 @@ namespace Microsoft.R.Host.Broker.Sessions {
                 }
             };
 
-            _sessionLogger.LogInformation(Resources.Info_StartedRHost, Id, User.Name);
+            _sessionLogger.LogInformation(Resources.Info_StartedRHost, Id);
 
             var hostEnd = _pipe.ConnectHost(_process.Id);
             _hostEnd = hostEnd;

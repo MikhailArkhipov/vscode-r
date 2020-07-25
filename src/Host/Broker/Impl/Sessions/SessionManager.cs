@@ -26,7 +26,7 @@ namespace Microsoft.R.Host.Broker.Sessions {
         private readonly IApplicationLifetime _applicationLifetime;
         private readonly ILogger _sessionLogger;
 
-        private readonly Dictionary<string, List<Session>> _sessions = new Dictionary<string, List<Session>>();
+        private readonly List<Session> _sessions = new List<Session>();
 
         public SessionManager(IRHostProcessService processService
             , IApplicationLifetime applicationLifetime
@@ -44,38 +44,28 @@ namespace Microsoft.R.Host.Broker.Sessions {
             }
         }
 
-        public IEnumerable<Session> GetSessions(IIdentity user) {
+        public IEnumerable<Session> GetSessions() {
             lock (_sessions) {
-                return _sessions.TryGetValue(user.Name, out var userSessions) 
-                    ? userSessions.ToArray() 
-                    : Enumerable.Empty<Session>();
+                return _sessions.ToArray();
             }
         }
 
-        public Session GetSession(IIdentity user, string id) {
+        public Session GetSession(string id) {
             lock (_sessions) {
-                return _sessions.Values
-                    .SelectMany(sessions => sessions)
-                    .FirstOrDefault(session => (user == null || session.User.Name == user.Name) && session.Id == id);
+                return _sessions.FirstOrDefault(session => session.Id == id);
             }
         }
 
-        private List<Session> GetOrCreateSessionList(IIdentity user) {
+        private List<Session> GetOrCreateSessionList() {
             lock (_sessions) {
-                _sessions.TryGetValue(user.Name, out var userSessions);
-                if (userSessions == null) {
-                    _sessions[user.Name] = userSessions = new List<Session>();
-                }
-
-                return userSessions;
+                return _sessions;
             }
         }
 
-        public Session CreateSession(ClaimsPrincipal principal, string id, Interpreter interpreter, string commandLineArguments, bool isInteractive) {
+        public Session CreateSession(string id, Interpreter interpreter, string commandLineArguments, bool isInteractive) {
             Session session;
-            var user = principal.Identity;
             lock (_sessions) {
-                var oldUserSessions = GetOrCreateSessionList(user);
+                var oldUserSessions = GetOrCreateSessionList();
 
                 var oldSessions = oldUserSessions.Where(s => s.Id == id).ToArray();
                 foreach (var oldSession in oldSessions) {
@@ -84,8 +74,8 @@ namespace Microsoft.R.Host.Broker.Sessions {
                     oldSession.State = SessionState.Terminated;
                 }
 
-                var userSessions = GetOrCreateSessionList(user);
-                session = new Session(this, _processService, _applicationLifetime, _sessionLogger, _messageLogger, principal, interpreter, id, commandLineArguments, isInteractive);
+                var userSessions = GetOrCreateSessionList();
+                session = new Session(this, _processService, _applicationLifetime, _sessionLogger, _messageLogger, interpreter, id, commandLineArguments, isInteractive);
                 session.StateChanged += Session_StateChanged;
 
                 userSessions.Add(session);
@@ -102,12 +92,8 @@ namespace Microsoft.R.Host.Broker.Sessions {
             var session = (Session)sender;
             if (e.NewState == SessionState.Terminated) {
                 lock (_sessions) {
-                    var userSessions = GetOrCreateSessionList(session.User);
+                    var userSessions = GetOrCreateSessionList();
                     userSessions.Remove(session);
-
-                    if (userSessions.Count == 0) {
-                        _sessions.Remove(session.User.Name);
-                    }
                 }
             }
         }

@@ -22,7 +22,7 @@ namespace Microsoft.R.Host.Broker.RHost {
             _ps = ps;
         }
 
-        public IProcess StartHost(Interpreter interpreter, string profilePath, string userName, ClaimsPrincipal principal, string commandLine) {
+        public IProcess StartHost(Interpreter interpreter, string commandLine) {
             var exeLocator = BrokerExecutableLocator.Create(_fs);
             var hostBinPath = exeLocator.GetHostExecutablePath();
             if(!_fs.FileExists(hostBinPath) && RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) {

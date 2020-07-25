@@ -584,19 +584,7 @@ namespace Microsoft.R.Host.Client {
                                 _callbacks.PackagesRemoved();
                                 break;
 
-                            case "!FetchFile":
-                                var remoteFileName = message.GetString(0, "file_remote_name");
-                                var remoteBlobId = message.GetUInt64(1, "blob_id");
-                                var localPath = message.GetString(2, "file_local_path");
-                                Task.Run(async () => {
-                                    var destPath = await _callbacks.FetchFileAsync(remoteFileName, remoteBlobId, localPath, ct);
-                                    if (!message.GetBoolean(3, "silent")) {
-                                        await _callbacks.WriteConsoleEx(destPath, OutputType.Error, ct);
-                                    }
-                                }).DoNotWait();
-                                break;
-
-                            case "!LocMessage":
+                             case "!LocMessage":
                                 _callbacks.WriteConsoleEx(GetLocalizedString(message) + Environment.NewLine, OutputType.Output, ct).DoNotWait();
                                 break;
 

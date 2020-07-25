@@ -102,12 +102,6 @@ namespace Microsoft.R.Host.Client {
         void PackagesRemoved();
 
         /// <summary>
-        /// Called when user invokes rtvs:::fetch_file() in R.
-        /// </summary>
-        Task<string> FetchFileAsync(string remoteFileName, ulong remoteFileBlobId, string localPath,
-            CancellationToken cancellationToken);
-
-        /// <summary>
         /// Implements rtvs:::locstr().
         /// </summary>
         string GetLocalizedString(string id);

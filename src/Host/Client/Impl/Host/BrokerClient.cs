@@ -12,13 +12,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Common.Core;
 using Microsoft.Common.Core.Disposables;
-using Microsoft.Common.Core.IO;
 using Microsoft.Common.Core.Json;
 using Microsoft.Common.Core.Logging;
 using Microsoft.Common.Core.Services;
 using Microsoft.R.Common.Core.Output;
 using Microsoft.R.Host.Client.BrokerServices;
-using Microsoft.R.Host.Client.Session;
 using Microsoft.R.Host.Client.Transports;
 using Microsoft.R.Host.Protocol;
 using static System.FormattableString;
@@ -87,24 +85,6 @@ namespace Microsoft.R.Host.Client.Host {
         }
 
         public void Dispose() => DisposableBag.TryDispose();
-
-        public async Task<T> GetHostInformationAsync<T>(CancellationToken cancellationToken) {
-            string result = null;
-            try {
-                if (!_typeToEndpointMap.TryGetValue(typeof(T), out string endpoint)) {
-                    throw new ArgumentException($"There is no endpoint for type {typeof(T)}");
-                }
-
-                if (HttpClient != null) {
-                    var response = await HttpClient.GetAsync(endpoint, cancellationToken);
-                    result = response != null ? await response.Content.ReadAsStringAsync() : null;
-                }
-
-                return !string.IsNullOrEmpty(result) ? Json.DeserializeObject<T>(result) : default;
-            } catch (HttpRequestException ex) {
-                throw new RHostDisconnectedException(Resources.Error_HostNotResponding.FormatInvariant(Name, ex.Message), ex);
-            }
-        }
 
         public virtual async Task<RHost> ConnectAsync(HostConnectionInfo connectionInfo, CancellationToken cancellationToken = default) {
             DisposableBag.ThrowIfDisposed();
@@ -212,34 +192,6 @@ namespace Microsoft.R.Host.Client.Host {
 
             Debug.Fail("No localized resources for broker API error" + ex.ApiError.ToString());
             return ex.ApiError.ToString();
-        }
-
-        public virtual async Task<string> HandleUrlAsync(string url, CancellationToken cancellationToken) {
-            var ub = new UriBuilder(url);
-            if (ub.Scheme.StartsWithIgnoreCase("file")) {
-                var remotingService = _services.GetService<IRemotingWebServer>();
-                return await remotingService.HandleLocalStaticFileUrlAsync(url, _console, cancellationToken);
-            }
-
-            if (!url.StartsWithIgnoreCase("file") && 
-                !url.StartsWithIgnoreCase("http") && 
-                _sessionProvider != null) {
-                try {
-                    IRExpressionEvaluator session = _sessionProvider.GetOrCreate("REPL");
-                    if (await session.FileExistsAsync(url, cancellationToken)) {
-                        var fullPath = await session.NormalizePathAsync(url, cancellationToken);
-                        var remotingService = _services.GetService<IRemotingWebServer>();
-                        var fs = _services.GetService<IFileSystem>();
-                        return await remotingService.HandleLocalStaticFileUrlAsync(fullPath, _console, cancellationToken);
-                    }
-                } catch(Exception ex) when (!ex.IsCriticalException()) {
-                    // This is best effort to find the resource. if it was not found ignore it.
-                    _console.WriteErrorLine(Resources.Error_UriPathNotFound.FormatInvariant(url));
-                    return null;
-                }
-             }
-
-            return url;
         }
     }
 }
