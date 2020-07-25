@@ -32,7 +32,7 @@ endif()
 include_directories("${CMAKE_SOURCE_DIR}/lib/picojson" "${CMAKE_SOURCE_DIR}/lib/picojson")
 
 set(Boost_USE_STATIC_LIBS ON)
-find_package(Boost 1.73.0 REQUIRED COMPONENTS date_time filesystem locale program_options regex system)
+find_package(Boost 1.72.0 REQUIRED COMPONENTS date_time filesystem locale program_options regex system)
 include_directories(${Boost_INCLUDE_DIRS})
 target_link_libraries(Microsoft.R.Host ${Boost_LIBRARIES})
 
@@ -69,7 +69,7 @@ if(WIN32)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -I\"${R_PATH}/include\"")
 
     # Copy MinGW dependencies to output directory alongside .exe.
-    set(DLL_dependencies "libwinpthread-1.dll" "libzip.dll" "zlib1.dll" "liblzma-5.dll" "libbz2-1.dll")
+    set(DLL_dependencies "libwinpthread-1.dll")
     foreach(dep ${DLL_dependencies})
         configure_file("$ENV{MSYSTEM_PREFIX}/bin/${dep}" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${dep}" COPYONLY)
     endforeach()
