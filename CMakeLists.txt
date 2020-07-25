@@ -61,14 +61,14 @@ if(WIN32)
     # Find R in registry, trying various keys from 3.4.20 to 3.4.0 down.
 
     set(R_PATH "/registry")
-    foreach(i RANGE 20 0 -1)
+    foreach(i RANGE 0 9 1)
         if("${R_PATH}" STREQUAL "/registry")
-            GET_FILENAME_COMPONENT(R_PATH "[HKEY_LOCAL_MACHINE\\SOFTWARE\\R-core\\R64\\3.4.${i};InstallPath]" ABSOLUTE)
+            GET_FILENAME_COMPONENT(R_PATH "[HKEY_LOCAL_MACHINE\\SOFTWARE\\R-core\\R64\\4.0.${i};InstallPath]" ABSOLUTE)
         endif()
     endforeach()
 
     if("${R_PATH}" STREQUAL "/registry")
-        message(FATAL_ERROR "R 3.4.x not found")
+        message(FATAL_ERROR "R 4.0.x not found")
     endif()
 
     message(STATUS "Using R at ${R_PATH}")
@@ -76,7 +76,7 @@ if(WIN32)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -I\"${R_PATH}/include\"")
 
     # Copy MinGW dependencies to output directory alongside .exe.
-    set(DLL_dependencies "libwinpthread-1.dll" "libzip-5.dll" "zlib1.dll")
+    set(DLL_dependencies "libwinpthread-1.dll" "libzip.dll" "zlib1.dll")
     foreach(dep ${DLL_dependencies})
         configure_file("$ENV{MSYSTEM_PREFIX}/bin/${dep}" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${dep}" COPYONLY)
     endforeach()

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" InitialTargets="ShowProperties">
+<Project DefaultTargets="Build" ToolsVersion="16.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" InitialTargets="ShowProperties">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
       <Configuration>Debug</Configuration>
@@ -18,21 +18,21 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
-  <PropertyGroup Condition="'$(OS)' == 'Windows_NT'"> 
-    <NuGetPackageRoot Condition=" '$(NuGetPackageRoot)' == '' ">$(UserProfile)\.nuget\packages\</NuGetPackageRoot> 
-  </PropertyGroup> 
-  <PropertyGroup Condition="'$(OS)' != 'Windows_NT'"> 
-    <NuGetPackageRoot Condition=" '$(NuGetPackageRoot)' == '' ">~\.nuget\packages\</NuGetPackageRoot> 
-  </PropertyGroup> 
-  <PropertyGroup Condition="'$(OS)' == 'Windows_NT'"> 
-    <TargetOSName>Windows</TargetOSName> 
-  </PropertyGroup> 
-  <PropertyGroup Condition="'$(OS)' == 'OSX'"> 
-    <TargetOSName>OSX</TargetOSName> 
-  </PropertyGroup> 
-  <PropertyGroup Condition="'$(OS)' != 'Windows_NT' AND '$(OS)' != 'OSX'"> 
-    <TargetOSName>Linux</TargetOSName> 
-  </PropertyGroup> 
+  <PropertyGroup Condition="'$(OS)' == 'Windows_NT'">
+    <NuGetPackageRoot Condition=" '$(NuGetPackageRoot)' == '' ">$(UserProfile)\.nuget\packages\</NuGetPackageRoot>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(OS)' != 'Windows_NT'">
+    <NuGetPackageRoot Condition=" '$(NuGetPackageRoot)' == '' ">~\.nuget\packages\</NuGetPackageRoot>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(OS)' == 'Windows_NT'">
+    <TargetOSName>Windows</TargetOSName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(OS)' == 'OSX'">
+    <TargetOSName>OSX</TargetOSName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(OS)' != 'Windows_NT' AND '$(OS)' != 'OSX'">
+    <TargetOSName>Linux</TargetOSName>
+  </PropertyGroup>
   <PropertyGroup>
     <BinDirectory Condition="'$(BinDirectory)' == ''">$(SolutionDir)..\bin\</BinDirectory>
     <ObjDirectory Condition="'$(ObjDirectory)' == ''">$(SolutionDir)..\obj\</ObjDirectory>
@@ -40,32 +40,31 @@
     <IntDir>$(ObjDirectory)$(Configuration)\$(TargetName)\$(Platform)\Microsoft.R.Host</IntDir>
   </PropertyGroup>
   <PropertyGroup Label="Globals">
-    <VCProjectVersion>15.0</VCProjectVersion>
+    <VCProjectVersion>16.0</VCProjectVersion>
     <ProjectGuid>{DBBED91F-BF32-4C77-9445-8666532225BC}</ProjectGuid>
     <Keyword>MakeFileProj</Keyword>
     <MSYSPath>c:\msys64</MSYSPath>
   </PropertyGroup>
-  <Import Project="$(NuGetPackageRoot)microbuild.core\0.2.0\build\MicroBuild.Core.props" Condition="Exists('$(NuGetPackageRoot)microbuild.core\0.2.0\build\MicroBuild.Core.props')" />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Makefile</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Makefile</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Makefile</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Makefile</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -85,11 +84,11 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Platform)'=='Win32'">
     <MSystem>MINGW32</MSystem>
-    <IncludePath>$(MSYSPath)\mingw32\i686-w64-mingw32\include;$(MSYSPath)\mingw32\include;$(MSYSPath)\mingw32\include\c++\6.3.0</IncludePath>
+    <IncludePath>..\..\..\..\NugetPackages\boost.1.72.0.0\lib\include\boost;$(MSYSPath)\mingw32\i686-w64-mingw32\include;$(MSYSPath)\mingw32\include;$(MSYSPath)\mingw32\include\c++\6.3.0</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Platform)'=='x64'">
     <MSystem>MINGW64</MSystem>
-    <IncludePath>$(MSYSPath)\mingw64\x86_64-w64-mingw32\include;$(MSYSPath)\mingw64\include;$(MSYSPath)\mingw64\include\c++\6.3.0</IncludePath>
+    <IncludePath>..\..\..\..\NugetPackages\boost.1.72.0.0\lib\include\boost;$(MSYSPath)\mingw64\x86_64-w64-mingw32\include;$(MSYSPath)\mingw64\include;$(MSYSPath)\mingw64\include\c++\6.3.0</IncludePath>
   </PropertyGroup>
   <PropertyGroup>
     <NMakeOutput>$(OutDir)\Microsoft.R.Host.exe</NMakeOutput>
@@ -150,6 +149,9 @@
       <Authenticode>Microsoft</Authenticode>
     </FilesToSign>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
   <Target Name="ShowProperties">
     <Message Text="OS: $(OS)" Importance="high" />
     <Message Text="IntDir: $(IntDir)" Importance="high" />
@@ -158,11 +160,29 @@
   </Target>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
+    <Import Project="..\..\..\..\NugetPackages\boost.1.72.0.0\build\boost.targets" Condition="Exists('..\..\..\..\NugetPackages\boost.1.72.0.0\build\boost.targets')" />
+    <Import Project="..\..\..\..\NugetPackages\boost_date_time-vc140.1.72.0.0\build\boost_date_time-vc140.targets" Condition="Exists('..\..\..\..\NugetPackages\boost_date_time-vc140.1.72.0.0\build\boost_date_time-vc140.targets')" />
+    <Import Project="..\..\..\..\NugetPackages\boost_filesystem-vc140.1.72.0.0\build\boost_filesystem-vc140.targets" Condition="Exists('..\..\..\..\NugetPackages\boost_filesystem-vc140.1.72.0.0\build\boost_filesystem-vc140.targets')" />
+    <Import Project="..\..\..\..\NugetPackages\boost_locale-vc140.1.72.0.0\build\boost_locale-vc140.targets" Condition="Exists('..\..\..\..\NugetPackages\boost_locale-vc140.1.72.0.0\build\boost_locale-vc140.targets')" />
+    <Import Project="..\..\..\..\NugetPackages\boost_program_options-vc140.1.72.0.0\build\boost_program_options-vc140.targets" Condition="Exists('..\..\..\..\NugetPackages\boost_program_options-vc140.1.72.0.0\build\boost_program_options-vc140.targets')" />
+    <Import Project="..\..\..\..\NugetPackages\boost_regex-vc140.1.72.0.0\build\boost_regex-vc140.targets" Condition="Exists('..\..\..\..\NugetPackages\boost_regex-vc140.1.72.0.0\build\boost_regex-vc140.targets')" />
+    <Import Project="..\..\..\..\NugetPackages\boost_system-vc140.1.72.0.0\build\boost_system-vc140.targets" Condition="Exists('..\..\..\..\NugetPackages\boost_system-vc140.1.72.0.0\build\boost_system-vc140.targets')" />
   </ImportGroup>
   <Import Project="$(SolutionDir)\R.Build.Version.targets" />
   <Target Name="CreateManifestResourceNames" />
   <Target Name="AfterBuild" AfterTargets="Build">
-    <Message Text="Output: $(NMakeOutput)"/>
+    <Message Text="Output: $(NMakeOutput)" />
   </Target>
-  <Import Project="$(NuGetPackageRoot)microbuild.core\0.2.0\build\MicroBuild.Core.targets" Condition="Exists('$(NuGetPackageRoot)microbuild.core\0.2.0\build\MicroBuild.Core.targets')" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\..\..\..\NugetPackages\boost.1.72.0.0\build\boost.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\..\..\NugetPackages\boost.1.72.0.0\build\boost.targets'))" />
+    <Error Condition="!Exists('..\..\..\..\NugetPackages\boost_date_time-vc140.1.72.0.0\build\boost_date_time-vc140.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\..\..\NugetPackages\boost_date_time-vc140.1.72.0.0\build\boost_date_time-vc140.targets'))" />
+    <Error Condition="!Exists('..\..\..\..\NugetPackages\boost_filesystem-vc140.1.72.0.0\build\boost_filesystem-vc140.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\..\..\NugetPackages\boost_filesystem-vc140.1.72.0.0\build\boost_filesystem-vc140.targets'))" />
+    <Error Condition="!Exists('..\..\..\..\NugetPackages\boost_locale-vc140.1.72.0.0\build\boost_locale-vc140.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\..\..\NugetPackages\boost_locale-vc140.1.72.0.0\build\boost_locale-vc140.targets'))" />
+    <Error Condition="!Exists('..\..\..\..\NugetPackages\boost_program_options-vc140.1.72.0.0\build\boost_program_options-vc140.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\..\..\NugetPackages\boost_program_options-vc140.1.72.0.0\build\boost_program_options-vc140.targets'))" />
+    <Error Condition="!Exists('..\..\..\..\NugetPackages\boost_regex-vc140.1.72.0.0\build\boost_regex-vc140.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\..\..\NugetPackages\boost_regex-vc140.1.72.0.0\build\boost_regex-vc140.targets'))" />
+    <Error Condition="!Exists('..\..\..\..\NugetPackages\boost_system-vc140.1.72.0.0\build\boost_system-vc140.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\..\..\NugetPackages\boost_system-vc140.1.72.0.0\build\boost_system-vc140.targets'))" />
+  </Target>
 </Project>

@@ -1,8 +1,11 @@
-- Install R 3.4+
+- Install R 4.0+
 - Mac: install XCode
 - Ubuntu: install CLANG and CMake via apt.
 
-Recommended: VS Code with [Microsoft C++ extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools) and [CMake Tools](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cmake-tools&ssr=false#overview). It helps you locate and configure kits. You can also build directly from VS Code.
+Recommended: 
+- [VS Code](https://code.visualstudio.com/)
+- [Microsoft C++ extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools) 
+- [CMake Tools](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cmake-tools&ssr=false#overview). It helps you locate and configure kits. You can also build directly from VS Code.
 
 ### WSL
 
