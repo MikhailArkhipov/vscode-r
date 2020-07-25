@@ -11,9 +11,11 @@ Extension consists of three parts:
 4. Add R-Host as subtree
     - `git remote add RHost https://github.com/MikhailArkhipov/R-Host`
     - `git subtree add --prefix=src/Host/Process/ RHost master`
+    - `git subtree pull --prefix src/Host/Process RHost master`
 5. Add R-Host dependencies
     - `git remote add picojson https://github.com/kazuho/picojson`
     - `git subtree add --prefix src/Host/Process/lib/picojson picojson master`
+    - `git subtree pull --prefix src/Host/Process/lib/picojson picojson master`
 5. R Host is binaries are checked in under `Host` subfolder
 
 ### Building R-Host
