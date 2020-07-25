@@ -1,8 +1,12 @@
-- Install R 3.4+
+- Install R 4.0+
 - Mac: install XCode
 - Ubuntu: install CLANG and CMake via apt.
 
-Recommended: VS Code with [Microsoft C++ extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools) and [CMake Tools](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cmake-tools&ssr=false#overview). It helps you locate and configure kits. You can also build directly from VS Code.
+Recommended: 
+- [VS Code](https://code.visualstudio.com/)
+- [Microsoft C++ extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools) 
+- [CMake Tools](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cmake-tools&ssr=false#overview). It helps you locate and configure kits. You can also build directly from VS Code.
+
 
 ### WSL
 
@@ -27,8 +31,9 @@ Recommended: VS Code with [Microsoft C++ extension](https://marketplace.visualst
 - `./b2`
 - `sudo ./b2 install`
 
-### Install submodules
-- `git submodule update --init`
+### Connect subtrees
+- `git remote add picojson https://github.com/kazuho/picojson`
+- `git subtree add --prefix lib/picojson picojson master`
 
 ### Configure CMake in VS Code
 - `Ctrl+Shift+P`
