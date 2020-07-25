@@ -3,7 +3,6 @@
 
 using System;
 using System.Linq;
-using Microsoft.R.Containers;
 using Microsoft.R.Host.Client.Host;
 
 namespace Microsoft.R.Components.ConnectionManager {
@@ -15,12 +14,6 @@ namespace Microsoft.R.Components.ConnectionManager {
 
         public static Connection Create(string name, string path, string rCommandLineArguments, bool isUserCreated) {
             var brokerConnectionInfo = BrokerConnectionInfo.Create(name, path, rCommandLineArguments);
-            return new Connection(brokerConnectionInfo, path, isUserCreated);
-        }
-
-        public static Connection Create(IContainer container, string rCommandLineArguments, bool isUserCreated) {
-            var path = $"http://localhost:{container.HostPorts.First()}";
-            var brokerConnectionInfo = BrokerConnectionInfo.Create(container.Name, path, rCommandLineArguments);
             return new Connection(brokerConnectionInfo, path, isUserCreated);
         }
 

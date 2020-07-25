@@ -23,7 +23,6 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\Languages\Core\Impl\Microsoft.Languages.Core.csproj" />
     <ProjectReference Include="..\..\..\Common\Core\Impl\Microsoft.R.Common.Core.csproj" />
-    <ProjectReference Include="..\..\..\Containers\Impl\Microsoft.R.Containers.csproj" />
     <ProjectReference Include="..\..\..\Host\Protocol\Impl\Microsoft.R.Host.Protocol.csproj" />
     <ProjectReference Include="..\..\Platform\Impl\Microsoft.R.Platform.csproj" />
     <ProjectReference Include="..\..\..\Host\Client\Impl\Microsoft.R.Host.Client.csproj" />
