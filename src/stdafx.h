@@ -69,7 +69,6 @@
 #include "boost/filesystem.hpp"
 
 #include "picojson.h"
-#include "zip.h"
 
 #if defined(_MSC_VER)
 #define RHOST_EXPORT __declspec(dllexport)

@@ -36,13 +36,6 @@ find_package(Boost 1.73.0 REQUIRED COMPONENTS date_time filesystem locale progra
 include_directories(${Boost_INCLUDE_DIRS})
 target_link_libraries(Microsoft.R.Host ${Boost_LIBRARIES})
 
-find_library(libzip_LIBRARY NAMES zip)
-if(NOT libzip_LIBRARY)
-    message(FATAL_ERROR "libzip not found")
-endif()
-include_directories(${libzip_INCLUDE_DIRS})
-target_link_libraries(Microsoft.R.Host ${zlib_LIBRARY} ${libzip_LIBRARY})
-
 if(WIN32)
     # TODO: enable -dynamicbase 
     set_property(TARGET Microsoft.R.Host APPEND_STRING PROPERTY LINK_FLAGS " -Wl,-high-entropy-va -Wl,-nxcompat")

@@ -88,7 +88,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Platform)'=='x64'">
     <MSystem>MINGW64</MSystem>
-    <IncludePath>..\..\..\..\NugetPackages\boost.1.72.0.0\lib\include\boost;$(MSYSPath)\mingw64\x86_64-w64-mingw32\include;$(MSYSPath)\mingw64\include;$(MSYSPath)\mingw64\include\c++\6.3.0</IncludePath>
+    <IncludePath>..\..\..\..\NugetPackages\boost.1.72.0.0\lib\include\boost;$(MSYSPath)\mingw64\x86_64-w64-mingw32\include;$(MSYSPath)\mingw64\include;$(MSYSPath)\mingw64\include\c++\6.3.0;..\lib\picojson</IncludePath>
   </PropertyGroup>
   <PropertyGroup>
     <NMakeOutput>$(OutDir)\Microsoft.R.Host.exe</NMakeOutput>
@@ -111,7 +111,6 @@
     <ClCompile Include="log.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="json.cpp" />
-    <ClCompile Include="project.cpp" />
     <ClCompile Include="rstrtmgr.cpp" />
     <ClCompile Include="r_util.cpp" />
     <ClCompile Include="host.cpp" />
@@ -129,7 +128,6 @@
     <ClInclude Include="message.h" />
     <ClInclude Include="eval.h" />
     <ClInclude Include="log.h" />
-    <ClInclude Include="project.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="json.h" />
     <ClInclude Include="rstrtmgr.h" />

@@ -10,7 +10,6 @@
     <ClCompile Include="log.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="json.cpp" />
-    <ClCompile Include="project.cpp" />
     <ClCompile Include="r_util.cpp" />
     <ClCompile Include="host.cpp" />
     <ClCompile Include="detours.cpp" />
@@ -28,7 +27,6 @@
     <ClInclude Include="message.h" />
     <ClInclude Include="eval.h" />
     <ClInclude Include="log.h" />
-    <ClInclude Include="project.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="json.h" />
     <ClInclude Include="r_api.h" />
