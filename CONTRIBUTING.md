@@ -35,7 +35,7 @@ This is usually unnecessary unless you are changing R Host. R Host binaries is b
 2. cd `npm install`
 3. Open `src/VSCode` in VS Code
 4. If you are planning to debug, change `Release` to `Debug` in `package.cmd`.
-5. Run `package.cmd`. This will populate `ls` folder with language server bits.
+5. Run `debug.cmd`. This will populate `ls` folder with language server debug bits.
 6. You should be able to run the extension.
 
 ### Debugging
@@ -43,7 +43,7 @@ This is usually unnecessary unless you are changing R Host. R Host binaries is b
 1. Debugging TypeScript code can be done by launching extension in VS Code.
 2. Debugging C# code:
 
-   - Use Visual Studion `Debig | Attach To Process`. Attach to `dotnet.exe` running `Microsoft.R.LanguageServer.dll` (debug build).
+   - Use Visual Studion `Debug | Attach To Process`. Attach to `dotnet.exe` running `Microsoft.R.LanguageServer.dll` (debug build).
    - If you need to debug startup sequence, open `Program.cs` in the `Microsoft.R.LanguageServer` and uncomment `#define WAIT_FOR_DEBUGGER`. Language server with then stop at startup and wait for the debugger to attach.
    - Same applies for `Microsoft.R.Broker` if you need to debug it.
 
