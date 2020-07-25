@@ -76,7 +76,7 @@ if(WIN32)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -I\"${R_PATH}/include\"")
 
     # Copy MinGW dependencies to output directory alongside .exe.
-    set(DLL_dependencies "libwinpthread-1.dll" "libzip.dll" "zlib1.dll")
+    set(DLL_dependencies "libwinpthread-1.dll" "libzip.dll" "lrstrmgr.dll" "zlib1.dll")
     foreach(dep ${DLL_dependencies})
         configure_file("$ENV{MSYSTEM_PREFIX}/bin/${dep}" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${dep}" COPYONLY)
     endforeach()
