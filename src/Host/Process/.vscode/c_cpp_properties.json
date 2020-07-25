@@ -42,7 +42,8 @@
             "intelliSenseMode": "clang-x64",
             "compilerPath": "/usr/bin/clang",
             "cStandard": "c11",
-            "cppStandard": "c++14"
+            "cppStandard": "c++14",
+            "configurationProvider": "ms-vscode.cmake-tools"
         },
         {
             "name": "Win32",
