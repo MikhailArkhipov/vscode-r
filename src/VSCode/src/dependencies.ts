@@ -20,13 +20,6 @@ export async function checkDependencies(context: ExtensionContext): Promise<bool
     }
 
     ensureHostExecutable(context);
-
-    if (!IsLibZipInstalled()) {
-        if (!isBrewInstalled()) {
-            await installBrew();
-        }
-        await installLibZip();
-    }
     return true;
 }
 
@@ -103,35 +96,6 @@ function InstallR(): void {
         url = 'https://cran.r-project.org/bin/linux/';
     }
     open(url);
-}
-
-function IsLibZipInstalled(): boolean {
-    if (!IsMac()) {
-        return true;
-    }
-    return fs.existsSync('/usr/local/opt/libzip/lib/libzip.5.dylib');
-}
-
-function isBrewInstalled(): boolean {
-    if (!IsMac()) {
-        return true;
-    }
-    return fs.existsSync('/usr/local/bin/brew');
-}
-
-async function installBrew(): Promise<void> {
-    getOutput().append('Installing Homebrew (required to install libzip library)... ');
-    await execute('/usr/bin/ruby', [
-        '-e',
-        '"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"',
-    ]);
-    getOutput().appendLine('OK');
-}
-
-async function installLibZip() {
-    getOutput().append('Installing libzip (required for the R process executable)... ');
-    await execute('brew', ['install', 'libzip']);
-    getOutput().appendLine('OK');
 }
 
 function execute(command: string, args: string[]): Promise<void> {
