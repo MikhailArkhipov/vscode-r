@@ -22,7 +22,7 @@ using Newtonsoft.Json.Linq;
 using static System.FormattableString;
 
 namespace Microsoft.R.Host.Client {
-    public sealed partial class RHost : IDisposable, IRExpressionEvaluator, IRBlobService {
+    public sealed partial class RHost : IDisposable, IRExpressionEvaluator {
         public static IRContext TopLevelContext { get; } = new RContext(RContextType.TopLevel);
 
         public string Name { get; }
