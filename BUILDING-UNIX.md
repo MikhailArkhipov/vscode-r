@@ -30,8 +30,9 @@ Recommended:
 - `./b2`
 - `sudo ./b2 install`
 
-### Install submodules
-- `git submodule update --init`
+### Connect subtrees
+- `git remote add picojson https://github.com/kazuho/picojson`
+- `git subtree add --prefix lib/picojson picojson master`
 
 ### Configure CMake in VS Code
 - `Ctrl+Shift+P`
