@@ -112,7 +112,7 @@ namespace Microsoft.R.LanguageServer.Server {
                 _ui.LogMessageAsync($"\t[{i}] {engines[i].Name}", MessageType.Info).DoNotWait();
             }
             _ui.LogMessageAsync("You can specify the desired interpreter index in the R settings", MessageType.Info).DoNotWait();
-            _ui.LogMessageAsync("Of provide path to R using `r.interpreterPath` setting.", MessageType.Info).DoNotWait();
+            _ui.LogMessageAsync("or provide path to R using `r.interpreterPath` setting.", MessageType.Info).DoNotWait();
 
             if (rs.InterpreterIndex < 0 || rs.InterpreterIndex > engines.Count) {
                 _ui.ShowMessageAsync($"Selected interpreter [{rs.InterpreterIndex}] does not exist. Using [0] instead", MessageType.Warning).DoNotWait();
