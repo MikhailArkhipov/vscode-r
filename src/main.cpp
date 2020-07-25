@@ -61,7 +61,7 @@ namespace rhost {
         command_line_args args = {};
 
         po::option_description
-            help("rhost-help", new po::untyped_value(true),
+            help("help", new po::untyped_value(true),
                 "Produce help message."),
             name("rhost-name", po::value<std::string>(),
                 "Name of this host instance."),
