@@ -9,7 +9,7 @@ import { LanguageClient, LanguageClientOptions, ServerOptions, TransportKind } f
 
 import { Commands } from './commands';
 import { RLanguage } from './constants';
-import { checkDependencies } from './dependencies';
+import { checkDependencies, ensureHostExecutable } from './dependencies';
 import { PlotView } from './plotView';
 import { REngine } from './rengine';
 
@@ -27,6 +27,7 @@ export async function activate(context: ExtensionContext) {
     await files.update('associations', associations, ConfigurationTarget.Global);
 
     const config = workspace.getConfiguration('r');
+    ensureHostExecutable(context);
 
     const check = config.get<boolean>('dependencyChecks');
     if (check && !(await checkDependencies(context))) {

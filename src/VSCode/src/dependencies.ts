@@ -2,12 +2,10 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 'use strict';
 
-import { spawn } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
 import { ExtensionContext, OutputChannel, window } from 'vscode';
 
-import { createDeferred } from './deferred';
 import { IsMac, IsWindows } from './os';
 
 import getenv = require('getenv');
@@ -21,24 +19,6 @@ export async function checkDependencies(context: ExtensionContext): Promise<bool
 
     ensureHostExecutable(context);
     return true;
-}
-
-async function getR(r: REngine): Promise<string> {
-    const interpreterPath = await r.getInterpreterPath();
-    if (interpreterPath === undefined || interpreterPath === null) {
-        if (
-            (await window.showErrorMessage(
-                'Unable to find R interpreter. Would you like to install R now?',
-                'Yes',
-                'No'
-            )) === 'Yes'
-        ) {
-            InstallR();
-            window.showWarningMessage('Please restart VS Code after R installation is complete.');
-        }
-        return null;
-    }
-    return interpreterPath;
 }
 
 async function checkDotNet(): Promise<boolean> {
@@ -60,7 +40,7 @@ async function checkDotNet(): Promise<boolean> {
     return true;
 }
 
-function ensureHostExecutable(context: ExtensionContext): void {
+export function ensureHostExecutable(context: ExtensionContext): void {
     if (!IsWindows()) {
         const osDir = IsMac() ? 'Mac' : 'Linux';
         const hostBinPath = path.join(context.extensionPath, 'ls', 'Host', osDir, 'Microsoft.R.Host');
@@ -84,34 +64,6 @@ function IsDotNetInstalled(): boolean {
 
 function InstallDotNet(): void {
     open('https://www.microsoft.com/net/download/core#/runtime');
-}
-
-function InstallR(): void {
-    let url: string;
-    if (IsWindows()) {
-        url = 'https://cran.r-project.org/bin/windows/base/';
-    } else if (IsMac()) {
-        url = 'https://cran.r-project.org/bin/macosx/';
-    } else {
-        url = 'https://cran.r-project.org/bin/linux/';
-    }
-    open(url);
-}
-
-function execute(command: string, args: string[]): Promise<void> {
-    const deferred = createDeferred<void>();
-    const proc = spawn(command, args);
-
-    proc.stdout.on('data', (data: Buffer) => getOutput().append(data.toString()));
-    proc.stderr.on('data', (data: Buffer) => getOutput().append(data.toString()));
-
-    proc.once('exit', (code, signal) => deferred.resolve());
-    proc.once('close', (code, signal) => deferred.resolve());
-    proc.once('error', (code, signal) => {
-        getOutput().appendLine(signal);
-        deferred.reject(code);
-    });
-    return deferred.promise;
 }
 
 let outputChannel: OutputChannel;
