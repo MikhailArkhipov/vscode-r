@@ -23,14 +23,6 @@ namespace Microsoft.R.Host.Client {
         IEnumerable<IRSession> GetSessions();
 
         /// <summary>
-        /// Tests connection to the broker without changing current one.
-        /// </summary>
-        /// <param name="name">Name of the broker. Will be displayed in REPL.</param>
-        /// <param name="connectionInfo">Either a local path to the R binary or a URL to the broker + broker connection parameters</param>
-        /// <param name="cancellationToken"></param>
-        Task TestBrokerConnectionAsync(string name, BrokerConnectionInfo connectionInfo = default, CancellationToken cancellationToken = default);
-
-        /// <summary>
         /// 
         /// </summary>
         /// <param name="name">Name of the broker. Will be displayed in REPL.</param>

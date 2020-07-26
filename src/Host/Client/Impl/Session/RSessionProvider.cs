@@ -98,36 +98,6 @@ namespace Microsoft.R.Host.Client.Session {
         private void OnBrokerChanged() => Task.Run(() 
             => BrokerChanged?.Invoke(this, new EventArgs())).DoNotWait();
 
-        public async Task TestBrokerConnectionAsync(string name, BrokerConnectionInfo connectionInfo, CancellationToken cancellationToken = default) {
-            using (_disposeToken.Link(ref cancellationToken)) {
-                await TaskUtilities.SwitchToBackgroundThread();
-
-                // Create random name to avoid collision with actual broker client
-                name += Guid.NewGuid().ToString("N");
-                var brokerClient = CreateBrokerClient(name, connectionInfo);
-                if (brokerClient == null) {
-                    throw new ArgumentException(nameof(connectionInfo));
-                }
-
-                using (brokerClient) {
-                    await TestBrokerConnectionWithRHost(brokerClient, cancellationToken);
-                }
-            }
-        }
-
-        private static async Task TestBrokerConnectionWithRHost(IBrokerClient brokerClient, CancellationToken cancellationToken) {
-            var callbacks = new NullRCallbacks();
-            var connectionInfo = new HostConnectionInfo(nameof(TestBrokerConnectionAsync), callbacks, useRHostCommandLineArguments: true, isInteractive: false, timeout: 20000);
-            var rhost = await brokerClient.ConnectAsync(connectionInfo, cancellationToken);
-            try {
-                var rhostRunTask = rhost.Run(cancellationToken);
-                callbacks.SetReadConsoleInput("q()\n");
-                await rhostRunTask;
-            } finally {
-                rhost.Dispose();
-            }
-        }
-
         public async Task RemoveBrokerAsync(CancellationToken cancellationToken = default) {
             using (_disposeToken.Link(ref cancellationToken)) {
                 await TaskUtilities.SwitchToBackgroundThread();
@@ -228,8 +198,6 @@ namespace Microsoft.R.Host.Client.Session {
                 if (transactions.Any()) {
                     await SwitchSessionsAsync(transactions, sessionsToStop, cancellationToken);
                 } else {
-                    // Ping isn't enough here - need a "full" test with RHost cause command line parameters may not allow host to run
-                    await TestBrokerConnectionWithRHost(_brokerProxy, cancellationToken);
                     await StopSessionsAsync(sessionsToStop, true, cancellationToken);
                 }
             } catch (OperationCanceledException ex) when (!(ex is RHostDisconnectedException)) {
@@ -260,8 +228,6 @@ namespace Microsoft.R.Host.Client.Session {
             try {
                 if (sessions.Any()) {
                     await WhenAllCancelOnFailure(sessions, (s, ct) => s.ReconnectAsync(ct), cancellationToken);
-                } else {
-                    await TestBrokerConnectionWithRHost(_brokerProxy, cancellationToken);
                 }
             } catch (OperationCanceledException ex) when (!(ex is RHostDisconnectedException)) {
                 throw;

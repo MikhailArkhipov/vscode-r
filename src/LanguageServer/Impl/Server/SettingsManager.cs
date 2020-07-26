@@ -2,16 +2,9 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Threading.Tasks;
-using Microsoft.Common.Core.Enums;
-using Microsoft.Common.Core.Logging;
 using Microsoft.Common.Core.Services;
 using Microsoft.Languages.Core.Formatting;
 using Microsoft.Languages.Editor.Settings;
-using Microsoft.R.Components.ConnectionManager;
-using Microsoft.R.Components.Settings;
 using Microsoft.R.Core.Formatting;
 using Microsoft.R.Editor;
 using Microsoft.R.Editor.Validation.Lint;
@@ -21,13 +14,11 @@ namespace Microsoft.R.LanguageServer.Server {
     internal sealed class SettingsManager : ISettingsManager {
         private readonly REngineSettings _engineSettings = new REngineSettings();
         private readonly REditorSettings _editorSettings = new REditorSettings();
-        private readonly RSettings _rSettings = new RSettings();
 
         public SettingsManager(IServiceManager serviceManager) {
             serviceManager
                 .AddService(_engineSettings)
-                .AddService(_editorSettings)
-                .AddService(_rSettings);
+                .AddService(_editorSettings);
         }
 
         public void Dispose() => _editorSettings.Dispose();
@@ -96,40 +87,5 @@ namespace Microsoft.R.LanguageServer.Server {
 
             public void RaiseChanged() => SettingsChanged?.Invoke(this, EventArgs.Empty);
         }
-
-        private sealed class RSettings : IRSettings {
-            public event PropertyChangedEventHandler PropertyChanged;
-            public void Dispose() { }
-
-            public YesNo ShowWorkspaceSwitchConfirmationDialog { get; set; }
-            public YesNo ShowSaveOnResetConfirmationDialog { get; set; }
-            public bool AlwaysSaveHistory { get; set; }
-            public bool ClearFilterOnAddHistory { get; set; }
-            public bool MultilineHistorySelection { get; set; }
-            public ConnectionInfo[] Connections { get; set; }
-            public ConnectionInfo LastActiveConnection { get; set; }
-            public string CranMirror { get; set; }
-            public string WorkingDirectory { get; set; }
-            public bool ShowPackageManagerDisclaimer { get; set; }
-            public HelpBrowserType HelpBrowserType { get; set; }
-            public int RCodePage { get; set; }
-            public bool EvaluateActiveBindings { get; set; }
-            public bool ShowDotPrefixedVariables { get; set; }
-            public LogVerbosity LogVerbosity { get; set; }
-
-            public void LoadSettings() { }
-            public Task SaveSettingsAsync() => Task.CompletedTask;
-
-            public YesNoAsk LoadRDataOnProjectLoad { get; set; }
-            public YesNoAsk SaveRDataOnProjectUnload { get; set; }
-            public IEnumerable<string> WorkingDirectoryList { get; set; }
-            public string WebHelpSearchString { get; set; }
-            public BrowserType WebHelpSearchBrowserType { get; set; }
-            public BrowserType HtmlBrowserType { get; set; }
-            public BrowserType MarkdownBrowserType { get; set; }
-            public bool ShowRToolbar { get; set; }
-            public bool ShowHostLoadMeter { get; set; }
-            public bool GridDynamicEvaluation { get; set; }
-        }
-    }
+     }
 }

@@ -3,20 +3,14 @@
 
 using System;
 using Microsoft.Common.Core.Services;
-using Microsoft.R.Components.ConnectionManager;
-using Microsoft.R.Components.History;
 using Microsoft.R.Components.PackageManager;
-using Microsoft.R.Components.Plots;
 using Microsoft.R.Host.Client;
 
 namespace Microsoft.R.Components.InteractiveWorkflow {
     public interface IRInteractiveWorkflow : IDisposable {
         IServiceContainer Services { get; }
-        IConnectionManager Connections { get; }
         IConsole Console { get; }
-        IRHistory History { get; }
         IRPackageManager Packages { get; }
-        IRPlotManager Plots { get; }
         IRSessionProvider RSessions { get; }
         IRSession RSession { get; }
         IRInteractiveWorkflowOperations Operations { get; }

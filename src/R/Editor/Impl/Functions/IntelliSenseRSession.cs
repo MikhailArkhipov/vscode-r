@@ -9,11 +9,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Common.Core;
 using Microsoft.Common.Core.Services;
-using Microsoft.Common.Core.Shell;
 using Microsoft.Common.Core.Testing;
 using Microsoft.Common.Core.Threading;
 using Microsoft.R.Components.InteractiveWorkflow;
-using Microsoft.R.Components.Settings;
 using Microsoft.R.Host.Client;
 using Microsoft.R.Host.Client.Host;
 using static System.FormattableString;
@@ -98,9 +96,8 @@ namespace Microsoft.R.Editor.Functions {
                 }
 
                 if (!Session.IsHostRunning) {
-                    int timeout = _unitTests ? 10000 : 3000;
-                    var settings = Services.GetService<IRSettings>();
-                    await Session.EnsureHostStartedAsync(new RHostStartupInfo(settings.CranMirror, codePage: settings.RCodePage), null, timeout, ct);
+                    var timeout = _unitTests ? 10000 : 3000;
+                    await Session.EnsureHostStartedAsync(new RHostStartupInfo(), null, timeout, ct);
                 }
             } finally {
                 token.Set();

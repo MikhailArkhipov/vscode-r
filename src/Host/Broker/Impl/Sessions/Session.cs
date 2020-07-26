@@ -31,11 +31,6 @@ namespace Microsoft.R.Host.Broker.Sessions {
 
         public SessionManager Manager { get; }
 
-        public IIdentity User { get; }
-
-        /// <remarks>
-        /// Unique for a given <see cref="User"/> only.
-        /// </remarks>
         public string Id { get; }
 
         public Interpreter Interpreter { get; }
@@ -92,7 +87,7 @@ namespace Microsoft.R.Host.Broker.Sessions {
             }
 
             // In remote broker User Identity type is always WindowsIdentity
-            var suppressUI = !(User is WindowsIdentity useridentity) ? string.Empty : "--rhost-suppress-ui ";
+            var suppressUI = "--rhost-suppress-ui ";
             var isRepl = _isInteractive ? "--rhost-interactive " : string.Empty;
             var logFolderParam = string.IsNullOrEmpty(logFolder) ? string.Empty : Invariant($"--rhost-log-dir \"{logFolder}\"");
             var rDirPath = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? Interpreter.BinPath : Interpreter.InstallPath;

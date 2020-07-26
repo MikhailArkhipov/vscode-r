@@ -41,12 +41,6 @@ namespace Microsoft.R.Editor.Completions.Engine {
                 return providers;
             }
 
-            if (context.IsRHistoryRequest) {
-                var history = _services.GetService<IRInteractiveWorkflowProvider>().GetOrCreate().History;
-                providers.Add(new RHistoryCompletionProvider(history, _imageService));
-                return providers;
-            }
-
             // First check file completion - it happens inside strings
             if (CanShowFileCompletion(ast, context.Position, out var directory)) {
                 if (!string.IsNullOrEmpty(directory)) {
