@@ -90,7 +90,7 @@ namespace Microsoft.R.StackTracing {
             REvaluationResultProperties properties,
             string repr,
             int? maxCount = null,
-            CancellationToken cancellationToken = default(CancellationToken)
+            CancellationToken cancellationToken = default
         ) =>
             frame.Session.DescribeChildrenAsync(frame.EnvironmentExpression, "base::environment()", properties, repr, maxCount, cancellationToken);
 
@@ -116,7 +116,7 @@ namespace Microsoft.R.StackTracing {
         public static Task<IRValueInfo> DescribeEnvironmentAsync(
             this IRStackFrame frame,
             REvaluationResultProperties properties,
-            CancellationToken cancellationToken = default(CancellationToken)
+            CancellationToken cancellationToken = default
         ) {
             properties |= ExpressionProperty | LengthProperty | AttributeCountProperty | FlagsProperty;
             return frame.EvaluateAndDescribeAsync("base::environment()", properties, null, cancellationToken);
@@ -127,7 +127,7 @@ namespace Microsoft.R.StackTracing {
         /// but the only <c>properties</c> that are fetched are those that are necessary to invoke
         /// <see cref="REvaluationResultInfoExtensions.DescribeChildrenAsync"/> on the returned value.
         /// </summary>
-        public static Task<IRValueInfo> DescribeEnvironmentAsync(this IRStackFrame frame, CancellationToken cancellationToken = default(CancellationToken)) =>
+        public static Task<IRValueInfo> DescribeEnvironmentAsync(this IRStackFrame frame, CancellationToken cancellationToken = default) =>
             frame.DescribeEnvironmentAsync(REvaluationResultProperties.None, cancellationToken);
 
         /// <summary>
@@ -140,7 +140,7 @@ namespace Microsoft.R.StackTracing {
             string name,
             REvaluationResultProperties properties,
             string repr,
-            CancellationToken cancellationToken = default(CancellationToken)
+            CancellationToken cancellationToken = default
         ) =>
             frame.Session.TryEvaluateAndDescribeAsync(frame.EnvironmentExpression, expression, name, properties, repr, cancellationToken);
 
@@ -153,7 +153,7 @@ namespace Microsoft.R.StackTracing {
             string expression,
             REvaluationResultProperties properties,
             string repr,
-            CancellationToken cancellationToken = default(CancellationToken)
+            CancellationToken cancellationToken = default
         ) =>
             frame.TryEvaluateAndDescribeAsync(expression, null, properties, repr, cancellationToken);
 
@@ -167,7 +167,7 @@ namespace Microsoft.R.StackTracing {
             string name,
             REvaluationResultProperties properties,
             string repr,
-            CancellationToken cancellationToken = default(CancellationToken)
+            CancellationToken cancellationToken = default
         ) =>
             frame.Session.EvaluateAndDescribeAsync(frame.EnvironmentExpression, expression, name, properties, repr, cancellationToken);
 
@@ -180,7 +180,7 @@ namespace Microsoft.R.StackTracing {
             string expression,
             REvaluationResultProperties properties,
             string repr,
-            CancellationToken cancellationToken = default(CancellationToken)
+            CancellationToken cancellationToken = default
         ) =>
             frame.EvaluateAndDescribeAsync(expression, null, properties, repr, cancellationToken);
     }

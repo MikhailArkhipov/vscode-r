@@ -21,7 +21,7 @@ namespace Microsoft.R.Editor.Functions {
         /// </param>
         /// <param name="cancellationToken">Cancellation token</param>
         /// <returns>Awaitable task</returns>
-        Task BuildIndexAsync(IPackageIndex packageIndex = null, CancellationToken cancellationToken = default(CancellationToken));
+        Task BuildIndexAsync(IPackageIndex packageIndex = null, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Registers all functions from the package in the index

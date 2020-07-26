@@ -8,7 +8,7 @@ using Microsoft.Languages.Editor.Services;
 
 namespace Microsoft.R.LanguageServer.Services.Editor {
     internal sealed class ContentTypeServiceLocator: IContentTypeServiceLocator {
-        public T GetService<T>(string contentType) where T : class => default(T);
+        public T GetService<T>(string contentType) where T : class => default;
         public IEnumerable<T> GetAllServices<T>(string contentType) where T : class => Enumerable.Empty<T>();
         public IEnumerable<Lazy<T>> GetAllOrderedServices<T>(string contentType) where T : class => Enumerable.Empty<Lazy<T>>();
     }

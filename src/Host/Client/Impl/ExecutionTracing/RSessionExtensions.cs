@@ -15,7 +15,7 @@ namespace Microsoft.R.ExecutionTracing {
         /// <summary>
         /// Obtain an instance of <see cref="IRExecutionTracer"/> for the given <see cref="IRSession"/>.
         /// </summary>
-        public static async Task<IRExecutionTracer> TraceExecutionAsync(this IRSession session, CancellationToken cancellationToken = default(CancellationToken)) {
+        public static async Task<IRExecutionTracer> TraceExecutionAsync(this IRSession session, CancellationToken cancellationToken = default) {
             RExecutionTracer tracer;
 
             await _tracersSem.WaitAsync(cancellationToken).ConfigureAwait(false);

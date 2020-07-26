@@ -78,7 +78,7 @@ namespace Microsoft.R.ExecutionTracing {
         /// already, so calling this method is never a requirement. However, since initialization can be potentially
         /// costly, calling it in advance at a more opportune moment can be preferable to lazy initialization.
         /// </remarks>
-        internal Task InitializeAsync(CancellationToken cancellationToken = default(CancellationToken)) {
+        internal Task InitializeAsync(CancellationToken cancellationToken = default) {
             lock (_initializeLock) {
                 if (_initializeTask == null) {
                     _initializeTask = InitializeWorkerAsync(cancellationToken);
@@ -87,7 +87,7 @@ namespace Microsoft.R.ExecutionTracing {
             }
         }
 
-        private async Task InitializeWorkerAsync(CancellationToken cancellationToken = default(CancellationToken)) {
+        private async Task InitializeWorkerAsync(CancellationToken cancellationToken = default) {
             ThrowIfDisposed();
             await TaskUtilities.SwitchToBackgroundThread();
             try {
@@ -118,7 +118,7 @@ namespace Microsoft.R.ExecutionTracing {
             }
         }
 
-        public async Task<bool> ExecuteBrowserCommandAsync(string command, Func<IRSessionInteraction, Task<bool>> prepare = null, CancellationToken cancellationToken = default(CancellationToken)) {
+        public async Task<bool> ExecuteBrowserCommandAsync(string command, Func<IRSessionInteraction, Task<bool>> prepare = null, CancellationToken cancellationToken = default) {
             ThrowIfDisposed();
             if (command == null) {
                 throw new ArgumentNullException(nameof(command));
@@ -142,7 +142,7 @@ namespace Microsoft.R.ExecutionTracing {
             return false;
         }
 
-        public async Task BreakAsync(CancellationToken cancellationToken = default(CancellationToken)) {
+        public async Task BreakAsync(CancellationToken cancellationToken = default) {
             await TaskUtilities.SwitchToBackgroundThread();
 
             // Evaluation will not end until after Browse> is responded to, but this method must indicate completion
@@ -157,18 +157,18 @@ namespace Microsoft.R.ExecutionTracing {
             using (var inter = await Session.BeginInteractionAsync(true, cancellationToken)) { }
         }
 
-        public async Task ContinueAsync(CancellationToken cancellationToken = default(CancellationToken)) {
+        public async Task ContinueAsync(CancellationToken cancellationToken = default) {
             await TaskUtilities.SwitchToBackgroundThread();
             ExecuteBrowserCommandAsync("c", null, cancellationToken).DoNotWait();
         }
 
-        public Task<bool> StepIntoAsync(CancellationToken cancellationToken = default(CancellationToken)) =>
+        public Task<bool> StepIntoAsync(CancellationToken cancellationToken = default) =>
             StepAsync(cancellationToken, "s");
 
-        public Task<bool> StepOverAsync(CancellationToken cancellationToken = default(CancellationToken)) =>
+        public Task<bool> StepOverAsync(CancellationToken cancellationToken = default) =>
             StepAsync(cancellationToken, "n");
 
-        public Task<bool> StepOutAsync(CancellationToken cancellationToken = default(CancellationToken)) =>
+        public Task<bool> StepOutAsync(CancellationToken cancellationToken = default) =>
             StepAsync(cancellationToken, "c", async inter => {
                 try {
                     // EvaluateAsync will push a new toplevel context on the context stack before
@@ -207,13 +207,13 @@ namespace Microsoft.R.ExecutionTracing {
             return true;
         }
 
-        public async Task EnableBreakpointsAsync(bool enable, CancellationToken cancellationToken = default(CancellationToken)) {
+        public async Task EnableBreakpointsAsync(bool enable, CancellationToken cancellationToken = default) {
             ThrowIfDisposed();
             await TaskUtilities.SwitchToBackgroundThread();
             await Session.ExecuteAsync($"rtvs:::enable_breakpoints({(enable ? "TRUE" : "FALSE")})");
         }
 
-        public async Task<IRBreakpoint> CreateBreakpointAsync(RSourceLocation location, CancellationToken cancellationToken = default(CancellationToken)) {
+        public async Task<IRBreakpoint> CreateBreakpointAsync(RSourceLocation location, CancellationToken cancellationToken = default) {
             ThrowIfDisposed();
 
             await TaskUtilities.SwitchToBackgroundThread();

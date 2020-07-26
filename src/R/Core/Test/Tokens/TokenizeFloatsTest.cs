@@ -157,7 +157,7 @@ namespace Microsoft.R.Core.Test.Tokens {
                 .And.HaveLength(1);
         }
 
-        [Test]
+        //[Test]
         [Category.R.Tokenizer]
         public void TokenizeFile_FloatsFile() {
             TokenizeFiles.TokenizeFile<RToken, RTokenType, RTokenizer>(_files, @"Tokenization\Floats.r", "R");

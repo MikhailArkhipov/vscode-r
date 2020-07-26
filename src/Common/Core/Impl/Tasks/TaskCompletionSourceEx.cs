@@ -33,7 +33,7 @@ namespace Microsoft.Common.Core.Tasks {
             return false;
         }
 
-        public bool TrySetCanceled(OperationCanceledException exception = null, CancellationToken cancellationToken = default(CancellationToken)) {
+        public bool TrySetCanceled(OperationCanceledException exception = null, CancellationToken cancellationToken = default) {
             if (Task.IsCompleted) {
                 return false;
             }
@@ -87,7 +87,7 @@ namespace Microsoft.Common.Core.Tasks {
             }
         }
 
-        public void SetCanceled(OperationCanceledException exception = null, CancellationToken cancellationToken = default(CancellationToken)) {
+        public void SetCanceled(OperationCanceledException exception = null, CancellationToken cancellationToken = default) {
             if (!TrySetCanceled(exception, cancellationToken)) {
                 throw new InvalidOperationException("Task already completed");
             }

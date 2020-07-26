@@ -44,9 +44,6 @@
     <None Update="rtvs\DESCRIPTION">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="rtvs\man\fetch_file.Rd">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
     <None Update="rtvs\NAMESPACE">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

@@ -9,8 +9,8 @@ namespace Microsoft.R.Host.Client {
     public interface IMessageTransport {
         string CloseStatusDescription { get; }
 
-        Task CloseAsync(CancellationToken cancellationToken = default(CancellationToken));
-        Task SendAsync(Message message, CancellationToken cancellationToken = default(CancellationToken));
-        Task<Message> ReceiveAsync(CancellationToken cancellationToken = default(CancellationToken));
+        Task CloseAsync(CancellationToken cancellationToken = default);
+        Task SendAsync(Message message, CancellationToken cancellationToken = default);
+        Task<Message> ReceiveAsync(CancellationToken cancellationToken = default);
     }
 }

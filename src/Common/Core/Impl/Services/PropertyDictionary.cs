@@ -132,7 +132,7 @@ namespace Microsoft.Common.Core.Services {
                     }
                 }
             }
-            property = default(T);
+            property = default;
             return false;
         }
 

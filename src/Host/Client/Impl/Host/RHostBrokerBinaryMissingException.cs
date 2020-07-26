@@ -4,6 +4,6 @@
 namespace Microsoft.R.Host.Client {
     public sealed class RHostBrokerBinaryMissingException : ComponentBinaryMissingException {
         public RHostBrokerBinaryMissingException()
-            : base("Microsoft.R.Host.Broker.Windows.exe") { }
+            : base("Microsoft.R.Host.Broker") { }
     }
 }

@@ -25,7 +25,6 @@
 #include "util.h"
 #include "host.h"
 #include "blobs.h"
-#include "project.h"
 #include "json.h"
 #include "exports.h"
 #include "rstrtmgr.h"
@@ -471,19 +470,6 @@ namespace rhost {
             return Rf_ScalarReal(static_cast<double>(id));
         }
 
-        extern "C" SEXP create_compressed_blob(SEXP obj) {
-            int type = TYPEOF(obj);
-            size_t length = Rf_length(obj);
-
-            if (type != RAWSXP) {
-                Rf_error("Object must be a RAW vector.");
-            }
-
-            Rbyte* data = RAW(obj);
-            blobs::blob_id id = rhost::host::create_compressed_blob(blobs::blob(data, data + length));
-            return Rf_ScalarReal(static_cast<double>(id));
-        }
-
         extern "C" SEXP get_blob(SEXP id) {
             auto blob_id = static_cast<blobs::blob_id>(Rf_asReal(id));
             auto data = rhost::host::get_blob(blob_id);
@@ -517,36 +503,6 @@ namespace rhost {
             return Rf_ScalarInteger(static_cast<int>(lock_state));
         }
 
-        extern "C" SEXP fetch_file(SEXP remotePath, SEXP localPath, SEXP silent) {
-            return util::exceptions_to_errors([&]() {
-                fs::path file_remote_path = rhost::util::path_from_string_elt(STRING_ELT(remotePath, 0));
-                fs::path file_local_path = rhost::util::path_from_string_elt(STRING_ELT(localPath, 0));;
-
-                if (!file_remote_path.empty()) {
-                    blobs::blob file_data;
-                    blobs::append_from_file(file_data, file_remote_path);
-                    auto blob_id = rhost::host::create_compressed_blob(blobs::blob(file_data.data(), file_data.data() + file_data.size()));
-                    auto file_remote_name = file_remote_path.filename().string();
-                    host::send_notification("!FetchFile", file_remote_name, (double)blob_id, file_local_path.string(), Rf_asLogical(silent) != 0);
-                    return Rf_ScalarLogical(R_TRUE);
-                }
-                return Rf_ScalarLogical(R_FALSE);
-            });
-        }
-
-        extern "C" SEXP save_to_project_folder(SEXP id, SEXP project_name, SEXP dest_dir, SEXP temp_dir) {
-            auto blob_id = static_cast<blobs::blob_id>(Rf_asReal(id));
-            util::exceptions_to_errors([&]() {
-                fs::path path_prj_name = rhost::util::path_from_string_elt(STRING_ELT(project_name, 0));
-                fs::path path_dest_dir = rhost::util::path_from_string_elt(STRING_ELT(dest_dir, 0));
-                fs::path path_temp_dir = rhost::util::path_from_string_elt(STRING_ELT(temp_dir, 0)); 
-
-                rproj::save_to_project_folder_worker(blob_id, path_prj_name, path_dest_dir, path_temp_dir);
-            });
-
-            return R_NilValue;
-        }
-
         protected_sexp disconnect_callback;
 
         extern "C" SEXP set_disconnect_callback(SEXP func) {
@@ -571,12 +527,9 @@ namespace rhost {
             { "Microsoft.R.Host::Call.browser_set_debug", (DL_FUNC)browser_set_debug, 2 },
             { "Microsoft.R.Host::Call.toJSON", (DL_FUNC)toJSON, 1 },
             { "Microsoft.R.Host::Call.create_blob", (DL_FUNC)create_blob, 1 },
-            { "Microsoft.R.Host::Call.create_compressed_blob", (DL_FUNC)create_compressed_blob, 1 },
             { "Microsoft.R.Host::Call.get_blob", (DL_FUNC)get_blob, 1 },
             { "Microsoft.R.Host::Call.destroy_blob", (DL_FUNC)destroy_blob, 1 },
             { "Microsoft.R.Host::Call.get_file_lock_state", (DL_FUNC)get_file_lock_state, 1 },
-            { "Microsoft.R.Host::Call.fetch_file", (DL_FUNC)fetch_file, 3 },
-            { "Microsoft.R.Host::Call.save_to_project_folder", (DL_FUNC)save_to_project_folder, 4 },
             { "Microsoft.R.Host::Call.set_disconnect_callback", (DL_FUNC)set_disconnect_callback, 1 },
             { "Microsoft.R.Host::Call.get_disconnect_callback", (DL_FUNC)get_disconnect_callback, 0 },
             { }

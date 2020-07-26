@@ -5,8 +5,6 @@ using System.Collections.Generic;
 
 namespace Microsoft.R.Host.Broker.Interpreters {
     public class ROptions {
-        public bool AutoDetect { get; set; } = true;
-
         public Dictionary<string, InterpreterOptions> Interpreters { get; } = new Dictionary<string, InterpreterOptions>();
     }
 }

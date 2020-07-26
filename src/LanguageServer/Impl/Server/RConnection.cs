@@ -3,7 +3,6 @@
 
 using System;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -57,14 +56,14 @@ namespace Microsoft.R.LanguageServer.Server {
             }
 
             var log = _services.Log();
-            var info = BrokerConnectionInfo.Create(_services.Security(), "VSCR", e.InstallPath, string.Empty, false);
+            var info = BrokerConnectionInfo.Create("(local)", e.InstallPath, string.Empty);
 
             var start = DateTime.Now;
             var message = $"Starting R Process with {e.InstallPath}...";
             _ui.LogMessageAsync(message, MessageType.Info).DoNotWait();
 
             log.Write(LogVerbosity.Normal, MessageCategory.General, $"Switching local broker to {e.InstallPath}");
-            if (await _workflow.RSessions.TrySwitchBrokerAsync("VSCR", info, ct)) {
+            if (await _workflow.RSessions.TrySwitchBrokerAsync("(local)", info, ct)) {
                 try {
                     await _workflow.RSession.StartHostAsync(new RHostStartupInfo(), new RSessionCallback(), Debugger.IsAttached ? 100000 : 20000, ct);
                 } catch (Exception ex) {
@@ -91,7 +90,7 @@ namespace Microsoft.R.LanguageServer.Server {
         private IRInterpreterInfo GetREngine() {
             var rs = _services.GetService<IREngineSettings>();
             if (!string.IsNullOrEmpty(rs.InterpreterPath)) {
-                _ui.LogMessageAsync($"Using interpreter at '{rs.InterpreterPath}']", MessageType.Info).DoNotWait();
+                _ui.LogMessageAsync($"Using interpreter at '{rs.InterpreterPath}'", MessageType.Info).DoNotWait();
                 return new RInterpreterInfo("R", rs.InterpreterPath, _services.GetService<IFileSystem>());
             }
 
@@ -102,7 +101,7 @@ namespace Microsoft.R.LanguageServer.Server {
                 .ToList();
 
             if (engines.Count == 0) {
-                const string message = "Unable to find R intepreter. Please install R from https://cran.r-project.org";
+                const string message = "Unable to find R interpreter. Please install R from https://cran.r-project.org";
                 _ui.ShowMessageAsync(message, MessageType.Error).DoNotWait();
                 return null;
             }
@@ -112,7 +111,7 @@ namespace Microsoft.R.LanguageServer.Server {
                 _ui.LogMessageAsync($"\t[{i}] {engines[i].Name}", MessageType.Info).DoNotWait();
             }
             _ui.LogMessageAsync("You can specify the desired interpreter index in the R settings", MessageType.Info).DoNotWait();
-            _ui.LogMessageAsync("Of provide path to R using `r.interpreterPath` setting.", MessageType.Info).DoNotWait();
+            _ui.LogMessageAsync("or provide path to R using `r.interpreterPath` setting.", MessageType.Info).DoNotWait();
 
             if (rs.InterpreterIndex < 0 || rs.InterpreterIndex > engines.Count) {
                 _ui.ShowMessageAsync($"Selected interpreter [{rs.InterpreterIndex}] does not exist. Using [0] instead", MessageType.Warning).DoNotWait();

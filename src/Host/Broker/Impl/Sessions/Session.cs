@@ -5,8 +5,6 @@ using System;
 using System.ComponentModel;
 using System.IO;
 using System.Runtime.InteropServices;
-using System.Security.Claims;
-using System.Security.Principal;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
@@ -16,7 +14,6 @@ using Microsoft.Common.Core.OS;
 using Microsoft.Extensions.Logging;
 using Microsoft.R.Host.Broker.Interpreters;
 using Microsoft.R.Host.Broker.Pipes;
-using Microsoft.R.Host.Broker.Security;
 using Microsoft.R.Host.Broker.Services;
 using Microsoft.R.Host.Protocol;
 using static System.FormattableString;
@@ -28,17 +25,11 @@ namespace Microsoft.R.Host.Broker.Sessions {
         private readonly bool _isInteractive;
         private readonly ILogger _sessionLogger;
         private readonly MessagePipe _pipe;
-        private readonly ClaimsPrincipal _principal;
         private volatile IMessagePipeEnd _hostEnd;
         private IProcess _process;
 
         public SessionManager Manager { get; }
 
-        public IIdentity User { get; }
-
-        /// <remarks>
-        /// Unique for a given <see cref="User"/> only.
-        /// </remarks>
         public string Id { get; }
 
         public Interpreter Interpreter { get; }
@@ -73,15 +64,12 @@ namespace Microsoft.R.Host.Broker.Sessions {
             , IApplicationLifetime applicationLifetime
             , ILogger sessionLogger
             , ILogger messageLogger
-            , ClaimsPrincipal principal
             , Interpreter interpreter
             , string id
             , string commandLineArguments
             , bool isInteractive) {
-            _principal = principal;
             Manager = manager;
             Interpreter = interpreter;
-            User = principal.Identity;
             Id = id;
             CommandLineArguments = commandLineArguments;
             _processService = processService;
@@ -92,22 +80,19 @@ namespace Microsoft.R.Host.Broker.Sessions {
             _pipe = new MessagePipe(messageLogger);
         }
 
-        public void StartHost(string logFolder, ILogger outputLogger, LogVerbosity verbosity) {
+        public void StartHost(string logFolder, LogVerbosity verbosity) {
             if (_hostEnd != null) {
                 throw new InvalidOperationException("Host process is already running");
             }
 
-            var profilePath = _principal.FindFirst(Claims.RUserProfileDir)?.Value;
-            var useridentity = User as WindowsIdentity;
-            // In remote broker User Identity type is always WindowsIdentity
-            var suppressUI = useridentity == null ? string.Empty : "--rhost-suppress-ui ";
+            var suppressUI = string.Empty;
             var isRepl = _isInteractive ? "--rhost-interactive " : string.Empty;
             var logFolderParam = string.IsNullOrEmpty(logFolder) ? string.Empty : Invariant($"--rhost-log-dir \"{logFolder}\"");
             var rDirPath = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? Interpreter.BinPath : Interpreter.InstallPath;
             var arguments = Invariant($"{suppressUI}{isRepl}--rhost-r-dir \"{rDirPath}\" --rhost-name \"{Id}\" {logFolderParam} --rhost-log-verbosity {(int)verbosity} {CommandLineArguments}");
 
-            _sessionLogger.LogInformation(Resources.Info_StartingRHost, Id, User.Name, arguments);
-            _process = _processService.StartHost(Interpreter, profilePath, User.Name, _principal, arguments);
+            _sessionLogger.LogInformation(Resources.Info_StartingRHost, Id, arguments);
+            _process = _processService.StartHost(Interpreter, arguments);
 
             _process.Exited += delegate {
                 _hostEnd?.Dispose();
@@ -118,7 +103,7 @@ namespace Microsoft.R.Host.Broker.Sessions {
                 }
             };
 
-            _sessionLogger.LogInformation(Resources.Info_StartedRHost, Id, User.Name);
+            _sessionLogger.LogInformation(Resources.Info_StartedRHost, Id);
 
             var hostEnd = _pipe.ConnectHost(_process.Id);
             _hostEnd = hostEnd;
@@ -159,9 +144,7 @@ namespace Microsoft.R.Host.Broker.Sessions {
             using (stream) {
                 while (true) {
                     try {
-                        byte[] message;
-                        message = await pipe.ReadAsync(_applicationLifetime.ApplicationStopping);
-
+                        var message = await pipe.ReadAsync(_applicationLifetime.ApplicationStopping);
                         var sizeBuf = BitConverter.GetBytes(message.Length);
 
                         await stream.WriteAsync(sizeBuf, 0, sizeBuf.Length);

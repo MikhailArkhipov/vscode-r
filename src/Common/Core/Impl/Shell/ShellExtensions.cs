@@ -5,7 +5,6 @@ using System;
 using Microsoft.Common.Core.IO;
 using Microsoft.Common.Core.Logging;
 using Microsoft.Common.Core.OS;
-using Microsoft.Common.Core.Security;
 using Microsoft.Common.Core.Services;
 using Microsoft.Common.Core.Tasks;
 using Microsoft.Common.Core.Threading;
@@ -18,7 +17,6 @@ namespace Microsoft.Common.Core.Shell {
         public static IActionLog Log(this ICoreShell shell) => shell.Services.Log();
         public static IFileSystem FileSystem(this ICoreShell shell) => shell.Services.FileSystem();
         public static IProcessServices Process(this ICoreShell shell) => shell.Services.Process();
-        public static ISecurityService Security(this ICoreShell shell) => shell.Services.Security();
         public static ITaskService Tasks(this ICoreShell shell) => shell.Services.Tasks();
         public static IUIService UI(this ICoreShell shell) => shell.Services.UI();
         public static IMainThread MainThread(this ICoreShell shell) => shell.Services.MainThread();

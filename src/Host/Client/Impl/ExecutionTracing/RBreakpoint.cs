@@ -38,19 +38,19 @@ namespace Microsoft.R.ExecutionTracing {
             return Invariant($"rtvs:::add_breakpoint({fileName.ToRStringLiteral()}, {Location.LineNumber}, {(reapply ? "TRUE" : "FALSE")})");
         }
 
-        internal async Task ReapplyBreakpointAsync(CancellationToken cancellationToken = default(CancellationToken)) {
+        internal async Task ReapplyBreakpointAsync(CancellationToken cancellationToken = default) {
             TaskUtilities.AssertIsOnBackgroundThread();
             await Tracer.Session.ExecuteAsync(GetAddBreakpointExpression(false), cancellationToken);
             // TODO: mark breakpoint as invalid if this fails.
         }
 
-        internal async Task SetBreakpointAsync(CancellationToken cancellationToken = default(CancellationToken)) {
+        internal async Task SetBreakpointAsync(CancellationToken cancellationToken = default) {
             TaskUtilities.AssertIsOnBackgroundThread();
             await Tracer.Session.ExecuteAsync(GetAddBreakpointExpression(true), cancellationToken);
             ++UseCount;
         }
 
-        public async Task DeleteAsync(CancellationToken cancellationToken = default(CancellationToken)) {
+        public async Task DeleteAsync(CancellationToken cancellationToken = default) {
             Trace.Assert(UseCount > 0);
             await TaskUtilities.SwitchToBackgroundThread();
             await _tracer.InitializeAsync(cancellationToken);

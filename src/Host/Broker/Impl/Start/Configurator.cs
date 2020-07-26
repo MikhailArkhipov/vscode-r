@@ -1,18 +1,14 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
-// #define WAIT_FOR_DEBUGGER
-
 using System;
 using System.IO;
 using System.Net;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Server.Kestrel.Https;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.R.Host.Broker.Logging;
-using Microsoft.R.Host.Broker.Security;
 using Microsoft.R.Host.Protocol;
 using Newtonsoft.Json;
 
@@ -28,12 +24,6 @@ namespace Microsoft.R.Host.Broker.Start {
         public Uri Url { get; }
 
         public Configurator(string[] args) {
-#if WAIT_FOR_DEBUGGER
-            while (!System.Diagnostics.Debugger.IsAttached) {
-                System.Threading.Thread.Sleep(1000);
-            }
-#endif
-
             Configuration = LoadConfiguration(LoggerFactory, args);
             StartupOptions = Configuration.GetStartupOptions();
             LoggingOptions = Configuration.GetLoggingOptions();
@@ -42,7 +32,7 @@ namespace Microsoft.R.Host.Broker.Start {
                     .AddDebug()
                     .AddConsole(LogLevel.Trace);
 
-            var s = Configuration.GetValue<string>(WebHostDefaults.ServerUrlsKey, null) ?? "https://0.0.0.0:5444";
+            var s = Configuration.GetValue<string>(WebHostDefaults.ServerUrlsKey, null) ?? "http://0.0.0.0:5444";
             if (Uri.TryCreate(s, UriKind.Absolute, out var uri)) {
                 Url = uri;
             }
@@ -61,8 +51,7 @@ namespace Microsoft.R.Host.Broker.Start {
                 });
 
             if (Url?.IsLoopback != true) {
-                var httpsOptions = ConfigureHttps();
-                builder.UseKestrel(options => options.Listen(IPAddress.Any, Url.Port, lo => lo.UseHttps(httpsOptions)));
+                builder.UseKestrel(options => options.Listen(IPAddress.Any, Url.Port));
             } else {
                 builder.UseKestrel();
             }
@@ -70,24 +59,7 @@ namespace Microsoft.R.Host.Broker.Start {
             return builder;
         }
 
-        private HttpsConnectionAdapterOptions ConfigureHttps() {
-            var securityOptions = Configuration.GetSecuritySection().Get<SecurityOptions>();
-
-            var logger = LoggerFactory.CreateLogger<TlsConfiguration>();
-            var tlsConfig = new TlsConfiguration(logger, securityOptions);
-
-            var httpsOptions = tlsConfig.GetHttpsOptions();
-            if (httpsOptions == null) {
-
-                logger.LogCritical(Resources.Critical_NoTlsCertificate, securityOptions.X509CertificateName);
-                if (!IsService) {
-                    Environment.Exit((int)BrokerExitCodes.NoCertificate);
-                }
-            }
-            return httpsOptions;
-        }
-
-        private static IConfigurationRoot LoadConfiguration(ILoggerFactory loggerFactory, string[] args) {
+ private static IConfigurationRoot LoadConfiguration(ILoggerFactory loggerFactory, string[] args) {
             var configPath = new ConfigurationBuilder()
                 .AddCommandLine(args)
                 .Build()

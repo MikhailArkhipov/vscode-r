@@ -19,13 +19,13 @@ namespace Microsoft.R.Host.Client.BrokerServices {
         public SessionsWebService(HttpClient httpClient, ICredentialsDecorator credentialsDecorator, IActionLog log)
             : base(httpClient, credentialsDecorator, log) { }
 
-        public Task<IEnumerable<SessionInfo>> GetAsync(CancellationToken cancellationToken = default(CancellationToken)) =>
+        public Task<IEnumerable<SessionInfo>> GetAsync(CancellationToken cancellationToken = default) =>
             HttpGetAsync<IEnumerable<SessionInfo>>(GetUri, cancellationToken);
 
-        public Task<SessionInfo> PutAsync(string id, SessionCreateRequest request, CancellationToken cancellationToken = default(CancellationToken)) =>
+        public Task<SessionInfo> PutAsync(string id, SessionCreateRequest request, CancellationToken cancellationToken = default) =>
             HttpPutAsync<SessionCreateRequest, SessionInfo>(GetSessionUri(id), request, cancellationToken);
 
-        public Task DeleteAsync(string id, CancellationToken cancellationToken = default(CancellationToken)) =>
+        public Task DeleteAsync(string id, CancellationToken cancellationToken = default) =>
             HttpDeleteAsync(GetSessionUri(id), cancellationToken);
     }
 }

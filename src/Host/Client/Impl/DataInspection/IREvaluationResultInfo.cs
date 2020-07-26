@@ -69,7 +69,7 @@ namespace Microsoft.R.DataInspection {
             REvaluationResultProperties properties,
             string repr,
             int? maxCount = null,
-            CancellationToken cancellationToken = default(CancellationToken)
+            CancellationToken cancellationToken = default
         ) =>
             info.Evaluator.DescribeChildrenAsync(info.EnvironmentExpression, info.Expression, properties, repr, maxCount, cancellationToken);
 
@@ -81,7 +81,7 @@ namespace Microsoft.R.DataInspection {
         /// <returns>
         /// A task that is completed once the assignment completes. Failure to assign is reported as exception on the task.
         /// </returns>
-        public static Task AssignAsync(this IREvaluationResultInfo info, string value, CancellationToken cancellationToken = default(CancellationToken)) {
+        public static Task AssignAsync(this IREvaluationResultInfo info, string value, CancellationToken cancellationToken = default) {
             if (string.IsNullOrEmpty(info.Expression)) {
                 throw new InvalidOperationException(Invariant($"{nameof(AssignAsync)} is not supported for this {nameof(REvaluationResultInfo)} because it doesn't have an associated {nameof(info.Expression)}."));
             }
@@ -98,7 +98,7 @@ namespace Microsoft.R.DataInspection {
         /// an <see cref="IRPromiseInfo"/>.
         /// </remarks>
         /// <exception cref="RException">Evaluation of the expression produced an error.</exception>
-        public static Task<IRValueInfo> GetValueAsync(this IREvaluationResultInfo info, REvaluationResultProperties properties, string repr, CancellationToken cancellationToken = default(CancellationToken)) =>
+        public static Task<IRValueInfo> GetValueAsync(this IREvaluationResultInfo info, REvaluationResultProperties properties, string repr, CancellationToken cancellationToken = default) =>
             info.Evaluator.EvaluateAndDescribeAsync(info.EnvironmentExpression, info.Expression, info.Name, properties, repr, cancellationToken);
 
         /// <summary>

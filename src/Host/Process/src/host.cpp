@@ -297,7 +297,7 @@ namespace rhost {
 
         void create_blob(const message& msg) {
             assert(!strcmp(msg.name(), "?CreateBlob"));
-
+            
             std::lock_guard<std::mutex> lock(blobs_mutex);
             blobs::blob_id id = ++next_blob_id;
 
@@ -305,7 +305,7 @@ namespace rhost {
             if (id != blobs::blob_id(double(id))) {
                 fatal_error("CreateBlob: Blob ID overflow");
             }
-
+            
             // Create a empty blob
             blobs[id] = blobs::blob();
 
@@ -322,61 +322,6 @@ namespace rhost {
             }
 
             blobs[id] = std::move(blob);
-            return id;
-        }
-
-
-        void compress_data(blob& compressed_blob, void* data, size_t length) {
-            boost::uuids::uuid tmp_file_uuid = uuid_generator();
-            fs::path temp_archive = (fs::temp_directory_path() / boost::uuids::to_string(tmp_file_uuid)).replace_extension(".zip");
-
-            {   // scoping for zip archiver
-                // Open ZIP archive file
-                int zip_err = ZIP_ER_OK;
-                zip_t* archive = zip_open(temp_archive.make_preferred().string().c_str(), ZIP_CREATE | ZIP_TRUNCATE, &zip_err);
-                SCOPE_WARDEN(_zip_close, {
-                    if (archive) {
-                        zip_close(archive);
-                    }
-                    });
-
-                if (zip_err != ZIP_ER_OK) {
-                    fatal_error("Error while creating compressed file.");
-                }
-
-                zip_error_t zip_error = {};
-                zip_source_t* source = zip_source_buffer(archive, data, length, 0);
-                if (zip_error_code_zip(&zip_error) != ZIP_ER_OK || zip_error_code_system(&zip_error) < 0 || !source) {
-                    zip_source_free(source);
-                    fatal_error("Error while creating compressed file source from buffer.");
-                }
-
-                if (zip_file_add(archive, "data", source, ZIP_FL_ENC_GUESS) < ZIP_ER_OK) {
-                    zip_source_free(source);
-                    fatal_error("Error while adding compressed file source to archive.");
-                }
-
-                // NOTE: Do NOT free source after a successful zip_file_add
-                // zip_close on scope exit will do the cleanup.
-            }
-
-            append_from_file(compressed_blob, temp_archive.make_preferred().string().c_str());
-            fs::remove(temp_archive);
-        }
-
-        blobs::blob_id create_compressed_blob(blobs::blob&& blob) {
-            blobs::blob compressed_blob;
-            compress_data(compressed_blob, blob.data(), blob.size());
-
-            std::lock_guard<std::mutex> lock(blobs_mutex);
-            blobs::blob_id id = ++next_blob_id;
-
-            // Check that it never overflows double mantissa, and provide immediate diagnostics if it happens.
-            if (id != blobs::blob_id(double(id))) {
-                fatal_error("Blob ID overflow");
-            }
-
-            blobs[id] = std::move(compressed_blob);
             return id;
         }
 
@@ -498,8 +443,8 @@ namespace rhost {
                 // Read all
                 respond_to_message(msg, it->second);
                 return;
-            }
-
+            } 
+            
             // Read at position and count
             size_t size = static_cast<size_t>(pos);
             size += static_cast<size_t>(count);
@@ -549,7 +494,7 @@ namespace rhost {
 
                 std::copy(blob.begin(), blob.end(), it->second.begin() + static_cast<size_t>(pos));
             }
-
+            
             respond_to_message(msg, ensure_fits_double(it->second.size()));
         }
 
@@ -859,11 +804,14 @@ namespace rhost {
                         is_waiting_for_wm = false;
                         R_ProcessEvents();
 #else
+                        // Throttle polling on Unix platforms
                         usleep(2000);
+
                         if (ptr_R_ProcessEvents != nullptr) {
                             ptr_R_ProcessEvents();
                         }
-                        fd_set* what = R_checkActivity(0, 1);
+
+                        fd_set* what = R_checkActivity(0, 1);                        
                         is_waiting_for_wm = false;
 #ifdef __APPLE__ 
                         if (what != NULL) {
@@ -872,8 +820,7 @@ namespace rhost {
 #else
                         R_runHandlers(R_InputHandlers, what);
 #endif
-#endif
-
+#endif                       
                     }, nullptr);
 
                     // In case anything in R_WaitEvent failed and unwound the context before we could reset.

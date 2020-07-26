@@ -27,13 +27,10 @@
     <ProjectReference Include="..\..\Languages\Editor\Impl\Microsoft.Languages.Editor.csproj" />
     <ProjectReference Include="..\..\Common\Core\Impl\Microsoft.R.Common.Core.csproj" />
     <ProjectReference Include="..\..\R\Components\Impl\Microsoft.R.Components.csproj" />
-    <ProjectReference Include="..\..\Containers\Impl\Microsoft.R.Containers.csproj" />
     <ProjectReference Include="..\..\R\Core\Impl\Microsoft.R.Core.csproj" />
     <ProjectReference Include="..\..\R\Editor\Impl\Microsoft.R.Editor.csproj" />
     <ProjectReference Include="..\..\Host\Client\Impl\Microsoft.R.Host.Client.csproj" />
-    <ProjectReference Include="..\..\Host\Broker\Impl\Microsoft.R.Host.Broker.csproj" />
     <ProjectReference Include="..\..\R\Platform\Impl\Microsoft.R.Platform.csproj" />
-    <ProjectReference Include="..\..\Host\Protocol\Impl\Microsoft.R.Host.Protocol.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Protocol\" />

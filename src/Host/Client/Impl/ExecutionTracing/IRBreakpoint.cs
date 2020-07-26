@@ -16,6 +16,6 @@ namespace Microsoft.R.ExecutionTracing {
 
         event EventHandler BreakpointHit;
 
-        Task DeleteAsync(CancellationToken cancellationToken = default(CancellationToken));
+        Task DeleteAsync(CancellationToken cancellationToken = default);
     }
 }

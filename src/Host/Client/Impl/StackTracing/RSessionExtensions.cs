@@ -28,7 +28,7 @@ namespace Microsoft.R.StackTracing {
         public static async Task<IReadOnlyList<IRStackFrame>> TracebackAsync(
             this IRSession session,
             bool skipSourceFrames = true,
-            CancellationToken cancellationToken = default(CancellationToken)
+            CancellationToken cancellationToken = default
         ) {
             await TaskUtilities.SwitchToBackgroundThread();
 

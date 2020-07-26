@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.Common.Core.Tasks {
     public interface ITaskService {
-        bool Wait(Func<Task> method, int ms = Timeout.Infinite, CancellationToken cancellationToken = default(CancellationToken));
-        bool Wait<T>(Func<Task<T>> method, out T result, int ms = Timeout.Infinite, CancellationToken cancellationToken = default(CancellationToken));
+        bool Wait(Func<Task> method, int ms = Timeout.Infinite, CancellationToken cancellationToken = default);
+        bool Wait<T>(Func<Task<T>> method, out T result, int ms = Timeout.Infinite, CancellationToken cancellationToken = default);
     }
 }

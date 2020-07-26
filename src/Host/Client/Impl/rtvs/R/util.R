@@ -71,10 +71,6 @@ create_blob <- function(obj) {
     call_embedded("create_blob", obj)
 }
 
-create_compressed_blob <- function(obj) {
-    call_embedded("create_compressed_blob", obj)
-}
-
 get_blob <- function(blob_id) {
     call_embedded("get_blob", blob_id)
 }
@@ -254,16 +250,6 @@ package_update <- function(package_name, lib_path) {
         install.packages(package_name, lib = lib_path);
     }
     lock_state
-}
-
-# Helper to download a file from remote host
-fetch_file <- function(remotePath, localPath = '', silent = FALSE) {
-    invisible(call_embedded('fetch_file', path.expand(remotePath), path.expand(localPath), silent));
-}
-
-save_to_project_folder <- function(blob_id, project_name, dest_dir) {
-    temp_dir <- paste0(tempdir(), '/RTVSProjects');
-    invisible(call_embedded('save_to_project_folder', blob_id, project_name, path.expand(dest_dir), temp_dir));
 }
 
 save_to_temp_folder <- function (blob_id, file_name) {

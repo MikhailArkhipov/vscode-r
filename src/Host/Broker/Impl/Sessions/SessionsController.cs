@@ -12,10 +12,10 @@ using Microsoft.Common.Core;
 using Microsoft.Extensions.Logging;
 using Microsoft.R.Host.Broker.Interpreters;
 using Microsoft.R.Host.Broker.Pipes;
-using Microsoft.R.Host.Broker.Security;
 using Microsoft.R.Host.Protocol;
 
 namespace Microsoft.R.Host.Broker.Sessions {
+    [AllowAnonymous]
     [Route("/sessions")]
     public class SessionsController : Controller {
         private readonly InterpreterManager _interpManager;
@@ -28,11 +28,11 @@ namespace Microsoft.R.Host.Broker.Sessions {
             _sessionLogger = sessionLogger;
         }
 
-        [Authorize(Policy = Policies.RUser)]
+        [AllowAnonymous]
         [HttpGet]
-        public Task<IEnumerable<SessionInfo>> GetAsync() => Task.FromResult(_sessionManager.GetSessions(User.Identity).Select(s => s.Info));
+        public Task<IEnumerable<SessionInfo>> GetAsync() => Task.FromResult(_sessionManager.GetSessions().Select(s => s.Info));
 
-        [Authorize(Policy = Policies.RUser)]
+        [AllowAnonymous]
         [HttpPut("{id}")]
         public Task<IActionResult> PutAsync(string id, [FromBody] SessionCreateRequest request) {
             if (!_interpManager.Interpreters.Any()) {
@@ -50,17 +50,17 @@ namespace Microsoft.R.Host.Broker.Sessions {
             }
 
             try {
-                var session = _sessionManager.CreateSession(User, id, interp, request.CommandLineArguments, request.IsInteractive);
+                var session = _sessionManager.CreateSession(id, interp, request.CommandLineArguments, request.IsInteractive);
                 return Task.FromResult<IActionResult>(new ObjectResult(session.Info));
             } catch (Exception ex) {
                 return Task.FromResult<IActionResult>(new ApiErrorResult(BrokerApiError.UnableToStartRHost, ex.Message));
             }
         }
 
-        [Authorize(Policy = Policies.RUser)]
+        [AllowAnonymous]
         [HttpDelete("{id}")]
         public IActionResult Delete(string id) {
-            var session = _sessionManager.GetSession(User.Identity, id);
+            var session = _sessionManager.GetSession(id);
             if (session == null) {
                 _sessionLogger.LogDebug(Resources.Debug_SessionNotFound.FormatInvariant(id));
                 return Ok();
@@ -83,7 +83,7 @@ namespace Microsoft.R.Host.Broker.Sessions {
             // .NET Core as of 2.0 does not support HTTP auth on sockets
             // We therefore allow anonymous here and fetch session by unique id.
             // User should have been authenticated when session was created.
-            var session = _sessionManager.GetSession(null, id);
+            var session = _sessionManager.GetSession(id);
             if (session?.Process?.HasExited ?? true) {
                 return NotFound();
             }
@@ -95,7 +95,7 @@ namespace Microsoft.R.Host.Broker.Sessions {
                 return new ApiErrorResult(BrokerApiError.PipeAlreadyConnected);
             }
 
-            return new WebSocketPipeAction(id, pipe, _sessionLogger);
+            return new WebSocketPipeAction(pipe, _sessionLogger);
         }
     }
 }

@@ -41,7 +41,7 @@ namespace Microsoft.Common.Core {
                         break;
                     case TaskStatus.RanToCompletion:
                         var typedTask = source as Task<T>;
-                        timeoutAfterState.Tcs.TrySetResult(typedTask != null ? typedTask.Result : default(T));
+                        timeoutAfterState.Tcs.TrySetResult(typedTask != null ? typedTask.Result : default);
                         break;
                 }
             });

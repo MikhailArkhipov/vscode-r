@@ -18,7 +18,7 @@ namespace Microsoft.Languages.Core.Tokens {
         private IComparer<T> _comparer;
 
         public TokenBraceCounter(T openCurlyBrace, T closeCurlyBrace, IComparer<T> comparer) :
-            this(openCurlyBrace, closeCurlyBrace, default(T), default(T), comparer) {
+            this(openCurlyBrace, closeCurlyBrace, default, default, comparer) {
         }
 
         public TokenBraceCounter(T openBrace1, T closeBrace1, T openBrace2, T closeBrace2, IComparer<T> comparer) {

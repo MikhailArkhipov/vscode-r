@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.Common.Core.Tasks {
     public static class CancellationTokenUtilities {
-        public static void UnregisterOnCompletion(this CancellationTokenRegistration registration, Task task) => task.ContinueWith(UnregisterCancellationToken, registration, default(CancellationToken), TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
+        public static void UnregisterOnCompletion(this CancellationTokenRegistration registration, Task task) => task.ContinueWith(UnregisterCancellationToken, registration, default, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
 
         private static void UnregisterCancellationToken(Task task, object state) => ((CancellationTokenRegistration)state).Dispose();
 

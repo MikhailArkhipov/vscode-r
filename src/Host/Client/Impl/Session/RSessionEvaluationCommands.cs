@@ -17,7 +17,7 @@ namespace Microsoft.R.Host.Client.Session {
         public static Task QuitAsync(this IRExpressionEvaluator eval) =>
             eval.ExecuteAsync("q()", REvaluationKind.Normal);
 
-        public static async Task<string> GetRUserDirectoryAsync(this IRExpressionEvaluator evaluation, CancellationToken cancellationToken = default(CancellationToken)) {
+        public static async Task<string> GetRUserDirectoryAsync(this IRExpressionEvaluator evaluation, CancellationToken cancellationToken = default) {
             var result = await evaluation.EvaluateAsync<string>("Sys.getenv('R_USER')", REvaluationKind.Normal, cancellationToken);
             return result.Replace('/', '\\');
         }
@@ -151,17 +151,17 @@ grDevices::deviceIsInteractive('ide')
             return evaluation.EvaluateAsync<JArray>(script, REvaluationKind.Normal);
         }
 
-        public static Task<JArray> InstalledPackagesFunctionsAsync(this IRExpressionEvaluator evaluation, REvaluationKind kind = REvaluationKind.Normal, CancellationToken cancellationToken = default(CancellationToken)) {
+        public static Task<JArray> InstalledPackagesFunctionsAsync(this IRExpressionEvaluator evaluation, REvaluationKind kind = REvaluationKind.Normal, CancellationToken cancellationToken = default) {
             var script = "rtvs:::packages.installed.functions()";
             return evaluation.EvaluateAsync<JArray>(script, kind, cancellationToken);
         }
 
-        public static Task<JArray> PackageExportedFunctionsNamesAsync(this IRExpressionEvaluator evaluation, string packageName, REvaluationKind kind = REvaluationKind.Normal, CancellationToken cancellationToken = default(CancellationToken)) {
+        public static Task<JArray> PackageExportedFunctionsNamesAsync(this IRExpressionEvaluator evaluation, string packageName, REvaluationKind kind = REvaluationKind.Normal, CancellationToken cancellationToken = default) {
             var script = Invariant($"rtvs:::package.exported.functions.names({packageName.ToRStringLiteral()})");
             return evaluation.EvaluateAsync<JArray>(script, kind, cancellationToken);
         }
 
-        public static Task<JArray> PackageAllFunctionsNamesAsync(this IRExpressionEvaluator evaluation, string packageName, REvaluationKind kind = REvaluationKind.Normal, CancellationToken cancellationToken = default(CancellationToken)) {
+        public static Task<JArray> PackageAllFunctionsNamesAsync(this IRExpressionEvaluator evaluation, string packageName, REvaluationKind kind = REvaluationKind.Normal, CancellationToken cancellationToken = default) {
             var script = Invariant($"rtvs:::package.all.functions.names({packageName.ToRStringLiteral()})");
             return evaluation.EvaluateAsync<JArray>(script, kind, cancellationToken);
         }
@@ -171,12 +171,12 @@ grDevices::deviceIsInteractive('ide')
             return evaluation.EvaluateAsync<JArray>(script, REvaluationKind.Reentrant);
         }
 
-        public static Task<JArray> LoadedPackagesAsync(this IRExpressionEvaluator evaluation, CancellationToken cancellationToken = default(CancellationToken)) {
+        public static Task<JArray> LoadedPackagesAsync(this IRExpressionEvaluator evaluation, CancellationToken cancellationToken = default) {
             var script = @"rtvs:::packages.loaded()";
             return evaluation.EvaluateAsync<JArray>(script, REvaluationKind.Normal, cancellationToken);
         }
 
-        public static Task<string[]> LibraryPathsAsync(this IRExpressionEvaluator evaluation, CancellationToken cancellationToken = default(CancellationToken)) {
+        public static Task<string[]> LibraryPathsAsync(this IRExpressionEvaluator evaluation, CancellationToken cancellationToken = default) {
             var script = @"rtvs:::packages.libpaths()";
             return evaluation.EvaluateAsync<string[]>(script, REvaluationKind.Normal, cancellationToken);
         }
@@ -204,7 +204,7 @@ grDevices::deviceIsInteractive('ide')
             return evaluation.EvaluateAsync<ulong>(script, REvaluationKind.Normal);
         }
 
-        public static async Task SetVsCranSelectionAsync(this IRExpressionEvaluator evaluation, string mirrorUrl, CancellationToken cancellationToken = default(CancellationToken)) => await evaluation.ExecuteAsync(Invariant($"rtvs:::set_mirror({mirrorUrl.ToRStringLiteral()})"), cancellationToken);
+        public static async Task SetVsCranSelectionAsync(this IRExpressionEvaluator evaluation, string mirrorUrl, CancellationToken cancellationToken = default) => await evaluation.ExecuteAsync(Invariant($"rtvs:::set_mirror({mirrorUrl.ToRStringLiteral()})"), cancellationToken);
 
         public static Task SetROptionsAsync(this IRExpressionEvaluator evaluation) {
             var script =
@@ -216,17 +216,17 @@ grDevices::deviceIsInteractive('ide')
             return evaluation.ExecuteAsync(script);
         }
 
-        public static Task<string> GetRSessionPlatformAsync(this IRExpressionEvaluator evaluation, CancellationToken cancellationToken = default(CancellationToken)) {
+        public static Task<string> GetRSessionPlatformAsync(this IRExpressionEvaluator evaluation, CancellationToken cancellationToken = default) {
             var script = Invariant($".Platform$OS.type");
             return evaluation.EvaluateAsync<string>(script, REvaluationKind.Normal, cancellationToken);
         }
 
-        public static async Task<bool> IsRSessionPlatformWindowsAsync(this IRExpressionEvaluator evaluation, CancellationToken cancellationToken = default(CancellationToken)) {
+        public static async Task<bool> IsRSessionPlatformWindowsAsync(this IRExpressionEvaluator evaluation, CancellationToken cancellationToken = default) {
             var platformType = await evaluation.GetRSessionPlatformAsync(cancellationToken);
             return platformType.EqualsIgnoreCase("windows");
         }
 
-        public static async Task SetCodePageAsync(this IRExpressionEvaluator evaluation, int codePage, CancellationToken cancellationToken = default(CancellationToken)) {
+        public static async Task SetCodePageAsync(this IRExpressionEvaluator evaluation, int codePage, CancellationToken cancellationToken = default) {
             string cp = null;
             if (codePage == 0) {
                 // Non-Windows defaults to UTF-8, on Windows leave default alone.
@@ -266,10 +266,10 @@ grDevices::deviceIsInteractive('ide')
         public static Task EnableAutosaveAsync(this IRExpressionEvaluator evaluation, bool deleteExisting) =>
             evaluation.ExecuteAsync(Invariant($"rtvs:::enable_autosave({deleteExisting.ToRBooleanLiteral()})"));
 
-        public static Task<bool> FileExistsAsync(this IRExpressionEvaluator evaluation, string path, CancellationToken cancellationToken = default(CancellationToken)) =>
+        public static Task<bool> FileExistsAsync(this IRExpressionEvaluator evaluation, string path, CancellationToken cancellationToken = default) =>
             evaluation.EvaluateAsync<bool>(Invariant($"file.exists({path.ToRPath().ToRStringLiteral()})"), REvaluationKind.Normal, cancellationToken);
 
-        public static Task<string> NormalizePathAsync(this IRExpressionEvaluator evaluation, string path, CancellationToken cancellationToken = default(CancellationToken)) =>
+        public static Task<string> NormalizePathAsync(this IRExpressionEvaluator evaluation, string path, CancellationToken cancellationToken = default) =>
             evaluation.EvaluateAsync<string>(Invariant($"normalizePath({path.ToRPath().ToRStringLiteral()})"), REvaluationKind.Normal, cancellationToken);
     }
 }

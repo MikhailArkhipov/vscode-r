@@ -24,7 +24,7 @@ namespace Microsoft.R.Host.Client.Session {
             return null;
         }
 
-        public static async Task<string> GetRUserDirectoryAsync(this IRSession session, CancellationToken cancellationToken = default(CancellationToken)) {
+        public static async Task<string> GetRUserDirectoryAsync(this IRSession session, CancellationToken cancellationToken = default) {
             if (session.IsHostRunning) {
                 await TaskUtilities.SwitchToBackgroundThread();
                 try {
@@ -35,17 +35,17 @@ namespace Microsoft.R.Host.Client.Session {
             return null;
         }
 
-        public static async Task<string> MakeRelativeToRUserDirectoryAsync(this IRSession session, string name, CancellationToken cancellationToken = default(CancellationToken)) {
+        public static async Task<string> MakeRelativeToRUserDirectoryAsync(this IRSession session, string name, CancellationToken cancellationToken = default) {
             var userDirectory = await session.GetRUserDirectoryAsync(cancellationToken);
             return name.MakeRRelativePath(userDirectory);
         }
 
-        public static async Task<IEnumerable<string>> MakeRelativeToRUserDirectoryAsync(this IRSession session, IEnumerable<string> names, CancellationToken cancellationToken = default(CancellationToken)) {
+        public static async Task<IEnumerable<string>> MakeRelativeToRUserDirectoryAsync(this IRSession session, IEnumerable<string> names, CancellationToken cancellationToken = default) {
             var userDirectory = await session.GetRUserDirectoryAsync(cancellationToken);
             return names.Select(n => n.MakeRRelativePath(userDirectory));
         }
 
-        public static Task<string> GetFunctionCodeAsync(this IRSession session, string functionName, CancellationToken cancellationToken = default(CancellationToken)) 
+        public static Task<string> GetFunctionCodeAsync(this IRSession session, string functionName, CancellationToken cancellationToken = default) 
             => session.EvaluateAsync<string>(Invariant($"paste0(deparse({functionName}), collapse='\n')"), REvaluationKind.Normal, cancellationToken);
     }
 }

@@ -2,7 +2,7 @@
   "name": "r",
   "displayName": "R Tools",
   "description": "R Tools (powered by Microsoft RTVS)",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "author": "Mikhail Arkhipov & Microsoft",
   "icon": "images/rIcon.png",
   "publisher": "Mikhail-Arkhipov",
@@ -38,6 +38,11 @@
   "contributes": {
     "commands": [
       {
+        "command": "r.execute",
+        "title": "Execute current line or or selection in internal session (plots)",
+        "category": "R"
+      },
+      {
         "command": "r.interrupt",
         "title": "Interrupt R",
         "category": "R"
@@ -64,6 +69,11 @@
       }
     ],
     "keybindings": [
+      {
+        "command": "r.execute",
+        "key": "ctrl+shift+enter",
+        "when": "editorFocus"
+      },
       {
         "command": "r.executeInTerminal",
         "key": "ctrl+enter",
@@ -198,7 +208,7 @@
         "r.linting.assignmentType": {
           "type": "boolean",
           "default": true,
-          "description": "Check that �<-� is always used for assignments."
+          "description": "Check that '<-' is always used for assignments."
         },
         "r.linting.spacesAroundComma": {
           "type": "boolean",
@@ -306,17 +316,17 @@
     "vsce": "^1.77.0"
   },
   "dependencies": {
-    "applicationinsights": "^1.7.3",
+    "applicationinsights": "^1.8.2",
     "classnames": "^2.2.6",
     "cors": "^2.8.5",
-    "ejs": "^3.0.1",
+    "ejs": "^3.1.3",
     "express": "^4.17.1",
     "getenv": "^1.0.0",
-    "open": "^7.0.3",
+    "open": "^7.1.0",
     "socket.io": "^2.3.0",
     "tcp-port-used": "^1.0.1",
     "uniqid": "^5.2.0",
-    "vscode-extension-telemetry": "^0.1.2",
-    "vscode-languageclient": "^4.2.1"
+    "vscode-extension-telemetry": "^0.1.6",
+    "vscode-languageclient": "^6.1.3"
   }
 }

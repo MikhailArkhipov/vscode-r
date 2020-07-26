@@ -32,16 +32,9 @@ endif()
 include_directories("${CMAKE_SOURCE_DIR}/lib/picojson" "${CMAKE_SOURCE_DIR}/lib/picojson")
 
 set(Boost_USE_STATIC_LIBS ON)
-find_package(Boost 1.58.0 REQUIRED COMPONENTS date_time filesystem locale program_options regex system)
+find_package(Boost 1.72.0 REQUIRED COMPONENTS date_time filesystem locale program_options regex system)
 include_directories(${Boost_INCLUDE_DIRS})
 target_link_libraries(Microsoft.R.Host ${Boost_LIBRARIES})
-
-find_library(libzip_LIBRARY NAMES zip)
-if(NOT libzip_LIBRARY)
-    message(FATAL_ERROR "libzip not found")
-endif()
-include_directories(${libzip_INCLUDE_DIRS})
-target_link_libraries(Microsoft.R.Host ${zlib_LIBRARY} ${libzip_LIBRARY})
 
 if(WIN32)
     # TODO: enable -dynamicbase 
@@ -49,7 +42,7 @@ if(WIN32)
     
     add_definitions(-DUNICODE -D_UNICODE)
     
-    target_link_libraries(Microsoft.R.Host "rstrmgr")
+    target_link_libraries(Microsoft.R.Host "Bcrypt")
 
     find_library(MinHook_LIBRARY NAMES libMinHook.a)
     if(NOT MinHook_LIBRARY)
@@ -61,14 +54,14 @@ if(WIN32)
     # Find R in registry, trying various keys from 3.4.20 to 3.4.0 down.
 
     set(R_PATH "/registry")
-    foreach(i RANGE 20 0 -1)
+    foreach(i RANGE 0 9 1)
         if("${R_PATH}" STREQUAL "/registry")
-            GET_FILENAME_COMPONENT(R_PATH "[HKEY_LOCAL_MACHINE\\SOFTWARE\\R-core\\R64\\3.4.${i};InstallPath]" ABSOLUTE)
+            GET_FILENAME_COMPONENT(R_PATH "[HKEY_LOCAL_MACHINE\\SOFTWARE\\R-core\\R64\\4.0.${i};InstallPath]" ABSOLUTE)
         endif()
     endforeach()
 
     if("${R_PATH}" STREQUAL "/registry")
-        message(FATAL_ERROR "R 3.4.x not found")
+        message(FATAL_ERROR "R 4.0.x not found")
     endif()
 
     message(STATUS "Using R at ${R_PATH}")
@@ -76,7 +69,7 @@ if(WIN32)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -I\"${R_PATH}/include\"")
 
     # Copy MinGW dependencies to output directory alongside .exe.
-    set(DLL_dependencies "libwinpthread-1.dll" "libzip-5.dll" "zlib1.dll")
+    set(DLL_dependencies "libwinpthread-1.dll")
     foreach(dep ${DLL_dependencies})
         configure_file("$ENV{MSYSTEM_PREFIX}/bin/${dep}" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${dep}" COPYONLY)
     endforeach()

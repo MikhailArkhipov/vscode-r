@@ -76,8 +76,14 @@ extern "C" {
 // experimental support for int64_t (see README.mkdn for detail)
 #ifdef PICOJSON_USE_INT64
 #define __STDC_FORMAT_MACROS
-#include <errno.h>
+#include <cerrno>
+#if __cplusplus >= 201103L
+#include <cinttypes>
+#else
+extern "C" {
 #include <inttypes.h>
+}
+#endif
 #endif
 
 // to disable the use of localeconv(3), set PICOJSON_USE_LOCALE to 0
@@ -104,6 +110,7 @@ extern "C" {
 #pragma warning(disable : 4244) // conversion from int to char
 #pragma warning(disable : 4127) // conditional expression is constant
 #pragma warning(disable : 4702) // unreachable code
+#pragma warning(disable : 4706) // assignment within conditional expression
 #else
 #define SNPRINTF snprintf
 #endif

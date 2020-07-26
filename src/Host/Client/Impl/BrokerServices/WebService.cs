@@ -72,7 +72,7 @@ namespace Microsoft.R.Host.Client.BrokerServices {
                 return false;
             }, cancellationToken);
 
-        public async Task<TResponse> HttpGetAsync<TResponse>(Uri uri, CancellationToken cancellationToken = default(CancellationToken)) {
+        public async Task<TResponse> HttpGetAsync<TResponse>(Uri uri, CancellationToken cancellationToken = default) {
             using (var response = await RepeatUntilAuthenticatedAsync(async ct => EnsureSuccessStatusCode(await GetAsync(uri, ct)), cancellationToken)) {
                 return Json.DeserializeObject<TResponse>(await response.Content.ReadAsStringAsync());
             }
@@ -85,7 +85,7 @@ namespace Microsoft.R.Host.Client.BrokerServices {
         }
 
 
-        public async Task<TResponse> HttpPutAsync<TRequest, TResponse>(Uri uri, TRequest request, CancellationToken cancellationToken = default(CancellationToken)) {
+        public async Task<TResponse> HttpPutAsync<TRequest, TResponse>(Uri uri, TRequest request, CancellationToken cancellationToken = default) {
             var requestBody = JsonConvert.SerializeObject(request);
 
             using (var response = await RepeatUntilAuthenticatedAsync(ct => GetHttpPutResponseAsync(uri, requestBody, ct), cancellationToken)) {
@@ -111,7 +111,7 @@ namespace Microsoft.R.Host.Client.BrokerServices {
             }
         }
 
-        public Task HttpDeleteAsync(Uri uri, CancellationToken cancellationToken = default(CancellationToken)) =>
+        public Task HttpDeleteAsync(Uri uri, CancellationToken cancellationToken = default) =>
             RepeatUntilAuthenticatedAsync(async ct => EnsureSuccessStatusCode(await DeleteAsync(uri, ct)).Dispose(), cancellationToken);
 
         private async Task<HttpResponseMessage> GetAsync(Uri uri, CancellationToken ct) {

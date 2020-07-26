@@ -69,7 +69,7 @@ namespace Microsoft.R.Editor.Functions {
         /// </summary>
         /// <param name="packageIndex">Package index, if available. If not available, 
         /// index builder will attempt to obtain it from the service container</param>
-        public async Task BuildIndexAsync(IPackageIndex packageIndex = null, CancellationToken ct = default(CancellationToken)) {
+        public async Task BuildIndexAsync(IPackageIndex packageIndex = null, CancellationToken ct = default) {
             packageIndex = packageIndex ?? Services.GetService<IPackageIndex>();
             var lockToken = await _buildIndexLock.WaitAsync(ct);
             try {

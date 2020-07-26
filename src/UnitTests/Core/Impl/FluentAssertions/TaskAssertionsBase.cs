@@ -94,7 +94,7 @@ namespace Microsoft.UnitTests.Core.FluentAssertions {
             var timeoutTask = Task.Delay(timeout);
             var state = new TimeoutContinuationState<TArg>(argument, timeout, because, reasonArgs);
             return Task.WhenAny(timeoutTask, Subject)
-                .ContinueWith(continuation, state, default(CancellationToken), TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
+                .ContinueWith(continuation, state, default, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
         }
 
         private AndConstraint<TAssertions> BeCompletedAsyncContinuation(Task<Task> task, object state) {

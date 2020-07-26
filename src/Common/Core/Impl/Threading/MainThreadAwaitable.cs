@@ -8,7 +8,7 @@ namespace Microsoft.Common.Core.Threading {
         private readonly IMainThread _mainThread;
         private readonly CancellationToken _cancellationToken;
 
-        public MainThreadAwaitable(IMainThread mainThread, CancellationToken cancellationToken = default(CancellationToken)) {
+        public MainThreadAwaitable(IMainThread mainThread, CancellationToken cancellationToken = default) {
             _mainThread = mainThread;
             _cancellationToken = cancellationToken;
         }

@@ -10,7 +10,7 @@ namespace Microsoft.Common.Core.Threading {
                 _host = host;
             }
 
-            public Task<IAsyncReaderWriterLockToken> WaitAsync(CancellationToken cancellationToken = default(CancellationToken))
+            public Task<IAsyncReaderWriterLockToken> WaitAsync(CancellationToken cancellationToken = default)
                 => _host.ExclusiveReaderLockAsync(this, cancellationToken);
 
             // This field must be accessed only from the Queue instance and only under lock

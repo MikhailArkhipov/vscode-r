@@ -9,6 +9,6 @@ namespace Microsoft.R.Host.Client {
     /// Provides functionality for R 'edit' command
     /// </summary>
     public interface IFileEditor {
-        Task<string> EditFileAsync(string content, string fileName, CancellationToken ct = default(CancellationToken));
+        Task<string> EditFileAsync(string content, string fileName, CancellationToken ct = default);
     }
 }

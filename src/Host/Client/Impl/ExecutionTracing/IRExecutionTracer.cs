@@ -46,18 +46,18 @@ namespace Microsoft.R.ExecutionTracing {
         /// <see langword="true"/> if command was successfully submitted for execution.
         /// <see langword="false"/> if the next prompt was not a Browse> prompt.
         /// </returns>
-        Task<bool> ExecuteBrowserCommandAsync(string command, Func<IRSessionInteraction, Task<bool>> prepare = null, CancellationToken cancellationToken = default(CancellationToken));
+        Task<bool> ExecuteBrowserCommandAsync(string command, Func<IRSessionInteraction, Task<bool>> prepare = null, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Force the R session to pause wherever it is currently executing, with a Browse> prompt.
         /// </summary>
         /// <returns>A task that completes when the prompt appears.</returns>
-        Task BreakAsync(CancellationToken cancellationToken = default(CancellationToken));
+        Task BreakAsync(CancellationToken cancellationToken = default);
 
         /// <summary>
         /// When paused at a Browse> prompt, continue execution.
         /// </summary>
-        Task ContinueAsync(CancellationToken cancellationToken = default(CancellationToken));
+        Task ContinueAsync(CancellationToken cancellationToken = default);
 
         /// <summary>
         /// When paused at a Browse> prompt, step into the next call.
@@ -70,7 +70,7 @@ namespace Microsoft.R.ExecutionTracing {
         /// Detailed semantics of step in are described in R documentation for
         /// <a href="https://stat.ethz.ch/R-manual/R-devel/library/base/html/browser.html"><c>browser()</c></a> "s" command.
         /// </remarks>
-        Task<bool> StepIntoAsync(CancellationToken cancellationToken = default(CancellationToken));
+        Task<bool> StepIntoAsync(CancellationToken cancellationToken = default);
 
         /// <summary>
         /// When paused at a Browse> prompt, step over the next call.
@@ -83,7 +83,7 @@ namespace Microsoft.R.ExecutionTracing {
         /// Detailed semantics of step over are described in R documentation for
         /// <a href="https://stat.ethz.ch/R-manual/R-devel/library/base/html/browser.html"><c>browser()</c></a> "n" command.
         /// </remarks>
-        Task<bool> StepOverAsync(CancellationToken cancellationToken = default(CancellationToken));
+        Task<bool> StepOverAsync(CancellationToken cancellationToken = default);
 
         /// <summary>
         /// When paused at a Browse> prompt, step out from the current call.
@@ -95,7 +95,7 @@ namespace Microsoft.R.ExecutionTracing {
         /// Detailed semantics of step out are described in R documentation for
         /// <a href="https://stat.ethz.ch/R-manual/R-devel/library/base/html/browserText.html"><c>browserSetDebug()</c></a> function.
         /// </remarks>
-        Task<bool> StepOutAsync(CancellationToken cancellationToken = default(CancellationToken));
+        Task<bool> StepOutAsync(CancellationToken cancellationToken = default);
 
         /// <summary>
         /// If a step operation is currently in progress, cancel it.
@@ -105,11 +105,11 @@ namespace Microsoft.R.ExecutionTracing {
         /// <summary>
         /// Enables or disables breakpoints. When enabled, <see cref="IRBreakpoint.BreakpointHit"/> events are raised.
         /// </summary>
-        Task EnableBreakpointsAsync(bool enable, CancellationToken cancellationToken = default(CancellationToken));
+        Task EnableBreakpointsAsync(bool enable, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Creates a new breakpoint at the specified location.
         /// </summary>
-        Task<IRBreakpoint> CreateBreakpointAsync(RSourceLocation location, CancellationToken cancellationToken = default(CancellationToken));
+        Task<IRBreakpoint> CreateBreakpointAsync(RSourceLocation location, CancellationToken cancellationToken = default);
     }
 }

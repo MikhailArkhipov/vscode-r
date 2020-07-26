@@ -14,12 +14,10 @@ using Microsoft.Extensions.Logging;
 
 namespace Microsoft.R.Host.Broker.Pipes {
     public class WebSocketPipeAction : IActionResult {
-        private readonly string _id;
         private readonly IMessagePipeEnd _pipe;
         private readonly ILogger _logger;
 
-        public WebSocketPipeAction(string id, IMessagePipeEnd pipe, ILogger logger) {
-            _id = id;
+        public WebSocketPipeAction(IMessagePipeEnd pipe, ILogger logger) {
             _pipe = pipe;
             _logger = logger;
         }
@@ -36,12 +34,10 @@ namespace Microsoft.R.Host.Broker.Pipes {
                 }
 
                 using (var socket = await context.WebSockets.AcceptWebSocketAsync("Microsoft.R.Host")) {
-                    Task wsToPipe, pipeToWs, completed;
-
                     var cts = CancellationTokenSource.CreateLinkedTokenSource(context.RequestAborted);
-                    wsToPipe = WebSocketToPipeWorker(socket, _pipe, cts.Token);
-                    pipeToWs = PipeToWebSocketWorker(socket, _pipe, cts.Token);
-                    completed = await Task.WhenAny(wsToPipe, pipeToWs);
+                    var wsToPipe = WebSocketToPipeWorker(socket, _pipe, cts.Token);
+                    var pipeToWs = PipeToWebSocketWorker(socket, _pipe, cts.Token);
+                    var completed = await Task.WhenAny(wsToPipe, pipeToWs);
 
                     if (completed == pipeToWs) {
                         // If the pipe end is exhausted, tell the client that there's no more messages to follow,

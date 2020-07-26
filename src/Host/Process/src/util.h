@@ -165,6 +165,8 @@ namespace rhost {
         // it performs a longjmp, which will skip all C++ destructors when unwinding stack frames - so
         // the only way to perform it safely is right at the boundary. This helper function will catch
         // any exception type derived from std::exception, and invoke Rf_error with what() as message.
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wreturn-type"
         template<class F>
         inline auto exceptions_to_errors(F f) -> decltype(f()) {
             try {
@@ -173,6 +175,7 @@ namespace rhost {
                 Rf_error(ex.what());
             }
         }
+#pragma GCC diagnostic pop
 
         // Executes the callback in its own context, protecting the caller from
         // any call to Rf_error.

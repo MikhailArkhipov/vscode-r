@@ -22,7 +22,7 @@ using Newtonsoft.Json.Linq;
 using static System.FormattableString;
 
 namespace Microsoft.R.Host.Client {
-    public sealed partial class RHost : IDisposable, IRExpressionEvaluator, IRBlobService {
+    public sealed partial class RHost : IDisposable, IRExpressionEvaluator {
         public static IRContext TopLevelContext { get; } = new RContext(RContextType.TopLevel);
 
         public string Name { get; }
@@ -231,7 +231,7 @@ namespace Microsoft.R.Host.Client {
             await NotifyAsync("!DestroyBlob", cancellationToken, ids.Select(x => (object)x));
         }
 
-        public async Task<byte[]> BlobReadAllAsync(ulong blobId, CancellationToken cancellationToken = default(CancellationToken)) {
+        public async Task<byte[]> BlobReadAllAsync(ulong blobId, CancellationToken cancellationToken = default) {
             if (_runTask == null) {
                 throw new InvalidOperationException("Host was not started");
             }
@@ -247,7 +247,7 @@ namespace Microsoft.R.Host.Client {
             }
         }
 
-        public async Task<byte[]> BlobReadAsync(ulong blobId, long position, long count, CancellationToken cancellationToken = default(CancellationToken)) {
+        public async Task<byte[]> BlobReadAsync(ulong blobId, long position, long count, CancellationToken cancellationToken = default) {
             if (_runTask == null) {
                 throw new InvalidOperationException("Host was not started");
             }
@@ -263,7 +263,7 @@ namespace Microsoft.R.Host.Client {
             }
         }
 
-        public async Task<long> BlobWriteAsync(ulong blobId, byte[] data, long position, CancellationToken cancellationToken = default(CancellationToken)) {
+        public async Task<long> BlobWriteAsync(ulong blobId, byte[] data, long position, CancellationToken cancellationToken = default) {
             if (_runTask == null) {
                 throw new InvalidOperationException("Host was not started");
             }
@@ -279,7 +279,7 @@ namespace Microsoft.R.Host.Client {
             }
         }
 
-        public async Task<long> GetBlobSizeAsync(ulong blobId, CancellationToken cancellationToken = default(CancellationToken)) {
+        public async Task<long> GetBlobSizeAsync(ulong blobId, CancellationToken cancellationToken = default) {
             if (_runTask == null) {
                 throw new InvalidOperationException("Host was not started");
             }
@@ -295,7 +295,7 @@ namespace Microsoft.R.Host.Client {
             }
         }
 
-        public async Task<long> SetBlobSizeAsync(ulong blobId, long size, CancellationToken cancellationToken = default(CancellationToken)) {
+        public async Task<long> SetBlobSizeAsync(ulong blobId, long size, CancellationToken cancellationToken = default) {
             if (_runTask == null) {
                 throw new InvalidOperationException("Host was not started");
             }
@@ -330,7 +330,7 @@ namespace Microsoft.R.Host.Client {
         /// <summary>
         /// Cancels any ongoing evaluations or interaction processing.
         /// </summary>
-        public async Task CancelAllAsync(CancellationToken cancellationToken = default(CancellationToken)) {
+        public async Task CancelAllAsync(CancellationToken cancellationToken = default) {
             if (_runTask == null) {
                 // Nothing to cancel.
                 return;
@@ -584,19 +584,7 @@ namespace Microsoft.R.Host.Client {
                                 _callbacks.PackagesRemoved();
                                 break;
 
-                            case "!FetchFile":
-                                var remoteFileName = message.GetString(0, "file_remote_name");
-                                var remoteBlobId = message.GetUInt64(1, "blob_id");
-                                var localPath = message.GetString(2, "file_local_path");
-                                Task.Run(async () => {
-                                    var destPath = await _callbacks.FetchFileAsync(remoteFileName, remoteBlobId, localPath, ct);
-                                    if (!message.GetBoolean(3, "silent")) {
-                                        await _callbacks.WriteConsoleEx(destPath, OutputType.Error, ct);
-                                    }
-                                }).DoNotWait();
-                                break;
-
-                            case "!LocMessage":
+                             case "!LocMessage":
                                 _callbacks.WriteConsoleEx(GetLocalizedString(message) + Environment.NewLine, OutputType.Output, ct).DoNotWait();
                                 break;
 
@@ -681,7 +669,7 @@ namespace Microsoft.R.Host.Client {
             }
         }
 
-        public async Task Run(CancellationToken cancellationToken = default(CancellationToken)) {
+        public async Task Run(CancellationToken cancellationToken = default) {
             TaskUtilities.AssertIsOnBackgroundThread();
 
             if (_runTask != null) {

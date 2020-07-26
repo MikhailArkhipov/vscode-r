@@ -3,14 +3,10 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using System.Security.Claims;
-using System.Security.Principal;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Common.Core;
-using Microsoft.Common.Core.Disposables;
 using Microsoft.Common.Core.Logging;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -23,20 +19,18 @@ using Microsoft.R.Host.Protocol;
 namespace Microsoft.R.Host.Broker.Sessions {
     public class SessionManager {
         private readonly LoggingOptions _loggingOptions;
-        private readonly ILogger _hostOutputLogger, _messageLogger;
+        private readonly ILogger _messageLogger;
         private readonly IRHostProcessService _processService;
         private readonly IApplicationLifetime _applicationLifetime;
         private readonly ILogger _sessionLogger;
 
-        private readonly Dictionary<string, List<Session>> _sessions = new Dictionary<string, List<Session>>();
-        private readonly HashSet<string> _blockedUsers = new HashSet<string>();
+        private readonly List<Session> _sessions = new List<Session>();
 
         public SessionManager(IRHostProcessService processService
             , IApplicationLifetime applicationLifetime
             , IOptions<LoggingOptions> loggingOptions
             , ILogger<Session> sessionLogger
-            , ILogger<MessagePipe> messageLogger
-            , ILogger<Process> hostOutputLogger) {
+            , ILogger<MessagePipe> messageLogger) {
 
             _loggingOptions = loggingOptions.Value;
             _processService = processService;
@@ -46,80 +40,30 @@ namespace Microsoft.R.Host.Broker.Sessions {
             if (_loggingOptions.LogPackets) {
                 _messageLogger = messageLogger;
             }
-
-            if (_loggingOptions.LogHostOutput) {
-                _hostOutputLogger = hostOutputLogger;
-            }
         }
 
-        public IEnumerable<Session> GetSessions(IIdentity user) {
+        public IEnumerable<Session> GetSessions() {
             lock (_sessions) {
-                return _sessions.TryGetValue(user.Name, out var userSessions) 
-                    ? userSessions.ToArray() 
-                    : Enumerable.Empty<Session>();
+                return _sessions.ToArray();
             }
         }
 
-        public IDisposable BlockSessionsCreationForUser(IIdentity user, bool terminateSession) {
+        public Session GetSession(string id) {
             lock (_sessions) {
-                if (terminateSession) {
-                    var userSessions = GetOrCreateSessionList(user);
-                    var sessions = userSessions.ToArray();
-                    foreach (var session in sessions) {
-                        userSessions.Remove(session);
-                        Task.Run(() => session.KillHost()).SilenceException<Exception>().DoNotWait();
-                        session.State = SessionState.Terminated;
-                    }
-                }
-                _blockedUsers.Add(user.Name);
-                return Disposable.Create(() => UnblockSessionCreationForUser(user));
+                return _sessions.FirstOrDefault(session => session.Id == id);
             }
         }
 
-        private void UnblockSessionCreationForUser(IIdentity user) {
+        private List<Session> GetOrCreateSessionList() {
             lock (_sessions) {
-                _blockedUsers.Remove(user.Name);
+                return _sessions;
             }
         }
 
-        public IEnumerable<string> GetUsers() {
-            lock (_sessions) {
-                return _sessions.Keys.ToArray();
-            }
-        }
-
-        public Session GetSession(IIdentity user, string id) {
-            lock (_sessions) {
-                if (user != null &&_blockedUsers.Contains(user.Name)) {
-                    return null;
-                }
-                return _sessions.Values
-                    .SelectMany(sessions => sessions)
-                    .FirstOrDefault(session => (user == null || session.User.Name == user.Name) && session.Id == id);
-            }
-        }
-
-        private List<Session> GetOrCreateSessionList(IIdentity user) {
-            lock (_sessions) {
-                List<Session> userSessions;
-                _sessions.TryGetValue(user.Name, out userSessions);
-                if (userSessions == null) {
-                    _sessions[user.Name] = userSessions = new List<Session>();
-                }
-
-                return userSessions;
-            }
-        }
-
-        public Session CreateSession(ClaimsPrincipal principal, string id, Interpreter interpreter, string commandLineArguments, bool isInteractive) {
+        public Session CreateSession(string id, Interpreter interpreter, string commandLineArguments, bool isInteractive) {
             Session session;
-            var user = principal.Identity;
             lock (_sessions) {
-                if (_blockedUsers.Contains(user.Name)) {
-                    throw new InvalidOperationException(Resources.Error_BlockedByProfileDeletion.FormatInvariant(user.Name));
-                }
-
-                var oldUserSessions = GetOrCreateSessionList(user);
+                var oldUserSessions = GetOrCreateSessionList();
 
                 var oldSessions = oldUserSessions.Where(s => s.Id == id).ToArray();
                 foreach (var oldSession in oldSessions) {
@@ -128,8 +72,8 @@ namespace Microsoft.R.Host.Broker.Sessions {
                     oldSession.State = SessionState.Terminated;
                 }
 
-                var userSessions = GetOrCreateSessionList(user);
-                session = new Session(this, _processService, _applicationLifetime, _sessionLogger, _messageLogger, principal, interpreter, id, commandLineArguments, isInteractive);
+                var userSessions = GetOrCreateSessionList();
+                session = new Session(this, _processService, _applicationLifetime, _sessionLogger, _messageLogger, interpreter, id, commandLineArguments, isInteractive);
                 session.StateChanged += Session_StateChanged;
 
                 userSessions.Add(session);
@@ -137,7 +81,6 @@ namespace Microsoft.R.Host.Broker.Sessions {
 
             session.StartHost(
                 _loggingOptions.LogFolder,
-                _loggingOptions.LogHostOutput ? _hostOutputLogger : null,
                 _loggingOptions.LogPackets || _loggingOptions.LogHostOutput ? LogVerbosity.Traffic : LogVerbosity.Minimal);
 
             return session;
@@ -147,12 +90,8 @@ namespace Microsoft.R.Host.Broker.Sessions {
             var session = (Session)sender;
             if (e.NewState == SessionState.Terminated) {
                 lock (_sessions) {
-                    var userSessions = GetOrCreateSessionList(session.User);
+                    var userSessions = GetOrCreateSessionList();
                     userSessions.Remove(session);
-
-                    if (userSessions.Count == 0) {
-                        _sessions.Remove(session.User.Name);
-                    }
                 }
             }
         }

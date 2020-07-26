@@ -1,17 +1,17 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-"use strict";
+'use strict';
 
-import * as vscode from "vscode";
+import { Terminal, window } from 'vscode';
 
-export class ReplTerminal implements IReplTerminal {
-    private terminal: vscode.Terminal;
+export class ReplTerminal {
+    private terminal: Terminal;
     private interpreterPath: string;
 
     constructor(ip: string) {
         this.interpreterPath = ip;
 
-        vscode.window.onDidCloseTerminal((closedTerminal: vscode.Terminal) => {
+        window.onDidCloseTerminal((closedTerminal: Terminal) => {
             if (this.terminal === closedTerminal) {
                 this.terminal = undefined;
             }
@@ -20,7 +20,7 @@ export class ReplTerminal implements IReplTerminal {
 
     public show() {
         if (this.terminal === undefined) {
-            this.terminal = vscode.window.createTerminal("R", this.interpreterPath);
+            this.terminal = window.createTerminal('R', this.interpreterPath);
         }
         this.terminal.show(true);
     }

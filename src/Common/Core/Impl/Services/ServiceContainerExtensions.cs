@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using Microsoft.Common.Core.IO;
 using Microsoft.Common.Core.Logging;
 using Microsoft.Common.Core.OS;
-using Microsoft.Common.Core.Security;
 using Microsoft.Common.Core.Shell;
 using Microsoft.Common.Core.Tasks;
 using Microsoft.Common.Core.Threading;
@@ -24,16 +23,15 @@ namespace Microsoft.Common.Core.Services {
         public static IActionLog Log(this IServiceContainer sc) => sc.GetService<IActionLog>();
         public static IFileSystem FileSystem(this IServiceContainer sc) => sc.GetService<IFileSystem>();
         public static IProcessServices Process(this IServiceContainer sc) => sc.GetService<IProcessServices>();
-        public static ISecurityService Security(this IServiceContainer sc) => sc.GetService<ISecurityService>();
         public static ITaskService Tasks(this IServiceContainer sc) => sc.GetService<ITaskService>();
         public static IUIService UI(this IServiceContainer sc) => sc.GetService<IUIService>();
         public static IMainThread MainThread(this IServiceContainer sc) => sc.GetService<IMainThread>();
         public static IIdleTimeService IdleTime(this IServiceContainer sc) => sc.GetService<IIdleTimeService>();
 
         /// <summary>
-        /// Switches to UI thread asynchonously and then displays the message
+        /// Switches to UI thread asynchronously and then displays the message
         /// </summary>
-        public static async Task ShowErrorMessageAsync(this IServiceContainer sc, string message, CancellationToken cancellationToken = default(CancellationToken)) {
+        public static async Task ShowErrorMessageAsync(this IServiceContainer sc, string message, CancellationToken cancellationToken = default) {
             await sc.MainThread().SwitchToAsync(cancellationToken);
             sc.UI().ShowErrorMessage(message);
         }

@@ -14,7 +14,7 @@ namespace Microsoft.Common.Core.Threading {
 
         public void Set() => _tcs.TrySetResult(true);
 
-        public Task WaitAsync(CancellationToken cancellationToken = default(CancellationToken)) {
+        public Task WaitAsync(CancellationToken cancellationToken = default) {
             if (!cancellationToken.CanBeCanceled) {
                 return _tcs.Task;
             }

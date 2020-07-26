@@ -31,16 +31,16 @@ namespace Microsoft.R.LanguageServer.InteractiveWorkflow {
 
         public Task PlotDeviceDestroy(Guid deviceId, CancellationToken ct) => Task.CompletedTask;
         public Task<string> ReadUserInput(string prompt, int maximumLength, CancellationToken ct) => Task.FromResult(string.Empty);
-        public Task ShowErrorMessage(string message, CancellationToken cancellationToken = default(CancellationToken)) => Task.CompletedTask;
-        public Task ShowHelpAsync(string url, CancellationToken cancellationToken = default(CancellationToken)) => Task.CompletedTask;
+        public Task ShowErrorMessage(string message, CancellationToken cancellationToken = default) => Task.CompletedTask;
+        public Task ShowHelpAsync(string url, CancellationToken cancellationToken = default) => Task.CompletedTask;
 
-        public Task<MessageButtons> ShowMessageAsync(string message, MessageButtons buttons, CancellationToken cancellationToken = default(CancellationToken))
+        public Task<MessageButtons> ShowMessageAsync(string message, MessageButtons buttons, CancellationToken cancellationToken = default)
             => Task.FromResult(MessageButtons.OK);
 
-        public Task ViewFile(string fileName, string tabName, bool deleteFile, CancellationToken cancellationToken = default(CancellationToken)) => Task.CompletedTask;
-        public Task<string> EditFileAsync(string expression, string fileName, CancellationToken cancellationToken = default(CancellationToken)) => Task.FromResult(string.Empty);
-        public Task ViewLibraryAsync(CancellationToken cancellationToken = default(CancellationToken)) => Task.CompletedTask;
-        public Task ViewObjectAsync(string expression, string title, CancellationToken cancellationToken = default(CancellationToken)) => Task.CompletedTask;
+        public Task ViewFile(string fileName, string tabName, bool deleteFile, CancellationToken cancellationToken = default) => Task.CompletedTask;
+        public Task<string> EditFileAsync(string expression, string fileName, CancellationToken cancellationToken = default) => Task.FromResult(string.Empty);
+        public Task ViewLibraryAsync(CancellationToken cancellationToken = default) => Task.CompletedTask;
+        public Task ViewObjectAsync(string expression, string title, CancellationToken cancellationToken = default) => Task.CompletedTask;
 
         public string GetLocalizedString(string id) => null;
         public Task BeforePackagesInstalledAsync(CancellationToken ct) => Task.CompletedTask;

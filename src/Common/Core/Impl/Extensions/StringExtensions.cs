@@ -224,7 +224,7 @@ namespace Microsoft.Common.Core {
             => long.TryParse(value, out long ret) ? ret : 0;
 
         public static DateTime ToDateTimeOrDefault(this string value)
-            => DateTime.TryParse(value, out DateTime ret) ? ret : default(DateTime);
+            => DateTime.TryParse(value, out DateTime ret) ? ret : default;
 
         public static Guid ToGuid(this string value) {
             using (var md5 = MD5.Create()) {

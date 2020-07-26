@@ -22,7 +22,6 @@
 
 #include "stdafx.h"
 #include "log.h"
-#include "xamlbuilder.h"
 #include "host.h"
 #include "eval.h"
 #include "util.h"
