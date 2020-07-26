@@ -5,7 +5,6 @@ using System;
 using System.ComponentModel;
 using System.IO;
 using System.Runtime.InteropServices;
-using System.Security.Principal;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
@@ -86,8 +85,7 @@ namespace Microsoft.R.Host.Broker.Sessions {
                 throw new InvalidOperationException("Host process is already running");
             }
 
-            // In remote broker User Identity type is always WindowsIdentity
-            var suppressUI = "--rhost-suppress-ui ";
+            var suppressUI = string.Empty;
             var isRepl = _isInteractive ? "--rhost-interactive " : string.Empty;
             var logFolderParam = string.IsNullOrEmpty(logFolder) ? string.Empty : Invariant($"--rhost-log-dir \"{logFolder}\"");
             var rDirPath = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? Interpreter.BinPath : Interpreter.InstallPath;

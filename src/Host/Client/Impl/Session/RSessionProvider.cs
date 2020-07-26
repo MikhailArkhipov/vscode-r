@@ -14,7 +14,6 @@ using Microsoft.Common.Core.Tasks;
 using Microsoft.Common.Core.Threading;
 using Microsoft.R.Common.Core.Output;
 using Microsoft.R.Host.Client.Host;
-using Microsoft.R.Host.Protocol;
 using Microsoft.R.Platform.Interpreters;
 
 namespace Microsoft.R.Host.Client.Session {
