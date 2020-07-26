@@ -185,7 +185,6 @@ namespace Microsoft.R.Host.Client.Host {
         }
 
         private ProcessStartInfo GetProcessStartInfo(string rhostBrokerExecutable, string pipeName) {
-            ProcessStartInfo psi;
             var baseArguments =
                 $" --logging:logFolder \"{Log.Folder.TrimTrailingSlash()}\"" +
                 $" --logging:logHostOutput {Log.LogVerbosity >= LogVerbosity.Normal}" +
@@ -195,11 +194,10 @@ namespace Microsoft.R.Host.Client.Host {
                 $" --startup:writeServerUrlsToPipe {pipeName}" +
                 $" --lifetime:parentProcessId {Process.GetCurrentProcess().Id}" +
                 $" --security:secret \"{_credentials.Password}\"" +
-                $" --R:autoDetect false" +
                 $" --R:interpreters:{InterpreterId}:name \"{Name}\"" +
                 $" --R:interpreters:{InterpreterId}:basePath \"{_rHome.TrimTrailingSlash()}\"";
 
-            psi = new ProcessStartInfo {
+            var psi = new ProcessStartInfo {
                 FileName = "dotnet",
                 UseShellExecute = false,
                 RedirectStandardOutput = true,

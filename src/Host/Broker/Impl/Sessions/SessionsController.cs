@@ -15,6 +15,7 @@ using Microsoft.R.Host.Broker.Pipes;
 using Microsoft.R.Host.Protocol;
 
 namespace Microsoft.R.Host.Broker.Sessions {
+    [AllowAnonymous]
     [Route("/sessions")]
     public class SessionsController : Controller {
         private readonly InterpreterManager _interpManager;

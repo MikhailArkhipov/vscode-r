@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Microsoft.Common.Core;
 using Microsoft.Common.Core.IO;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -39,22 +38,6 @@ namespace Microsoft.R.Host.Broker.Interpreters {
         }
 
         private IEnumerable<Interpreter> GetInterpreters() {
-            if (_options.AutoDetect) {
-                _logger.LogTrace(Resources.Trace_AutoDetectingR);
-
-                var engines = _installationService.GetCompatibleEngines().AsList();
-                if (engines.Any()) {
-                    var interpreterId = 0;
-                    foreach (var e in engines) {
-                        var detected = new Interpreter(Invariant($"{interpreterId++}"), e);
-                        _logger.LogTrace(Resources.Trace_DetectedR, detected.Version, detected.InstallPath);
-                        yield return detected;
-                    }
-                } else {
-                    _logger.LogWarning(Resources.Error_NoRInterpreters);
-                }
-            }
-
             foreach (var kv in _options.Interpreters) {
                 var id = kv.Key;
                 var options = kv.Value;
