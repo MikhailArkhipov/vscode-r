@@ -9,7 +9,6 @@ A [Visual Studio Code](https://code.visualstudio.com/) [extension](https://marke
 -   Windows x64
 -   Mac OS 10.12+
 -   Linux distros supported by [.NET Core 3.1 Runtime](https://www.microsoft.com/net/download).
--   On Mac and Linux extension needs native library `libzip`. If `libzip` is missing, on Mac the extension attempts to install it via [Homebrew](https://brew.sh/). You may also attempt to install it manually bu running `brew install libzip`.
 
 ---
 
@@ -59,6 +58,8 @@ The extension does work in WSL. However, output windows cannot be displayed sinc
 Plots typically appear in external R windows. However, there is support for internal `Plot` window that may come handy when working with remote sessions, such as WSL. Try `r.execute` command (`Ctrl+Shift+Enter`) to evaluate code in internal R session. Executing command over a line that yields a plot will output plot in the internal `Plot` window.
 
 Remember though that **Terminal window and internal R session are not connected**. Executing code in Terminal and then attempting plot the result via internal session won't work. With remote ressions, you can execute code in Terminal, save results into a file, then execute plotting in internal session providing results from the file.
+
+![Internal Plot Window](https://user-images.githubusercontent.com/12820357/88484757-cd1a1680-cf25-11ea-93a6-3af4d697f6d1.png))
 
 ## Known issues
 
