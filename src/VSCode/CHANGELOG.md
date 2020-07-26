@@ -4,10 +4,11 @@
 
 ### Updates
 
-1. Provide `r.plot` command (`Ctrl+Shift+Enter`). Executing command over a line that yields a plot will output plot in internal `Plot` window.
-2. Remove dependency on `libzip` on Mac and Linux.
-3. Basic support for WSL remoting. Plots can be displaed in internal window.
-4. Fixed issue with TLS key expiration "R session process did not start on the machine 'VSCR'. Exception: Key has expired". (https://github.com/MikhailArkhipov/vscode-r/issues/30)
+1. Limited support for plots in internal window. See the next item.
+2. Provide `r.execute` command (`Ctrl+Shift+Enter`) to evaluate code in internal R session. This may be useful when working in remote container, such as WSL, since external windows do not work in remote session as it is headless. Executing command over a line that yields a plot will output plot in the new internal `Plot` window. **Remember though that terminal window and internal R session are not connected, so executing code in Terminal and then attempting plot the result via internal session won't work.** With remote ressions, you can execute code in Terminal, save results into a file, then execute plotting in internal session providing results from the file.
+3. Remove dependency on `libzip` on Mac and Linux.
+4. Fix issue when R didn't start with `Permission denied` on Mac and Linux.
+5. Fixed issue with TLS key expiration "R session process did not start on the machine 'VSCR'. Exception: Key has expired".(https://github.com/MikhailArkhipov/vscode-r/issues/30). HTTPS requirement was removed since all sessions are local to the machine.
 
 ## 0.0.9 (28 June 2020)
 

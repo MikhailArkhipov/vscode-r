@@ -12,7 +12,7 @@ import { ReplTerminal } from './replTerminal';
 // Must match package.json declarations
 // tslint:disable-next-line:no-namespace
 export namespace CommandNames {
-    export const Plot = 'r.plot';
+    export const Execute = 'r.execute';
     export const Interrupt = 'r.interrupt';
     export const Reset = 'r.reset';
     export const SourceFile = 'r.source';
@@ -28,7 +28,7 @@ export class Commands {
 
     public activateCommandsProvider(): Disposable[] {
         const disposables: Disposable[] = [];
-        disposables.push(commands.registerCommand(CommandNames.Plot, () => this.plot()));
+        disposables.push(commands.registerCommand(CommandNames.Execute, () => this.execute()));
         disposables.push(commands.registerCommand(CommandNames.Interrupt, () => this.r.interrupt()));
         disposables.push(commands.registerCommand(CommandNames.Reset, () => this.r.reset()));
         disposables.push(commands.registerCommand(CommandNames.OpenTerminal, () => this.openTerminal()));
@@ -37,7 +37,7 @@ export class Commands {
         return disposables;
     }
 
-    private async plot() {
+    private async execute() {
         const code = getSelectedText();
         if (code.length > 0) {
             const result = await this.r.execute(code);

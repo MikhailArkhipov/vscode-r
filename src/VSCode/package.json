@@ -38,8 +38,8 @@
   "contributes": {
     "commands": [
       {
-        "command": "r.plot",
-        "title": "Execute current line and display plot in internal window",
+        "command": "r.execute",
+        "title": "Execute current line or or selection in internal session (plots)",
         "category": "R"
       },
       {
@@ -70,7 +70,7 @@
     ],
     "keybindings": [
       {
-        "command": "r.plot",
+        "command": "r.execute",
         "key": "ctrl+shift+enter",
         "when": "editorFocus"
       },
