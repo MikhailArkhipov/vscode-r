@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.0.11 (28 July 2020)
+
+### Updates
+
+1. Implement `r.terminalPath` setting which allows user to provide separate path to R binaries and to executable for the R Terminal. For example, one may choose to use [Radian](https://github.com/randy3k/radian) in the terminal. The extension completions engine still needs to know where to find R binaries so it is recommended to set `r.interpreterPath` to whatever version of R used in the terminal. Addresses [#34](https://github.com/MikhailArkhipov/vscode-r/issues/34).
+
 ## 0.0.10 (26 July 2020)
 
 ### Updates
@@ -8,7 +14,7 @@
 2. Provide `r.execute` command (`Ctrl+Shift+Enter`) to evaluate code in internal R session. This may be useful when working in remote container, such as WSL, since external windows do not work in remote session as it is headless. Executing command over a line that yields a plot will output plot in the new internal `Plot` window. **Remember though that terminal window and internal R session are not connected, so executing code in Terminal and then attempting plot the result via internal session won't work.** With remote ressions, you can execute code in Terminal, save results into a file, then execute plotting in internal session providing results from the file.
 3. Remove dependency on `libzip` on Mac and Linux.
 4. Fix issue when R didn't start with `Permission denied` on Mac and Linux.
-5. Fixed issue with TLS key expiration "R session process did not start on the machine 'VSCR'. Exception: Key has expired".(https://github.com/MikhailArkhipov/vscode-r/issues/30). HTTPS requirement was removed since all sessions are local to the machine.
+5. Fixed issue with TLS key expiration ["R session process did not start on the machine 'VSCR'. Exception: Key has expired"](https://github.com/MikhailArkhipov/vscode-r/issues/30). HTTPS requirement was removed since all sessions are local to the machine.
 
 ## 0.0.9 (28 June 2020)
 
