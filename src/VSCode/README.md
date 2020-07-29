@@ -49,6 +49,16 @@ Functionality is close to [lintr](https://github.com/jimhester/lintr). However, 
 
 Use `R: Execute line or selection` commands to execute line or selection in the terminal. Similarly, use `R: source file` to source file from the editor into the terminal section.
 
+### Shortcuts and snippets
+
+Extension provides shortcuts for `<-` and `%>%` as suggested in [#22](https://github.com/MikhailArkhipov/vscode-r/issues/22). There are completion triggers on `%` and `<` which allows using completion list for snippets, as in [RTVS](https://github.com/microsoft/rtvs).
+
+You can either type `<` and then `TAB` to get `<-` via completion list or use keyboard shortcut `alt+-`. For pipe `%>%` either type `%` and then `TAB` or use `ctrl+shift+m` shortcut.
+
+Snippets file can be found in `snippets/r.json` in the extension folder.
+
+Thanks to [@jackbrookes](https://github.com/jackbrookes) for suggestions and snippets.
+
 ### Remoting and WSL
 
 The extension does work in WSL. However, output windows cannot be displayed since UI does not translate over remote connection. There is limited support for plotting though. Remoting like `R Tools in Visual Studio` into containers with preinstalled RTVS broker is not supported. Please use VS Code remoting instead.

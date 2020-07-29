@@ -1,0 +1,12 @@
+{
+    "Assignment operator": {
+        "prefix": "<",
+        "body": [" <- "],
+        "description": "R assignment"
+    },
+    "magrittr pipe": {
+        "prefix": "%",
+        "body": " %>% ",
+        "description": "magrittr pipe"
+    }    
+}

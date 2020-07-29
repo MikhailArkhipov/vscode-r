@@ -49,11 +49,11 @@ namespace Microsoft.R.LanguageServer {
         private IREvalSession _evalSession;
         private bool _shutdown;
 
-        private IMainThreadPriority MainThreadPriority => _mainThread ?? (_mainThread = _services.GetService<IMainThreadPriority>());
-        private IDocumentCollection Documents => _documents ?? (_documents = _services.GetService<IDocumentCollection>());
-        private IIdleTimeTracker IdleTimeTracker => _idleTimeTracker ?? (_idleTimeTracker = _services.GetService<IIdleTimeTracker>());
-        private IFunctionIndex FunctionIndex => _functionIndex ?? (_functionIndex = _services.GetService<IFunctionIndex>());
-        private IREvalSession EvalSession => _evalSession ?? (_evalSession = _services.GetService<IREvalSession>());
+        private IMainThreadPriority MainThreadPriority => _mainThread ??= _services.GetService<IMainThreadPriority>();
+        private IDocumentCollection Documents => _documents ??= _services.GetService<IDocumentCollection>();
+        private IIdleTimeTracker IdleTimeTracker => _idleTimeTracker ??= _services.GetService<IIdleTimeTracker>();
+        private IFunctionIndex FunctionIndex => _functionIndex ??= _services.GetService<IFunctionIndex>();
+        private IREvalSession EvalSession => _evalSession ??= _services.GetService<IREvalSession>();
 
         public LanguageServer(IServiceContainer services) {
             _services = services;
@@ -243,7 +243,7 @@ namespace Microsoft.R.LanguageServer {
             }, ct);
         }
 
-        private T GetSetting<T>(JToken section, string settingName, T defaultValue) {
+        private static T GetSetting<T>(JToken section, string settingName, T defaultValue) {
             var value = section?[settingName];
             try {
                 return value != null ? value.ToObject<T>() : defaultValue;
@@ -271,7 +271,7 @@ namespace Microsoft.R.LanguageServer {
                     },
                     completionProvider = new CompletionOptions {
                         resolveProvider = true,
-                        triggerCharacters = new[] { ".", ":", "$" }
+                        triggerCharacters = new[] { ".", ":", "$", "<", "%" }
                     },
                     textDocumentSync = new TextDocumentSyncOptions {
                         openClose = true,

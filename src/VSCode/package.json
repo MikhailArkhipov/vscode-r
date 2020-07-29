@@ -2,7 +2,7 @@
   "name": "r",
   "displayName": "R Tools",
   "description": "R Tools (powered by Microsoft RTVS)",
-  "version": "0.0.11",
+  "version": "0.0.12",
   "author": "Mikhail Arkhipov & Microsoft",
   "icon": "images/rIcon.png",
   "publisher": "Mikhail-Arkhipov",
@@ -36,6 +36,11 @@
   ],
   "main": "./out/src/extension",
   "contributes": {
+    "snippets": [
+      {
+          "language": "r",
+          "path": "./snippets/r.json"
+      }],
     "commands": [
       {
         "command": "r.execute",
@@ -83,7 +88,17 @@
         "command": "r.sourceToTerminal",
         "key": "ctrl+shift+s",
         "when": "editorFocus"
-      }
+      },
+      {
+        "key": "alt+-",
+        "command": "editor.action.insertSnippet",
+        "args": { "langId": "r", "name": "Assignment operator" }
+      },
+      {
+        "key": "ctrl+shift+m",
+        "command": "editor.action.insertSnippet",
+        "args": { "langId": "r", "name": "magrittr pipe" }
+      }      
     ],
     "languages": [
       {
