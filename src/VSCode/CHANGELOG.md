@@ -2,8 +2,6 @@
 
 ## 0.0.12 (29 July 2020)
 
-### Updates
-
 Added shortcuts for `<-` and `%>%` as suggested in [#22](https://github.com/MikhailArkhipov/vscode-r/issues/22). Also, added completion triggers on `%` and `<` which allows using completion list for snippets, as in [RTVS](https://github.com/microsoft/rtvs).
 
 You can either type `<` and then `TAB` to get `<-` via completion list or use keyboard shortcut `alt+-`. For pipe `%>%` either type `%` and then `TAB` or use `ctrl+shift+m` shortcut. Snippets file can be found in `snippets/r.json` in the extension folder.
