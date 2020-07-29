@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.0.10 (26 July 2020)
+## 0.0.11 (28 July 2020)
 
 ### Updates
 
