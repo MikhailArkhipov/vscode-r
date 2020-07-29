@@ -2,7 +2,7 @@
   "name": "r",
   "displayName": "R Tools",
   "description": "R Tools (powered by Microsoft RTVS)",
-  "version": "0.0.10",
+  "version": "0.0.11",
   "author": "Mikhail Arkhipov & Microsoft",
   "icon": "images/rIcon.png",
   "publisher": "Mikhail-Arkhipov",
@@ -104,7 +104,7 @@
         "r.dependencyChecks": {
           "type": "boolean",
           "default": true,
-          "description": "Perform or bypass checks for .NET Core."
+          "description": "Perform checks for .NET Core at startup."
         },
         "r.interpreter": {
           "type": "number",
@@ -114,6 +114,10 @@
         "r.interpreterPath": {
           "type": "string",
           "description": "R interpreter path. Overrides R interpreter index."
+        },
+        "r.terminalPath": {
+          "type": "string",
+          "description": "R interpreter path to use in terminal. It is recommended to provide `r.interpreterPath` that points to R version that radian uses."
         },
         "r.editor.formatOnType": {
           "type": "boolean",

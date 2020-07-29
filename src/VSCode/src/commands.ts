@@ -2,7 +2,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 'use strict';
 
-import { commands, Disposable, Uri, ViewColumn, window } from 'vscode';
+import { commands, Disposable, Uri, ViewColumn, window, workspace } from 'vscode';
 
 import { getFilePath, getSelectedText } from './editor';
 import { PlotView } from './plotView';
@@ -22,19 +22,21 @@ export namespace CommandNames {
 }
 
 export class Commands {
+    private readonly disposables: Disposable[] = [];
     private repl: ReplTerminal;
 
     constructor(private readonly r: REngine) {}
 
     public activateCommandsProvider(): Disposable[] {
-        const disposables: Disposable[] = [];
-        disposables.push(commands.registerCommand(CommandNames.Execute, () => this.execute()));
-        disposables.push(commands.registerCommand(CommandNames.Interrupt, () => this.r.interrupt()));
-        disposables.push(commands.registerCommand(CommandNames.Reset, () => this.r.reset()));
-        disposables.push(commands.registerCommand(CommandNames.OpenTerminal, () => this.openTerminal()));
-        disposables.push(commands.registerCommand(CommandNames.ExecuteInTerminal, () => this.executeInTerminal()));
-        disposables.push(commands.registerCommand(CommandNames.SourceFileToTerminal, () => this.sourceToTerminal()));
-        return disposables;
+        this.disposables.push(commands.registerCommand(CommandNames.Execute, () => this.execute()));
+        this.disposables.push(commands.registerCommand(CommandNames.Interrupt, () => this.r.interrupt()));
+        this.disposables.push(commands.registerCommand(CommandNames.Reset, () => this.r.reset()));
+        this.disposables.push(commands.registerCommand(CommandNames.OpenTerminal, () => this.openTerminal()));
+        this.disposables.push(commands.registerCommand(CommandNames.ExecuteInTerminal, () => this.executeInTerminal()));
+        this.disposables.push(
+            commands.registerCommand(CommandNames.SourceFileToTerminal, () => this.sourceToTerminal())
+        );
+        return this.disposables;
     }
 
     private async execute() {
@@ -86,8 +88,13 @@ export class Commands {
         if (this.repl !== undefined && this.repl !== null) {
             return;
         }
-        const interpreterPath = await this.r.getInterpreterPath();
-        this.repl = new ReplTerminal(interpreterPath);
+
+        const terminalPath = workspace.getConfiguration('r').get<string>('terminalPath');
+        let interpreterPath = workspace.getConfiguration('r').get<string>('interpreterPath');
+        interpreterPath = interpreterPath ?? (await this.r.getInterpreterPath());
+
+        this.repl = new ReplTerminal(interpreterPath, terminalPath);
+        this.disposables.push(this.repl);
     }
 
     private async moveCaretDown() {

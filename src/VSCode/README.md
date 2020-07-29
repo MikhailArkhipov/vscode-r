@@ -61,6 +61,10 @@ Remember though that **Terminal window and internal R session are not connected*
 
 ![Internal Plot Window](https://user-images.githubusercontent.com/12820357/88484757-cd1a1680-cf25-11ea-93a6-3af4d697f6d1.png))
 
+### Using custom R executable in terminal
+
+You can set `r.terminalPath` to an executable for the R Terminal. For example, [Radian](https://github.com/randy3k/radian). The extension completions engine still needs to know where to find R binaries so it is recommended to set `r.interpreterPath` to whatever version of R used in the terminal.
+
 ## Known issues
 
 R session in the editor does not automatically pick up new packages installed in the terminal. You may have to reload the window for the session to pick up newly installed modules.
