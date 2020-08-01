@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.0.13 (1 Aug 2020)
+
+Fixed calculation of active parameter and its range in the signature string [#9](https://github.com/MikhailArkhipov/vscode-r/issues/9).
+
 ## 0.0.12 (29 July 2020)
 
 Added shortcuts for `<-` and `%>%` as suggested in [#22](https://github.com/MikhailArkhipov/vscode-r/issues/22). Also, added completion triggers on `%` and `<` which allows using completion list for snippets, as in [RTVS](https://github.com/microsoft/rtvs).
