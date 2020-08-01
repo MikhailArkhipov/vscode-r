@@ -1,12 +1,14 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Common.Core;
 using Microsoft.Common.Core.Services;
+using Microsoft.Languages.Core.Text;
 using Microsoft.Languages.Editor.Completions;
 using Microsoft.Languages.Editor.Text;
 using Microsoft.R.Editor;
@@ -65,7 +67,7 @@ namespace Microsoft.R.LanguageServer.Completions {
                     value = s.Documentation.RemoveLineBreaks()
                 },
                 parameters = s.Parameters.Select(p => new ParameterInformation {
-                    label = p.Name,
+                    label = ToLabelRange(s.Content, p.Locus.Start, p.Locus.End),
                     documentation = new MarkupContent {
                         kind = "plaintext",
                         value = p.Documentation.RemoveLineBreaks()
@@ -77,6 +79,15 @@ namespace Microsoft.R.LanguageServer.Completions {
                 signatures = sigInfos,
                 activeParameter = sigInfos.Length > 0 ? ComputeActiveParameter(context, signatures.First().SignatureInfo) : 0
             };
+        }
+
+        private static int[] ToLabelRange(string signature, int start, int end) {
+            // Locus points to range that includes leading whitespace and trailing comma.
+            for (; start < end && char.IsWhiteSpace(signature[start]); start++) {
+            }
+            for (; end > start && char.IsWhiteSpace(signature[end]) || end == ','; end--) {
+            }
+            return new[] { start, end };
         }
 
         private static Hover ToHover(IReadOnlyList<IRFunctionQuickInfo> e, IEditorBuffer buffer) {

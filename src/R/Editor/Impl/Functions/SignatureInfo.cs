@@ -49,14 +49,13 @@ namespace Microsoft.R.Editor.Functions {
 
                 if (i < Arguments.Count - 1) {
                     sb.Append(", ");
-                }
-
-                if (locusPoints != null) {
-                    locusPoints.Add(sb.Length);
+                    locusPoints?.Add(sb.Length - 1);
+                } else {
+                    locusPoints?.Add(sb.Length);
                 }
 
                 if (sb.Length > (lineCount + 1) * MaxSignatureLength && i != Arguments.Count - 1) {
-                    sb.Append("\r\n");
+                    sb.Append(Environment.NewLine);
                     lineCount++;
                 }
             }

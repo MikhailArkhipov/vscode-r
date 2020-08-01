@@ -4,8 +4,6 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.Common.Core;
-using Microsoft.Common.Core.Services;
-using Microsoft.Common.Core.Threading;
 
 namespace Microsoft.R.Editor.Functions {
     public static class FunctionIndexExtensions {
@@ -43,20 +41,6 @@ namespace Microsoft.R.Editor.Functions {
                 fi = await functionIndex.GetFunctionInfoAsync(functionName, packageName);
             }
             callback(fi, parameter);
-        }
-
-        public static async Task<IFunctionInfo> GetFunctionInfoAsync(this IFunctionIndex functionIndex, string functionName, string packageName = null) {
-            var fi = functionIndex.GetFunctionInfo(functionName, packageName);
-            if (fi != null) {
-                return fi;
-            }
-
-            packageName = await functionIndex.GetPackageNameAsync(functionName);
-            if (!string.IsNullOrEmpty(packageName)) {
-                return functionIndex.GetFunctionInfo(functionName, packageName);
-            }
-
-            return null;
         }
     }
 }

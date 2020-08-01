@@ -448,7 +448,7 @@ namespace Microsoft.R.LanguageServer {
 
     [Serializable]
     public class ParameterInformation {
-        public string label;
+        public object label;
         public MarkupContent documentation;
     }
 
