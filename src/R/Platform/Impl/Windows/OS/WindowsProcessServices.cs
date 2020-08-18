@@ -7,9 +7,6 @@ using Microsoft.R.Platform.OS;
 
 namespace Microsoft.R.Platform.Windows.OS {
     public sealed class WindowsProcessServices : ProcessServices {
-        protected override string GetMessageFromExitCode(int processExitCode)
-            => ErrorCodeConverter.MessageFromErrorCode(processExitCode);
-
         protected override void KillProcess(int pid) {
             try {
                 (Process.GetProcessById(pid)).Kill();

@@ -177,7 +177,7 @@ namespace Microsoft.R.Host.Client.Host {
                     return Resources.Error_InterpreterNotFound.FormatInvariant(_interpreterId);
                 case BrokerApiError.UnableToStartRHost:
                     if (!string.IsNullOrEmpty(ex.Message)) {
-                        return Resources.Error_UnableToStartHostException.FormatInvariant(Name, ex.Message);
+                        return Resources.Error_UnableToStartHostException.FormatInvariant(ex.Message);
                     }
                     return Resources.Error_UnknownError;
                 case BrokerApiError.PipeAlreadyConnected:

@@ -10,7 +10,6 @@
 
 namespace Microsoft.R.Host.Client {
     using System;
-    using System.Reflection;
     
     
     /// <summary>
@@ -20,7 +19,7 @@ namespace Microsoft.R.Host.Client {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class Resources {
@@ -40,7 +39,7 @@ namespace Microsoft.R.Host.Client {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Microsoft.R.Host.Client.Resources", typeof(Resources).GetTypeInfo().Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Microsoft.R.Host.Client.Resources", typeof(Resources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -72,34 +71,11 @@ namespace Microsoft.R.Host.Client {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The security certificate presented by the Remote R Services does not allow us to prove that you are indeed connecting to the machine {0}.
-        ///
-        ///This should never happen with a production Remote R Services, so please check with your server administrator.
-        ///
-        ///If you are using a test Remote R Server with a self-signed certificate and are certain about the remote machine security, click Yes, otherwise click NO to terminate the connection..
-        /// </summary>
-        internal static string CertificateSecurityWarning {
-            get {
-                return ResourceManager.GetString("CertificateSecurityWarning", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to {0} is missing from the installation directory.
-        ///Please reinstall Data Science workload or repair the Visual Studio installation..
+        ///   Looks up a localized string similar to {0} is missing from the installation directory. Please reinstall the extension..
         /// </summary>
         internal static string Error_BinaryMissing15 {
             get {
                 return ResourceManager.GetString("Error_BinaryMissing15", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Machine &apos;{0}&apos; appears to be online, but the Remote R Service is not running..
-        /// </summary>
-        internal static string Error_BrokerNotRunning {
-            get {
-                return ResourceManager.GetString("Error_BrokerNotRunning", resourceCulture);
             }
         }
         
@@ -158,15 +134,6 @@ namespace Microsoft.R.Host.Client {
         internal static string Error_InvalidUrl {
             get {
                 return ResourceManager.GetString("Error_InvalidUrl", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Remote machine &apos;{0}&apos; does not have certificate installed for the TLS with the Remote R Service..
-        /// </summary>
-        internal static string Error_NoBrokerCertificate {
-            get {
-                return ResourceManager.GetString("Error_NoBrokerCertificate", resourceCulture);
             }
         }
         
@@ -322,7 +289,7 @@ namespace Microsoft.R.Host.Client {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to R Services broker process did not start on the machine &apos;{0}&apos;. Exception:  {1}.
+        ///   Looks up a localized string similar to R Services broker process did not start. Reason: &apos;{0}&apos;. Exit code: {1}.
         /// </summary>
         internal static string Error_UnableToStartBrokerException {
             get {
@@ -331,7 +298,7 @@ namespace Microsoft.R.Host.Client {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to R session process did not start on the machine &apos;{0}&apos;. Exception:  {1}.
+        ///   Looks up a localized string similar to R host process did not start on the machine. Exception: {0}.
         /// </summary>
         internal static string Error_UnableToStartHostException {
             get {
@@ -439,15 +406,6 @@ namespace Microsoft.R.Host.Client {
         internal static string Trace_SSLPolicyErrors {
             get {
                 return ResourceManager.GetString("Trace_SSLPolicyErrors", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The supplied TLS certificate is not trusted: {0}.
-        /// </summary>
-        internal static string Trace_UntrustedCertificate {
-            get {
-                return ResourceManager.GetString("Trace_UntrustedCertificate", resourceCulture);
             }
         }
     }

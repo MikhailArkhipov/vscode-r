@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.0.14 (6 Aug 2020)
+
+Simplified output of process exit code when broker or R host doesn't start for diagnostics purposes.
+
 ## 0.0.13 (1 Aug 2020)
 
 Fixed calculation of active parameter and its range in the signature string [#9](https://github.com/MikhailArkhipov/vscode-r/issues/9).

@@ -32,13 +32,8 @@ namespace Microsoft.R.Host.Broker.RHost {
             var process = Utility.RunAsCurrentUser(_ps, hostBinPath, commandLine, GetRHomePath(interpreter), GetLoadLibraryPath(interpreter));
             process.WaitForExit(250);
             if (process.HasExited && process.ExitCode != 0) {
-                var message = _ps.MessageFromExitCode(process.ExitCode);
-                if (!string.IsNullOrEmpty(message)) {
-                    throw new Win32Exception(message);
-                }
                 throw new Win32Exception(process.ExitCode);
             }
-
             return process;
         }
 

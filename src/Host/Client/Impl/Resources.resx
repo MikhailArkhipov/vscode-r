@@ -153,29 +153,13 @@ Error: {1}</value>
     <value>HTTP error while creating session on the machine '{0}'. Exception: {1}</value>
   </data>
   <data name="Error_UnableToStartHostException" xml:space="preserve">
-    <value>R session process did not start on the machine '{0}'. Exception:  {1}</value>
+    <value>R host process did not start on the machine. Exception: {0}</value>
   </data>
   <data name="Error_UnknownError" xml:space="preserve">
     <value>Unknown error</value>
   </data>
-  <data name="Error_BrokerNotRunning" xml:space="preserve">
-    <value>Machine '{0}' appears to be online, but the Remote R Service is not running.</value>
-  </data>
   <data name="Error_UnableToStartBrokerException" xml:space="preserve">
-    <value>R Services broker process did not start on the machine '{0}'. Exception:  {1}</value>
-  </data>
-  <data name="Error_NoBrokerCertificate" xml:space="preserve">
-    <value>Remote machine '{0}' does not have certificate installed for the TLS with the Remote R Service.</value>
-  </data>
-  <data name="Trace_UntrustedCertificate" xml:space="preserve">
-    <value>The supplied TLS certificate is not trusted: {0}</value>
-  </data>
-  <data name="CertificateSecurityWarning" xml:space="preserve">
-    <value>The security certificate presented by the Remote R Services does not allow us to prove that you are indeed connecting to the machine {0}.
-
-This should never happen with a production Remote R Services, so please check with your server administrator.
-
-If you are using a test Remote R Server with a self-signed certificate and are certain about the remote machine security, click Yes, otherwise click NO to terminate the connection.</value>
+    <value>R Services broker process did not start. Reason: '{0}'. Exit code: {1}</value>
   </data>
   <data name="Error_SessionInitialization" xml:space="preserve">
     <value>The following exception occurred during initialization of R session, and the session has been terminated:
