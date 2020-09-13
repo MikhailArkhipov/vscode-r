@@ -4,11 +4,11 @@
 
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
-import { ConfigurationTarget, ExtensionContext, WebviewPanel, window, workspace } from 'vscode';
+import { ConfigurationTarget, ExtensionContext, WebviewPanel, window, workspace, Terminal } from 'vscode';
 import { LanguageClient, LanguageClientOptions, ServerOptions, TransportKind } from 'vscode-languageclient';
 
 import { Commands } from './commands';
-import { RLanguage } from './constants';
+import { OutputChannelName, RLanguage } from './constants';
 import { checkDependencies, ensureHostExecutable } from './dependencies';
 import { PlotView } from './plotView';
 import { REngine } from './rengine';
@@ -59,7 +59,7 @@ export async function activateLanguageServer(context: ExtensionContext) {
     };
 
     // Create the language client and start the client.
-    client = new LanguageClient(RLanguage.language, 'R Tools', serverOptions, clientOptions);
+    client = new LanguageClient(RLanguage.language, OutputChannelName, serverOptions, clientOptions);
     context.subscriptions.push(client.start());
 
     await client.onReady();

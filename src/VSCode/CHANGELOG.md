@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.0.15 (13 Sep 2020)
+
+1. Fixes [#37](https://github.com/MikhailArkhipov/vscode-r/issues/37). `Ctrl+Enter` and `source` now send code to internal R session as well, effectively duplicating the evaluation there. This allows tracking variable assignment in the editor. Code needs to be sourced for variables to become available to the completion engine.
+
+<table>
+<tr><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<img src="https://user-images.githubusercontent.com/12820357/93031083-02b1b680-f5dd-11ea-8391-7bb0a6ff3547.png" width=500 />
+</td></tr>
+</table>
+
+2. Fixed issue preventing sourcing to terminal in some cases.
+3. Removed unnecessary package dependencies.
+4. Requre VS Code 1.49+ for security reasons.
+
 ## 0.0.14 (6 Aug 2020)
 
 Simplified output of process exit code when broker or R host doesn't start for diagnostics purposes.

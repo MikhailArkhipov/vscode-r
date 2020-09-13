@@ -32,7 +32,7 @@ namespace Microsoft.R.LanguageServer.InteractiveWorkflow {
             await TaskUtilities.SwitchToBackgroundThread();
             var result = string.Empty;
 
-            _workflow = _workflow ?? _services.GetService<IRInteractiveWorkflowProvider>().GetOrCreate();
+            _workflow ??= _services.GetService<IRInteractiveWorkflowProvider>().GetOrCreate();
 
             try {
                 ct.ThrowIfCancellationRequested();
@@ -104,7 +104,7 @@ namespace Microsoft.R.LanguageServer.InteractiveWorkflow {
         }
 
         private async Task<IRSession> StartSessionAsync(CancellationToken ct) {
-            _session = _session ?? _workflow.RSessions.GetOrCreate("VSCR_Output");
+            _session ??= _workflow.RSessions.GetOrCreate(@"REPL");
 
             if (!_session.IsHostRunning) {
                 await _session.EnsureHostStartedAsync(new RHostStartupInfo(isInteractive: true), _sessionCallback, 3000, ct);

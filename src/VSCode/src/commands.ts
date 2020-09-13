@@ -2,7 +2,9 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 'use strict';
 
-import { commands, Disposable, Uri, ViewColumn, window, workspace } from 'vscode';
+import * as fs from 'fs';
+import { commands, Disposable, Uri, window, workspace } from 'vscode';
+import { OutputChannelName } from './constants';
 
 import { getFilePath, getSelectedText } from './editor';
 import { PlotView } from './plotView';
@@ -56,7 +58,9 @@ export class Commands {
             if (p.length > 0 && p[0] !== '"') {
                 p = p = `"${p}"`;
             }
-            await this.sendTextToTerminal(`source(${p})`);
+            const code = `source(${p})`;
+            await this.sendTextToTerminal(code);
+            await this.r.execute(code);
         }
     }
 
@@ -64,6 +68,7 @@ export class Commands {
         const code = getSelectedText();
         if (code.length > 0) {
             await this.sendTextToTerminal(code);
+            await this.r.execute(code);
         }
         await this.moveCaretDown();
     }
@@ -89,10 +94,28 @@ export class Commands {
             return;
         }
 
-        const terminalPath = workspace.getConfiguration('r').get<string>('terminalPath');
-        let interpreterPath = workspace.getConfiguration('r').get<string>('interpreterPath');
-        interpreterPath = interpreterPath ?? (await this.r.getInterpreterPath());
+        let terminalPath = workspace.getConfiguration('r').get<string>('terminalPath');
+        if (terminalPath?.length === 0) {
+            terminalPath = undefined;
+        }
+        if (terminalPath && !fs.existsSync(terminalPath)) {
+            this.getOutput().appendLine(
+                `r.terminalPath ('${terminalPath}') does not exist. Trying 'r.interpreterPath' instead.`
+            );
+        }
 
+        let interpreterPath = workspace.getConfiguration('r').get<string>('interpreterPath');
+        if (interpreterPath?.length === 0) {
+            interpreterPath = undefined;
+        }
+
+        if (interpreterPath && !fs.existsSync(interpreterPath)) {
+            this.getOutput().appendLine(
+                `r.interpreterPath ('${interpreterPath}') does not exist. Trying to discover R interpreter automatically.`
+            );
+        }
+
+        interpreterPath = interpreterPath ?? (await this.r.getInterpreterPath());
         this.repl = new ReplTerminal(interpreterPath, terminalPath);
         this.disposables.push(this.repl);
     }
@@ -107,5 +130,9 @@ export class Commands {
                 to: 'down',
             });
         }
+    }
+
+    private getOutput() {
+        return window.createOutputChannel(OutputChannelName);
     }
 }
