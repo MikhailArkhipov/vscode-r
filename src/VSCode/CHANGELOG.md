@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.0.16 (05 Feb 2021)
+
+1. Move to .NET 5.0.
+
 ## 0.0.15 (13 Sep 2020)
 
 1. Fixes [#37](https://github.com/MikhailArkhipov/vscode-r/issues/37). `Ctrl+Enter` and `source` now send code to internal R session as well, effectively duplicating the evaluation there. This allows tracking variable assignment in the editor. Code needs to be sourced for variables to become available to the completion engine.
