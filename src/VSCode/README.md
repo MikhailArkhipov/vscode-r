@@ -7,7 +7,8 @@ A [Visual Studio Code](https://code.visualstudio.com/) [extension](https://marke
 ### Supported platforms
 
 -   Windows x64
--   Mac OS 10.12+
+-   Mac OS 10.14+
+-   Mac OS 11.2+ with Rosetta 2
 -   Linux distros supported by [.NET 5.0 Runtime](https://www.microsoft.com/net/download).
 
 ---

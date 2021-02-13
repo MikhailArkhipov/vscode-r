@@ -2,7 +2,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 'use strict';
 
-import { LanguageClient } from 'vscode-languageclient';
+import { LanguageClient } from 'vscode-languageclient/node';
 
 export class REngine {
     private client: LanguageClient;

@@ -5,7 +5,7 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
 import { ConfigurationTarget, ExtensionContext, WebviewPanel, window, workspace, Terminal } from 'vscode';
-import { LanguageClient, LanguageClientOptions, ServerOptions, TransportKind } from 'vscode-languageclient';
+import { LanguageClient, LanguageClientOptions, ServerOptions, TransportKind } from 'vscode-languageclient/node';
 
 import * as path from 'path';
 import { Commands } from './commands';

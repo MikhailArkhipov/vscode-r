@@ -1,8 +1,14 @@
 # Changelog
 
-## 0.0.16 (05 Feb 2021)
+## 0.0.17 (13 Feb 2021)
+
+1. Fixes [#53](https://github.com/MikhailArkhipov/vscode-r/issues/53). Extension now activates when R terminal opens.
+2. Fix issues running on MacOS 11.2 with Rosetta
+
+## 0.0.16 (12 Feb 2021)
 
 1. Move to .NET 5.0.
+2. Fixed issues running on MacOS 11.2 with Rosetta
 
 ## 0.0.15 (13 Sep 2020)
 
