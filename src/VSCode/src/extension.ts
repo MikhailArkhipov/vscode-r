@@ -7,6 +7,7 @@
 import { ConfigurationTarget, ExtensionContext, WebviewPanel, window, workspace, Terminal } from 'vscode';
 import { LanguageClient, LanguageClientOptions, ServerOptions, TransportKind } from 'vscode-languageclient';
 
+import * as path from 'path';
 import { Commands } from './commands';
 import { OutputChannelName, RLanguage } from './constants';
 import { checkDependencies, ensureHostExecutable } from './dependencies';
@@ -39,7 +40,7 @@ export async function activate(context: ExtensionContext) {
 
 export async function activateLanguageServer(context: ExtensionContext) {
     // The server is implemented in C#
-    const serverModule = context.extensionPath + '/ls/Microsoft.R.LanguageServer.dll';
+    const serverModule = path.join(context.extensionPath, 'ls', 'Microsoft.R.LanguageServer.dll');
 
     // If the extension is launched in debug mode then the debug server options are used
     // Otherwise the run options are used
