@@ -1,14 +1,17 @@
 # Changelog
 
+## 0.0.18 (15 Feb 2021)
+
+1. Add support for multiple terminals (fixes [#47](https://github.com/MikhailArkhipov/vscode-r/issues/47)). 'Open R Terminal' command opens or creates R terminal. New 'Create R Terminal' command always creates another copy. If active terminal is closed, last used instance, if any, will be activated on sending code to the terminal.
+
 ## 0.0.17 (13 Feb 2021)
 
 1. Fixes [#53](https://github.com/MikhailArkhipov/vscode-r/issues/53). Extension now activates when R terminal opens.
-2. Fix issues running on MacOS 11.2 with Rosetta
+2. Fixes issues running on MacOS 11.2 with Rosetta
 
-## 0.0.16 (12 Feb 2021)
+## 0.0.16 (05 Feb 2021)
 
 1. Move to .NET 5.0.
-2. Fixed issues running on MacOS 11.2 with Rosetta
 
 ## 0.0.15 (13 Sep 2020)
 
