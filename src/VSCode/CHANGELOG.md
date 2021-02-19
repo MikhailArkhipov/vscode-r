@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.0.19 (19 Feb 2021)
+
+1. Implement hierachical display of the document symbols in the Outline window.
+
 ## 0.0.18 (15 Feb 2021)
 
 1. Add support for multiple terminals (fixes [#47](https://github.com/MikhailArkhipov/vscode-r/issues/47)). 'Open R Terminal' command opens or creates R terminal. New 'Create R Terminal' command always creates another copy. If active terminal is closed, last used instance, if any, will be activated on sending code to the terminal.
