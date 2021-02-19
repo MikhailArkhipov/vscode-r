@@ -2,7 +2,7 @@
 
 ## 0.0.19 (19 Feb 2021)
 
-1. Implement hierachical display of the document symbols in the Outline window.
+1. Implement hierarchical display of the document symbols in the Outline window.
 
 ## 0.0.18 (15 Feb 2021)
 
