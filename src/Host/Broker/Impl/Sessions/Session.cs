@@ -147,8 +147,8 @@ namespace Microsoft.R.Host.Broker.Sessions {
                         var message = await pipe.ReadAsync(_applicationLifetime.ApplicationStopping);
                         var sizeBuf = BitConverter.GetBytes(message.Length);
 
-                        await stream.WriteAsync(sizeBuf, 0, sizeBuf.Length);
-                        await stream.WriteAsync(message, 0, message.Length);
+                        await stream.WriteAsync(sizeBuf.AsMemory(0, sizeBuf.Length));
+                        await stream.WriteAsync(message.AsMemory(0, message.Length));
                         await stream.FlushAsync();
                     } catch (PipeDisconnectedException pdx) {
                         _sessionLogger.LogError(Resources.Error_ClientToHostConnectionFailed.FormatInvariant(pdx.Message));
@@ -188,7 +188,7 @@ namespace Microsoft.R.Host.Broker.Sessions {
 
         private static async Task<bool> FillFromStreamAsync(Stream stream, byte[] buffer) {
             for (int index = 0, count = buffer.Length; count != 0;) {
-                var read = await stream.ReadAsync(buffer, index, count);
+                var read = await stream.ReadAsync(buffer.AsMemory(index, count));
                 if (read == 0) {
                     return false;
                 }

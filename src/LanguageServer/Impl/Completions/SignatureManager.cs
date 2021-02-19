@@ -1,14 +1,12 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Common.Core;
 using Microsoft.Common.Core.Services;
-using Microsoft.Languages.Core.Text;
 using Microsoft.Languages.Editor.Completions;
 using Microsoft.Languages.Editor.Text;
 using Microsoft.R.Editor;
@@ -63,13 +61,11 @@ namespace Microsoft.R.LanguageServer.Completions {
             var sigInfos = signatures.Select(s => new SignatureInformation {
                 label = s.Content,
                 documentation = new MarkupContent {
-                    kind = "plaintext",
                     value = s.Documentation.RemoveLineBreaks()
                 },
                 parameters = s.Parameters.Select(p => new ParameterInformation {
                     label = ToLabelRange(s.Content, p.Locus.Start, p.Locus.End),
                     documentation = new MarkupContent {
-                        kind = "plaintext",
                         value = p.Documentation.RemoveLineBreaks()
                     }
                 }).ToArray()
@@ -77,7 +73,7 @@ namespace Microsoft.R.LanguageServer.Completions {
 
             return new SignatureHelp {
                 signatures = sigInfos,
-                activeParameter = sigInfos.Length > 0 ? ComputeActiveParameter(context, signatures.First().SignatureInfo) : 0
+                activeParameter = sigInfos.Length > 0 ? ComputeActiveParameter(context, signatures[0].SignatureInfo) : 0
             };
         }
 
@@ -102,7 +98,6 @@ namespace Microsoft.R.LanguageServer.Completions {
                 var end = info.ApplicableToRange.GetEndPoint(snapshot);
                 return new Hover {
                     contents = new MarkupContent {
-                        kind = "plaintext",
                         value = content
                     },
                     range = buffer.ToLineRange(start, end)

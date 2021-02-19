@@ -1,10 +1,8 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
-using System;
-
-namespace Microsoft.R.LanguageServer {
-
+namespace Microsoft.R.LanguageServer
+{
     public enum SymbolKind {
         None = 0,
         File = 1,
@@ -35,41 +33,41 @@ namespace Microsoft.R.LanguageServer {
         TypeParameter = 26
     }
 
-    public enum TextDocumentSyncKind : int {
+    public enum TextDocumentSyncKind {
         None = 0,
         Full = 1,
         Incremental = 2
     }
 
-    public enum FileChangeType : int {
+    public enum FileChangeType {
         Created = 1,
         Changed = 2,
         Deleted = 3
     }
 
-    public enum WatchKind : int {
+    public enum WatchKind {
         Create = 1,
         Change = 2,
         Delete = 4
     }
 
-    public enum TextDocumentSaveReason : int {
+    public enum TextDocumentSaveReason {
         Manual = 1,
         AfterDelay = 2,
         FocusOut = 3
     }
 
-    public enum CompletionTriggerKind : int {
+    public enum CompletionTriggerKind {
         Invoked = 1,
         TriggerCharacter = 2
     }
 
-    public enum InsertTextFormat : int {
+    public enum InsertTextFormat {
         PlainText = 1,
         Snippet = 2
     }
 
-    public enum CompletionItemKind : int {
+    public enum CompletionItemKind {
         None = 0,
         Text = 1,
         Method = 2,
@@ -98,7 +96,7 @@ namespace Microsoft.R.LanguageServer {
         TypeParameter = 25
     }
 
-    public enum DocumentHighlightKind : int {
+    public enum DocumentHighlightKind {
         Text = 1,
         Read = 2,
         Write = 3

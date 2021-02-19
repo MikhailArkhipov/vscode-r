@@ -22,13 +22,13 @@ namespace Microsoft.R.LanguageServer.Services {
             return _rpc.NotifyWithParameterObjectAsync("window/showMessage", parameters);
         }
 
-        public Task<MessageActionItem?> ShowMessageAsync(string message, MessageActionItem[] actions, MessageType messageType) {
+        public Task<MessageActionItem> ShowMessageAsync(string message, MessageActionItem[] actions, MessageType messageType) {
             var parameters = new ShowMessageRequestParams {
                 type = messageType,
                 message = message,
                 actions = actions
             };
-            return _rpc.InvokeWithParameterObjectAsync<MessageActionItem?>("window/showMessageRequest", parameters);
+            return _rpc.InvokeWithParameterObjectAsync<MessageActionItem>("window/showMessageRequest", parameters);
         }
 
         [Serializable]

@@ -16,7 +16,7 @@ namespace Microsoft.R.LanguageServer {
         /// <summary>
         /// Displays message with specified buttons in a host-specific UI
         /// </summary>
-        Task<MessageActionItem?> ShowMessageAsync(string message, MessageActionItem[] actions, MessageType messageType);
+        Task<MessageActionItem> ShowMessageAsync(string message, MessageActionItem[] actions, MessageType messageType);
 
         /// <summary>
         /// Writes message to the host application output log

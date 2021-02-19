@@ -6,7 +6,7 @@ using System;
 namespace Microsoft.R.LanguageServer {
     [Serializable]
     public struct InitializeResult {
-        public ServerCapabilities? capabilities;
+        public ServerCapabilities capabilities;
     }
 
     [Serializable]

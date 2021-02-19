@@ -29,8 +29,12 @@ namespace Microsoft.R.LanguageServer {
     }
 
     [Serializable]
-    public class MarkupContent {
-        public string kind;
+    public sealed class MarkupContent {
+#pragma warning disable IDE1006 // Naming Styles
+#pragma warning disable CA1822 // Mark members as static
+        public string kind => "plaintext";
+#pragma warning restore CA1822 // Mark members as static
+#pragma warning restore IDE1006 // Naming Styles
         public string value;
     }
 
@@ -204,7 +208,7 @@ namespace Microsoft.R.LanguageServer {
         public HoverCapabilities? hover;
 
         [Serializable]
-        public struct SignatureHelpCapabilities {
+        public sealed class SignatureHelpCapabilities {
             public bool dynamicRegistration;
 
             public struct SignatureInformationCapabilities {
@@ -223,18 +227,18 @@ namespace Microsoft.R.LanguageServer {
             }
             public SignatureInformationCapabilities? signatureInformation;
         }
-        public SignatureHelpCapabilities? signatureHelp;
+        public SignatureHelpCapabilities signatureHelp;
 
         [Serializable]
-        public struct ReferencesCapabilities { public bool dynamicRegistration; }
-        public ReferencesCapabilities? references;
+        public sealed class ReferencesCapabilities { public bool dynamicRegistration; }
+        public ReferencesCapabilities references;
 
         [Serializable]
         public struct DocumentHighlightCapabilities { public bool dynamicRegistration; }
-        public DocumentHighlightCapabilities? documentHighlight;
+        public DocumentHighlightCapabilities documentHighlight;
 
         [Serializable]
-        public struct DocumentSymbolCapabilities {
+        public sealed class DocumentSymbolCapabilities {
             public bool dynamicRegistration;
             public struct SymbolKindCapabilities {
                 /// <summary>
@@ -256,48 +260,48 @@ namespace Microsoft.R.LanguageServer {
             /// </summary>
             public bool? hierarchicalDocumentSymbolSupport;
         }
-        public DocumentSymbolCapabilities? documentSymbol;
+        public DocumentSymbolCapabilities documentSymbol;
 
         [Serializable]
-        public struct FormattingCapabilities { public bool dynamicRegistration; }
-        public FormattingCapabilities? formatting;
+        public sealed class FormattingCapabilities { public bool dynamicRegistration; }
+        public FormattingCapabilities formatting;
 
         [Serializable]
-        public struct RangeFormattingCapabilities { public bool dynamicRegistration; }
-        public RangeFormattingCapabilities? rangeFormatting;
+        public sealed class RangeFormattingCapabilities { public bool dynamicRegistration; }
+        public RangeFormattingCapabilities rangeFormatting;
 
         [Serializable]
-        public struct OnTypeFormattingCapabilities { public bool dynamicRegistration; }
-        public OnTypeFormattingCapabilities? onTypeFormatting;
+        public sealed class OnTypeFormattingCapabilities { public bool dynamicRegistration; }
+        public OnTypeFormattingCapabilities onTypeFormatting;
 
-        public struct DefinitionCapabilities { public bool dynamicRegistration; }
-        public DefinitionCapabilities? definition;
-
-        [Serializable]
-        public struct CodeActionCapabilities { public bool dynamicRegistration; }
-        public CodeActionCapabilities? codeAction;
+        public sealed class DefinitionCapabilities { public bool dynamicRegistration; }
+        public DefinitionCapabilities definition;
 
         [Serializable]
-        public struct CodeLensCapabilities { public bool dynamicRegistration; }
-        public CodeLensCapabilities? codeLens;
+        public sealed class CodeActionCapabilities { public bool dynamicRegistration; }
+        public CodeActionCapabilities codeAction;
 
         [Serializable]
-        public struct DocumentLinkCapabilities { public bool dynamicRegistration; }
-        public DocumentLinkCapabilities? documentLink;
+        public sealed class CodeLensCapabilities { public bool dynamicRegistration; }
+        public CodeLensCapabilities codeLens;
 
         [Serializable]
-        public struct RenameCapabilities { public bool dynamicRegistration; }
-        public RenameCapabilities? rename;
+        public sealed class DocumentLinkCapabilities { public bool dynamicRegistration; }
+        public DocumentLinkCapabilities documentLink;
+
+        [Serializable]
+        public sealed class RenameCapabilities { public bool dynamicRegistration; }
+        public RenameCapabilities rename;
     }
 
     [Serializable]
-    public class ClientCapabilities {
+    public sealed class ClientCapabilities {
         public WorkspaceClientCapabilities workspace;
         public TextDocumentClientCapabilities textDocument;
     }
 
     [Serializable]
-    public struct CompletionOptions {
+    public sealed class CompletionOptions {
         /// <summary>
         /// The server provides support to resolve additional
         /// information for a completion item.
@@ -310,7 +314,7 @@ namespace Microsoft.R.LanguageServer {
     }
 
     [Serializable]
-    public struct SignatureHelpOptions {
+    public sealed class SignatureHelpOptions {
         /// <summary>
         /// The characters that trigger signature help
         /// automatically.
@@ -319,28 +323,28 @@ namespace Microsoft.R.LanguageServer {
     }
 
     [Serializable]
-    public struct CodeLensOptions {
+    public sealed class CodeLensOptions {
         public bool resolveProvider;
     }
 
     [Serializable]
-    public struct DocumentOnTypeFormattingOptions {
+    public sealed class DocumentOnTypeFormattingOptions {
         public string firstTriggerCharacter;
         public string[] moreTriggerCharacter;
     }
 
     [Serializable]
-    public struct DocumentLinkOptions {
+    public sealed class DocumentLinkOptions {
         public bool resolveProvider;
     }
 
     [Serializable]
-    public struct ExecuteCommandOptions {
+    public sealed class ExecuteCommandOptions {
         public string[] commands;
     }
 
     [Serializable]
-    public class SaveOptions {
+    public sealed class SaveOptions {
         public bool includeText;
     }
 
@@ -357,41 +361,41 @@ namespace Microsoft.R.LanguageServer {
     }
 
     [Serializable]
-    public struct ServerCapabilities {
+    public sealed class ServerCapabilities {
         public TextDocumentSyncOptions textDocumentSync;
         public bool hoverProvider;
-        public CompletionOptions? completionProvider;
-        public SignatureHelpOptions? signatureHelpProvider;
+        public CompletionOptions completionProvider;
+        public SignatureHelpOptions signatureHelpProvider;
         public bool definitionProvider;
         public bool referencesProvider;
         public bool documentHighlightProvider;
         public bool documentSymbolProvider;
         public bool workspaceSymbolProvider;
         public bool codeActionProvider;
-        public CodeLensOptions? codeLensProvider;
+        public CodeLensOptions codeLensProvider;
         public bool documentFormattingProvider;
         public bool documentRangeFormattingProvider;
-        public DocumentOnTypeFormattingOptions? documentOnTypeFormattingProvider;
+        public DocumentOnTypeFormattingOptions documentOnTypeFormattingProvider;
         public bool renameProvider;
-        public DocumentLinkOptions? documentLinkProvider;
-        public ExecuteCommandOptions? executeCommandProvider;
+        public DocumentLinkOptions documentLinkProvider;
+        public ExecuteCommandOptions executeCommandProvider;
         public object experimental;
     }
 
     [Serializable]
-    public struct MessageActionItem {
+    public sealed class MessageActionItem {
         public string title;
     }
   
     [Serializable]
-    public struct TextDocumentContentChangedEvent {
+    public sealed class TextDocumentContentChangedEvent {
         public Range? range;
         public int? rangeLength;
         public string text;
     }
 
     [Serializable]
-    public class CompletionList {
+    public sealed class CompletionList {
         /// <summary>
         /// This list is not complete. Further typing should result in recomputing
         /// this list.
@@ -401,7 +405,7 @@ namespace Microsoft.R.LanguageServer {
     }
 
     [Serializable]
-    public class CompletionItem {
+    public sealed class CompletionItem {
         public string label;
         public CompletionItemKind kind;
         public string detail;
@@ -420,34 +424,34 @@ namespace Microsoft.R.LanguageServer {
 
     // Not in LSP spec
     [Serializable]
-    public struct CompletionItemValue {
+    public sealed class CompletionItemValue {
         public string description;
         public string documentation;
         public Reference[] references;
     }
 
     [Serializable]
-    public class Hover {
+    public sealed class Hover {
         public MarkupContent contents;
         public Range? range;
     }
 
     [Serializable]
-    public class SignatureHelp {
+    public sealed class SignatureHelp {
         public SignatureInformation[] signatures;
         public int activeSignature;
         public int activeParameter;
     }
 
     [Serializable]
-    public class SignatureInformation {
+    public sealed class SignatureInformation {
         public string label;
         public MarkupContent documentation;
         public ParameterInformation[] parameters;
     }
 
     [Serializable]
-    public class ParameterInformation {
+    public sealed class ParameterInformation {
         public object label;
         public MarkupContent documentation;
     }
@@ -457,19 +461,19 @@ namespace Microsoft.R.LanguageServer {
     /// the kind.
     /// </summary>
     [Serializable]
-    public class Reference {
+    public sealed class Reference {
         public Uri uri;
         public Range range;
     }
 
     [Serializable]
-    public struct DocumentHighlight {
+    public sealed class DocumentHighlight {
         public Range range;
         public DocumentHighlightKind kind;
     }
 
     [Serializable]
-    public struct DocumentSymbol {
+    public sealed class DocumentSymbol {
         /// <summary>
         /// The name of this symbol.
         /// </summary>
@@ -511,40 +515,26 @@ namespace Microsoft.R.LanguageServer {
     }
 
     [Serializable]
-    public struct SymbolInformation {
-        public string name;
-        public SymbolKind kind;
-        public Location location;
-        /// <summary>
-        /// The name of the symbol containing this symbol. This information is for
-        /// user interface purposes (e.g.to render a qualifier in the user interface
-        /// if necessary). It can't be used to re-infer a hierarchy for the document
-        /// symbols.
-        /// </summary>
-        public string containerName;
-    }
-
-    [Serializable]
-    public struct CodeLens {
+    public sealed class CodeLens {
         public Range range;
         public Command? command;
         public object data;
     }
 
     [Serializable]
-    public struct DocumentLink {
+    public sealed class DocumentLink {
         public Range range;
         public Uri target;
     }
 
     [Serializable]
-    public struct FormattingOptions {
+    public sealed class FormattingOptions {
         public int tabSize;
         public bool insertSpaces;
     }
 
     [Serializable]
-    public class Diagnostic {
+    public sealed class Diagnostic {
         public Range range;
         public DiagnosticSeverity severity;
         public string code;

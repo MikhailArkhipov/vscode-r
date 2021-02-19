@@ -5,10 +5,9 @@ using System;
 using System.Collections.Generic;
 using Microsoft.Languages.Editor.Text;
 using Microsoft.R.Core.AST;
-using Microsoft.R.Core.AST.Functions;
 using Microsoft.R.Core.AST.Operators;
+using Microsoft.R.Core.AST.Statements;
 using Microsoft.R.Core.AST.Variables;
-using Microsoft.R.Core.Tokens;
 using Microsoft.R.Editor.Document;
 using Microsoft.R.LanguageServer.Extensions;
 
@@ -16,21 +15,40 @@ namespace Microsoft.R.LanguageServer.Symbols {
     internal sealed class DocumentSymbolsProvider : IAstVisitor {
         private static readonly Guid _treeUserId = new Guid("5A8CE561-DC03-4CDA-8568-947DDB84F5FA");
 
+        private sealed class Scope {
+            public IAstNode Node { get; }
+            public DocumentSymbol Symbol { get; }
+            public List<DocumentSymbol> Children { get; } = new List<DocumentSymbol>();
+            public Scope(IAstNode node, DocumentSymbol ds) {
+                Node = node;
+                Symbol = ds;
+            }
+        }
+
         private sealed class SearchParams {
             public Uri Uri { get; }
-            public List<SymbolInformation> Symbols { get; }
+            public List<DocumentSymbol> Symbols { get; } = new List<DocumentSymbol>();
             public IEditorBufferSnapshot Snapshot { get; }
             public AstRoot Ast { get; }
 
+            public Stack<Scope> Scopes { get; } = new Stack<Scope>();
+
             public SearchParams(Uri uri, IEditorBufferSnapshot snapshot, AstRoot ast) {
-                Symbols = new List<SymbolInformation>();
                 Uri = uri;
                 Snapshot = snapshot;
                 Ast = ast;
             }
+
+            public void AddSymbol(DocumentSymbol ds) {
+                if (Scopes.Count > 0) {
+                    Scopes.Peek().Children.Add(ds);
+                } else {
+                    Symbols.Add(ds);
+                }
+            }
         }
 
-        public SymbolInformation[] GetSymbols(IREditorDocument document, Uri uri) {
+        public DocumentSymbol[] GetSymbols(IREditorDocument document, Uri uri) {
             var ast = document.EditorTree.AcquireReadLock(_treeUserId);
             try {
                 var p = new SearchParams(uri, document.EditorBuffer.CurrentSnapshot, ast);
@@ -43,50 +61,65 @@ namespace Microsoft.R.LanguageServer.Symbols {
 
         public bool Visit(IAstNode node, object parameter) {
             var p = (SearchParams)parameter;
-            SymbolKind kind = SymbolKind.Field; // never happens in R
+            // Only accept x <-, x = , -> x
 
-            if (node is Variable) {
-                kind = string.IsNullOrEmpty(p.Ast.IsInLibraryStatement(node.Start)) ? SymbolKind.Variable : SymbolKind.Package;
-            } else if (node is IFunction) {
-                kind = SymbolKind.Function;
-            } else if (node is TokenNode t) {
-                switch (t.Token.TokenType) {
-                    case RTokenType.String:
-                        kind = SymbolKind.String;
-                        break;
-                    case RTokenType.Null:
-                    case RTokenType.NaN:
-                        kind = SymbolKind.Constant;
-                        break;
-                    case RTokenType.Number:
-                        kind = SymbolKind.Number;
-                        break;
-                    case RTokenType.Logical:
-                        kind = SymbolKind.Boolean;
-                        break;
+            if (node is not Variable v || v.Parent is not IOperator op) {
+                return true;
+            }
+
+            switch (op.OperatorType) {
+                case OperatorType.LeftAssign:
+                case OperatorType.Equals:
+                    if (op.LeftOperand != v) {
+                        return true;
+                    }
+                    break;
+                case OperatorType.RightAssign:
+                    if (op.RightOperand != v) {
+                        return true;
+                    }
+                    break;
+                default:
+                    return true;
+            }
+
+            // Locate function definition, if any. Function defines new scope.
+            if (op.Parent?.Parent is IExpressionStatement es) {
+                var fd = es.GetVariableOrFunctionDefinition(out var funcNameVar);
+                if (fd != null && !string.IsNullOrEmpty(funcNameVar?.Name)) {
+                    var ds = new DocumentSymbol {
+                        name = v.Name,
+                        kind = SymbolKind.Function,
+                        range = node.ToLineRange(p.Snapshot),
+                        selectionRange = funcNameVar.ToLineRange(p.Snapshot),
+                        deprecated = false
+                    };
+
+                    p.AddSymbol(ds);
+                    p.Scopes.Push(new Scope(es, ds));
+                    return true;
                 }
             }
 
-            if (kind != SymbolKind.Field) {
-                p.Symbols.Add(new SymbolInformation {
+            if (p.Scopes.Count == 0) {
+                var kind = string.IsNullOrEmpty(p.Ast.IsInLibraryStatement(node.Start)) ? SymbolKind.Variable : SymbolKind.Package;
+                p.AddSymbol(new DocumentSymbol {
+                    name = v.Name,
                     kind = kind,
-                    location = new Location {
-                        uri = p.Uri,
-                        range = node.ToLineRange(p.Snapshot)
-                    }
+                    range = node.ToLineRange(p.Snapshot),
+                    selectionRange = node.ToLineRange(p.Snapshot),
+                    deprecated = false
                 });
             }
             return true;
         }
 
-        private string ContainerName(IAstNode node) {
-            while (node != null && !(node is AstRoot)) {
-                if (node is IFunctionDefinition fd) {
-                    return ((fd.Parent as IOperator)?.RightOperand as Variable)?.Name;
-                }
-                node = node.Parent;
+        public void EndVisit(IAstNode node, object parameter) {
+            var p = (SearchParams)parameter;
+            if (p.Scopes.Count > 0 && p.Scopes.Peek().Node == node) {
+                var s = p.Scopes.Pop();
+                s.Symbol.children = s.Children.ToArray();
             }
-            return null;
         }
     }
 }

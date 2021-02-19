@@ -15,5 +15,11 @@ namespace Microsoft.R.Core.AST {
         /// <param name="parameter">Arbitrary data passed to the visitor pattern call</param>
         /// <returns>True if tree traversal should continue, false otherwise</returns>
         bool Visit(IAstNode node, object parameter);
+        /// <summary>
+        /// Tells that tree traversal code finished walk through the node subtree.
+        /// </summary>
+        /// <param name="node">Node that is being visited</param>
+        /// <param name="parameter">Arbitrary data passed to the visitor pattern call</param>
+        void EndVisit(IAstNode node, object parameter);
     }
 }

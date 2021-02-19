@@ -13,14 +13,11 @@ using Microsoft.R.Editor.Completions.Engine;
 using Microsoft.R.Editor.Document;
 using Newtonsoft.Json.Linq;
 
-namespace Microsoft.R.LanguageServer.Completions
-{
+namespace Microsoft.R.LanguageServer.Completions {
     internal sealed class CompletionManager {
-        private readonly IServiceContainer _services;
         private readonly RCompletionEngine _completionEngine;
 
         public CompletionManager(IServiceContainer services) {
-            _services = services;
             _completionEngine = new RCompletionEngine(services);
         }
 
@@ -37,7 +34,7 @@ namespace Microsoft.R.LanguageServer.Completions
             var prefix = GetFilterPrefix(context);
             var completions = (await Task.WhenAll(providers.Select(p => p.GetEntriesAsync(context, prefix)))).SelectMany(t => t).ToList();
 
-             if (providers.All(p => p.AllowSorting)) {
+            if (providers.All(p => p.AllowSorting)) {
                 completions.Sort(new CompletionEntryComparer(StringComparison.OrdinalIgnoreCase));
                 completions.RemoveDuplicates(new CompletionEntryComparer(StringComparison.Ordinal));
             }
@@ -52,13 +49,12 @@ namespace Microsoft.R.LanguageServer.Completions
                     insertText = c.InsertionText,
                     kind = (CompletionItemKind)c.ImageSource,
                     documentation = new MarkupContent {
-                        kind = "plaintext",
                         value = c.Description
                     },
-                    data = c.Data is string ? JToken.FromObject((string)c.Data) : null
+                    data = c.Data is string @string ? JToken.FromObject(@string) : null
                 }).ToList();
 
-            return new CompletionList{
+            return new CompletionList {
                 isIncomplete = true,
                 items = items.ToArray()
             };

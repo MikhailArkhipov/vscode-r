@@ -24,8 +24,6 @@ namespace Microsoft.R.Editor.Data {
         private const int _maxWaitTime = 2000;
         private const int _maxResults = 100;
 
-        private readonly IServiceContainer _services;
-
         /// <summary>
         /// Collection of top-level variables
         /// </summary>
@@ -34,7 +32,6 @@ namespace Microsoft.R.Editor.Data {
 
         public WorkspaceVariableProvider(IServiceContainer services) :
             base(services.GetService<IRInteractiveWorkflowProvider>()) {
-            _services = services;
         }
 
         #region IVariablesProvider

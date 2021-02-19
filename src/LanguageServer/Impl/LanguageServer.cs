@@ -134,7 +134,6 @@ namespace Microsoft.R.LanguageServer {
             var info = await FunctionIndex.GetFunctionInfoAsync(item.label, ((JToken)item.data).Type == JTokenType.String ? (string)item.data : null);
             if (info != null) {
                 item.documentation = new MarkupContent {
-                    kind = "plaintext",
                     value = info.Description.RemoveLineBreaks()
                 };
             }
@@ -147,7 +146,7 @@ namespace Microsoft.R.LanguageServer {
             return MainThreadPriority.SendAsync(() => {
                 var p = token.ToObject<DocumentFormattingParams>();
                 var doc = Documents.GetDocument(p.textDocument.uri);
-                var result = doc != null ? doc.Format() : new TextEdit[0];
+                var result = doc != null ? doc.Format() : Array.Empty<TextEdit>();
                 _ignoreNextChange = !IsEmptyChange(result);
                 return result;
             }, ThreadPostPriority.Normal);
@@ -178,13 +177,15 @@ namespace Microsoft.R.LanguageServer {
         }
 
         [JsonRpcMethod("textDocument/documentSymbol")]
-        public Task<SymbolInformation[]> documentSymbol(JToken token, CancellationToken ct) {
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
+        public Task<DocumentSymbol[]> documentSymbol(JToken token, CancellationToken ct) {
             return MainThreadPriority.SendAsync(() => {
                 var p = token.ToObject<DocumentSymbolParams>();
                 var doc = Documents.GetDocument(p.textDocument.uri);
-                return doc != null ? doc.GetSymbols(p.textDocument.uri) : new SymbolInformation[0];
+                return doc != null ? doc.GetSymbols(p.textDocument.uri) : Array.Empty<DocumentSymbol>();
             }, ct);
         }
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
 
         [JsonRpcMethod("workspace/didChangeConfiguration")]
         public Task didChangeConfiguration(JToken token, CancellationToken ct) {

@@ -87,6 +87,8 @@ namespace Microsoft.R.Editor.Validation {
             }
             return true;
         }
+
+        public void EndVisit(IAstNode element, object parameter) { }
         #endregion
 
         private void BeginValidation(IREditorSettings settings, bool projectedBuffer, bool linterEnabled) {

@@ -224,18 +224,18 @@ namespace Microsoft.R.Core.AST {
 
         #region IAstVisitorPattern
         public virtual bool Accept(IAstVisitor visitor, object parameter) {
-            if (visitor != null && visitor.Visit(this, parameter)) {
+            if (visitor?.Visit(this, parameter) == true) {
                 for (var i = 0; i < Children.Count; i++) {
-                    var child = Children[i] as IAstNode;
-
+                    var child = Children[i];
                     if (child != null && !child.Accept(visitor, parameter)) {
+                        visitor.EndVisit(this, parameter);
                         return false;
                     }
                 }
-
+                visitor.EndVisit(this, parameter);
                 return true;
             }
-
+            visitor?.EndVisit(this, parameter);
             return false;
         }
 
@@ -246,10 +246,8 @@ namespace Microsoft.R.Core.AST {
                         return false;
                     }
                 }
-
                 return true;
             }
-
             return false;
         }
         #endregion

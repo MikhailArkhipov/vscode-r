@@ -89,7 +89,7 @@ namespace Microsoft.R.LanguageServer.Documents {
             => _formatter.Autoformat(EditorBuffer.CurrentSnapshot, position, typeChar);
 
         [DebuggerStepThrough]
-        public SymbolInformation[] GetSymbols(Uri uri)
+        public DocumentSymbol[] GetSymbols(Uri uri)
             => _symbolsProvider.GetSymbols(Document, uri);
 
         private IRIntellisenseContext CreateContext(Position position) {

@@ -45,6 +45,7 @@ namespace Microsoft.R.Core.AST {
                 Result = element;
                 return false;
             }
+            public void EndVisit(IAstNode element, object parameter) { }
         }
 
         class MultipleElementFinder : IAstVisitor {
@@ -63,6 +64,7 @@ namespace Microsoft.R.Core.AST {
 
                 return true;
             }
+            public void EndVisit(IAstNode element, object parameter) { }
         }
 
         /// <summary>
@@ -130,8 +132,7 @@ namespace Microsoft.R.Core.AST {
                                 // the actual package name in case it is constructed or returned 
                                 // from another function. However, for now we limit search to 
                                 // single value arguments like library(abind).
-                                var packageNameVariable = arg.ArgumentValue.Children[0] as Variable;
-                                if (packageNameVariable != null) {
+                                if (arg.ArgumentValue.Children[0] is Variable packageNameVariable) {
                                     PackageNames.Add(packageNameVariable.Name);
                                 }
                             }
@@ -140,6 +141,7 @@ namespace Microsoft.R.Core.AST {
                 }
                 return true;
             }
+            public void EndVisit(IAstNode element, object parameter) { }
         }
 
         public static bool IsPositionInsideString(this AstRoot ast, int position) {
