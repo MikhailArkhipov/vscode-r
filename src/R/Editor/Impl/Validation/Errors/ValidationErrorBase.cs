@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using Microsoft.Languages.Core.Text;
+using Microsoft.R.Core.AST;
 using Microsoft.R.Core.Parser;
 
 namespace Microsoft.R.Editor.Validation.Errors {
@@ -21,11 +22,20 @@ namespace Microsoft.R.Editor.Validation.Errors {
         /// </summary>
         public ErrorSeverity Severity { get; }
 
-        public ValidationErrorBase(ITextRange range, string message, ErrorLocation location, ErrorSeverity severity) :
+        /// <summary>
+        /// Version of the text buffer snapshot the error applies to.
+        /// </summary>
+        public int SnapshotVersion { get; }
+
+        public ValidationErrorBase(ITextRange range, string message, ErrorLocation location, ErrorSeverity severity, int snapshotVersion) :
             base(range) {
             Message = message;
             Severity = severity;
             Location = location;
+            SnapshotVersion = snapshotVersion;
         }
+        
+        public ValidationErrorBase(IAstNode node, string message, ErrorLocation location, ErrorSeverity severity) 
+            : this(node, message, location, severity, node.Root.TextProvider.Version) { }
     }
 }

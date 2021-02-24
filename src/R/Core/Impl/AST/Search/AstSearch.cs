@@ -81,7 +81,7 @@ namespace Microsoft.R.Core.AST {
         public static T GetSpecificNodeFromPosition<T>(this AstRoot ast, int position, Func<IAstNode, bool> match, bool includeEnd = false) where T : class {
             IAstNode deepestNode = null;
             FindSpecificNode(ast, position, match, ref deepestNode, includeEnd);
-            if(deepestNode == null && ast.Children.Count > 0) {
+            if (deepestNode == null && ast.Children.Count > 0) {
                 deepestNode = ast.Children[0]; // Global scope if nothing was found
             }
             return deepestNode as T;
@@ -146,18 +146,15 @@ namespace Microsoft.R.Core.AST {
 
         public static bool IsPositionInsideString(this AstRoot ast, int position) {
             // We don't want to auto-format inside strings
-            var node = ast.NodeFromPosition(position) as TokenNode;
-            return node != null && node.Token.TokenType == RTokenType.String;
+            return ast.NodeFromPosition(position) is TokenNode node && node.Token.TokenType == RTokenType.String;
         }
 
         public static string IsInLibraryStatement(this AstRoot ast, int position) {
             var fc = ast.GetNodeOfTypeFromPosition<FunctionCall>(position);
             if (fc?.RightOperand != null) {
                 var funcName = ast.TextProvider.GetText(fc.RightOperand);
-                if (funcName.Equals("library", StringComparison.Ordinal)) {
-                    if (fc.Arguments.Count == 1) {
-                        return ast.TextProvider.GetText(fc.Arguments[0]);
-                    }
+                if (funcName == "library" && fc.Arguments.Count == 1) {
+                    return ast.TextProvider.GetText(fc.Arguments[0]);
                 }
             }
             return string.Empty;

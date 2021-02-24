@@ -6,8 +6,8 @@ using Microsoft.R.Core.Parser;
 
 namespace Microsoft.R.Editor.Validation.Errors {
     public class ValidationMessage : ValidationErrorBase {
-        public ValidationMessage(ITextRange range, string message, ErrorLocation location) :
-            base(range, message, location, ErrorSeverity.Informational) {
+        public ValidationMessage(ITextRange range, string message, ErrorLocation location, int snapshotVersion) :
+            base(range, message, location, ErrorSeverity.Informational, snapshotVersion) {
         }
     }
 }

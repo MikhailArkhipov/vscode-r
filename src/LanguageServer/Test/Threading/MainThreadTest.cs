@@ -34,12 +34,12 @@ namespace Microsoft.R.LanguageServer.Test.Text {
         [Test]
         public async Task SendAsync() {
             var tcs = new TaskCompletionSource<bool>();
-            await _mt.SendAsync(() => tcs.TrySetResult(true), CancellationToken.None);
+            await _mt.SendAsync(() => tcs.TrySetResult(true), null, CancellationToken.None);
             tcs.Task.IsCompleted.Should().BeTrue();
 
             var cts = new CancellationTokenSource();
             cts.Cancel();
-            var t = _mt.SendAsync(() => { }, cts.Token);
+            var t = _mt.SendAsync(() => { }, null, cts.Token);
 
             var thrown = false;
             try {
@@ -54,7 +54,7 @@ namespace Microsoft.R.LanguageServer.Test.Text {
 
         [Test]
         public async Task InvokeAsync() {
-            var result = await _mt.SendAsync(() => 1, CancellationToken.None);
+            var result = await _mt.SendAsync(() => 1, null, CancellationToken.None);
             result.Should().Be(1);
         }
 

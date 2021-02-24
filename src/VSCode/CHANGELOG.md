@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.0.20 (24 Feb 2021)
+
+1. Fixes occasional exception when editing files.
+2. Adds diagnostic output for internal exceptions, if any.
+
 ## 0.0.19 (19 Feb 2021)
 
 1. Implement hierarchical display of the document symbols in the Outline window.

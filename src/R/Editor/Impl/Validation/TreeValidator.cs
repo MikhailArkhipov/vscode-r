@@ -150,7 +150,7 @@ namespace Microsoft.R.Editor.Validation {
             if (_syntaxCheckEnabled && _editorTree != null) {
                 // Transfer available errors from the tree right away
                 foreach (var e in _editorTree.AstRoot.Errors) {
-                    ValidationResults.Enqueue(new ValidationError(e, ErrorText.GetText(e.ErrorType), e.Location));
+                    ValidationResults.Enqueue(new ValidationError(e, ErrorText.GetText(e.ErrorType), e.Location, _editorTree.AstRoot.Root.TextProvider.Version));
                 }
                 // Run all validators
                 _cts = new CancellationTokenSource();

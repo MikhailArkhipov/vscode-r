@@ -5,6 +5,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
+using Microsoft.Common.Core;
 using Microsoft.Common.Core.Disposables;
 using Microsoft.Common.Core.Threading;
 
@@ -47,7 +48,7 @@ namespace Microsoft.R.LanguageServer.Threading {
         public void Post(Action action, ThreadPostPriority priority)
             => Execute(action, priority);
 
-        public Task<T> SendAsync<T>(Func<T> action, ThreadPostPriority priority) {
+        public Task<T> SendAsync<T>(Func<T> action, ThreadPostPriority priority, IUIService ui, CancellationToken ct = default) {
             var tcs = new TaskCompletionSource<T>();
             Execute(() => {
                 try {
@@ -55,6 +56,7 @@ namespace Microsoft.R.LanguageServer.Threading {
                 } catch(OperationCanceledException) {
                     tcs.TrySetCanceled();
                 } catch(Exception ex) {
+                    ui.LogMessageAsync($"Exception {ex.Message} at {ex.StackTrace}", MessageType.Error).DoNotWait();
                     tcs.TrySetException(ex);
                 }
             }, priority);
@@ -62,7 +64,7 @@ namespace Microsoft.R.LanguageServer.Threading {
             return tcs.Task;
         }
 
-        public Task<T> SendAsync<T>(Func<Task<T>> action, ThreadPostPriority priority) {
+        public Task<T> SendAsync<T>(Func<Task<T>> action, ThreadPostPriority priority, IUIService ui, CancellationToken ct = default) {
             var tcs = new TaskCompletionSource<T>();
 #pragma warning disable VSTHRD101 // Avoid unsupported async delegates
             Execute(async () => {
@@ -71,6 +73,7 @@ namespace Microsoft.R.LanguageServer.Threading {
                 } catch (OperationCanceledException) {
                     tcs.TrySetCanceled();
                 } catch (Exception ex) {
+                    ui.LogMessageAsync($"Exception {ex.Message} at {ex.StackTrace}", MessageType.Error).DoNotWait();
                     tcs.TrySetException(ex);
                 }
             }, priority);

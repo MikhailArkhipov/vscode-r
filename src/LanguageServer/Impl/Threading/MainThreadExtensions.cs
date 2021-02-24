@@ -4,6 +4,8 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Common.Core;
+using Microsoft.Common.Core.Logging;
 using Microsoft.Common.Core.Threading;
 
 namespace Microsoft.R.LanguageServer.Threading {
@@ -14,9 +16,16 @@ namespace Microsoft.R.LanguageServer.Threading {
         /// <param name="mainThread"></param>
         /// <param name="action"></param>
         /// <param name="cancellationToken"></param>
-        public static async Task SendAsync(this IMainThread mainThread, Action action, CancellationToken cancellationToken = default) {
+        public static async Task SendAsync(this IMainThread mainThread, Action action, IUIService ui, CancellationToken cancellationToken = default) {
             await mainThread.SwitchToAsync(cancellationToken);
-            action();
+            try {
+                action();
+            } catch (OperationCanceledException) {
+                throw;
+            } catch (Exception ex) {
+                ui.LogMessageAsync($"Exception {ex.Message} at {ex.StackTrace}", MessageType.Error).DoNotWait();
+                throw;
+            }
         }
 
         /// <summary>
@@ -25,9 +34,16 @@ namespace Microsoft.R.LanguageServer.Threading {
         /// <param name="mainThread"></param>
         /// <param name="action"></param>
         /// <param name="cancellationToken"></param>
-        public static async Task<T> SendAsync<T>(this IMainThread mainThread, Func<T> action, CancellationToken cancellationToken = default) {
+        public static async Task<T> SendAsync<T>(this IMainThread mainThread, Func<T> action, IUIService ui, CancellationToken cancellationToken = default) {
             await mainThread.SwitchToAsync(cancellationToken);
-            return action();
+            try {
+                return action();
+            } catch (OperationCanceledException) {
+                throw;
+            } catch (Exception ex) {
+                ui.LogMessageAsync($"Exception {ex.Message} at {ex.StackTrace}", MessageType.Error).DoNotWait();
+                throw;
+            }
         }
     }
 }

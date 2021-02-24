@@ -30,7 +30,6 @@ namespace Microsoft.R.LanguageServer.Symbols {
             public List<DocumentSymbol> Symbols { get; } = new List<DocumentSymbol>();
             public IEditorBufferSnapshot Snapshot { get; }
             public AstRoot Ast { get; }
-
             public Stack<Scope> Scopes { get; } = new Stack<Scope>();
 
             public SearchParams(Uri uri, IEditorBufferSnapshot snapshot, AstRoot ast) {
@@ -49,21 +48,28 @@ namespace Microsoft.R.LanguageServer.Symbols {
         }
 
         public DocumentSymbol[] GetSymbols(IREditorDocument document, Uri uri) {
-            var ast = document.EditorTree.AcquireReadLock(_treeUserId);
-            try {
-                var p = new SearchParams(uri, document.EditorBuffer.CurrentSnapshot, ast);
-                ast.Accept(this, p);
-                return p.Symbols.ToArray();
-            } finally {
-                document.EditorTree.ReleaseReadLock(_treeUserId);
+            var ast = document.EditorTree?.AcquireReadLock(_treeUserId);
+            var symbols = Array.Empty<DocumentSymbol>();
+            if (ast != null) {
+                try {
+                    var p = new SearchParams(uri, document.EditorBuffer.CurrentSnapshot, ast);
+                    ast.Accept(this, p);
+                    symbols = p.Symbols.ToArray();
+                } finally {
+                    document.EditorTree.ReleaseReadLock(_treeUserId);
+                }
             }
+            return symbols;
         }
 
         public bool Visit(IAstNode node, object parameter) {
             var p = (SearchParams)parameter;
             // Only accept x <-, x = , -> x
 
-            if (node is not Variable v || v.Parent is not IOperator op) {
+            if (node is not Variable v) {
+                return true;
+            }
+            if (v.Parent is not IOperator op) {
                 return true;
             }
 
@@ -97,15 +103,14 @@ namespace Microsoft.R.LanguageServer.Symbols {
 
                     p.AddSymbol(ds);
                     p.Scopes.Push(new Scope(es, ds));
-                    return true;
                 }
+                return true;
             }
 
             if (p.Scopes.Count == 0) {
-                var kind = string.IsNullOrEmpty(p.Ast.IsInLibraryStatement(node.Start)) ? SymbolKind.Variable : SymbolKind.Package;
                 p.AddSymbol(new DocumentSymbol {
                     name = v.Name,
-                    kind = kind,
+                    kind = SymbolKind.Variable,
                     range = node.ToLineRange(p.Snapshot),
                     selectionRange = node.ToLineRange(p.Snapshot),
                     deprecated = false

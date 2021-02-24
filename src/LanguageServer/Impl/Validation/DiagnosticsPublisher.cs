@@ -54,7 +54,7 @@ namespace Microsoft.R.LanguageServer.Validation {
             var errors = _resultsQueue.ToArray();
             var diagnostic = new List<Diagnostic>();
 
-            foreach (var e in errors.Where(e => !string.IsNullOrEmpty(e.Message))) {
+            foreach (var e in errors.Where(e => !string.IsNullOrEmpty(e.Message) && e.SnapshotVersion == _document.EditorBuffer.CurrentSnapshot.Version)) {
                 var range = GetRange(e);
                 if (range == null) {
                     continue;

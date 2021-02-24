@@ -31,7 +31,7 @@ namespace Microsoft.R.Editor.Validation.Lint {
                 NameCheck
             };
 
-        private static readonly Func<CharacterStream, ILintOptions, IValidationError>[] _whitespaceCharCheckers = {
+        private static readonly Func<CharacterStream, int, ILintOptions, IValidationError>[] _whitespaceCharCheckers = {
                 TabCheck,
                 TrailingWhitespaceCheck
             };
@@ -84,7 +84,7 @@ namespace Microsoft.R.Editor.Validation.Lint {
                 if (cs.IsWhiteSpace()) {
                     // Unrolled since most return nulls.
                     warnings.AddRange(_whitespaceCharCheckers
-                                        .Select(c => c(cs, _settings.LintOptions))
+                                        .Select(c => c(cs, tp.Version, _settings.LintOptions))
                                         .Where(result => result != null));
                 }
                 cs.MoveToNextChar();

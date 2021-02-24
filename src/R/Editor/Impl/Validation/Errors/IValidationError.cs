@@ -25,5 +25,10 @@ namespace Microsoft.R.Editor.Validation.Errors {
         /// Error severity
         /// </summary>
         ErrorSeverity Severity { get; }
+
+        /// <summary>
+        /// Version of the text buffer snapshot the error applies to.
+        /// </summary>
+        int SnapshotVersion { get; }
     }
 }

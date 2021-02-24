@@ -23,7 +23,7 @@ namespace Microsoft.R.Editor.Validation.Lint {
                 // assignment_linter: checks that ’<-’ is always used for assignment
                 if (node is IOperator op && op.OperatorType == OperatorType.Equals) {
                     if (!(op.LeftOperand is NamedArgument)) {
-                        return new ValidationWarning(((TokenOperator)op).OperatorToken, Resources.Lint_Assignment, ErrorLocation.Token);
+                        return new ValidationWarning(((TokenOperator)op).OperatorToken, Resources.Lint_Assignment, ErrorLocation.Token, node.Root.TextProvider.Version);
                     }
                 }
             }
@@ -53,7 +53,7 @@ namespace Microsoft.R.Editor.Validation.Lint {
                 return null;
             }
             if (!string.IsNullOrWhiteSpace(text) && !text.StartsWithOrdinal("else")) {
-                return new ValidationWarning(node, Resources.Lint_CloseCurlySeparateLine, ErrorLocation.Token);
+                return new ValidationWarning(node, Resources.Lint_CloseCurlySeparateLine, ErrorLocation.Token, node.Root.TextProvider.Version);
             }
 
             text = GetLineTextBeforePosition(node.Root.TextProvider, node.Start);
@@ -61,7 +61,7 @@ namespace Microsoft.R.Editor.Validation.Lint {
             if (string.IsNullOrWhiteSpace(text) || text.TrimEnd().EndsWithOrdinal("{")) {
                 return null;
             }
-            return new ValidationWarning(node, Resources.Lint_CloseCurlySeparateLine, ErrorLocation.Token);
+            return new ValidationWarning(node, Resources.Lint_CloseCurlySeparateLine, ErrorLocation.Token, node.Root.TextProvider.Version);
         }
 
         private static IValidationError CommaSpacesCheck(IAstNode node, ILintOptions options, bool projectedBuffer) {
@@ -161,7 +161,7 @@ namespace Microsoft.R.Editor.Validation.Lint {
             if (node.Parent is IKeywordExpression) {
                 var tp = node.Root.TextProvider;
                 if (!tp.IsWhitespaceBeforePosition(node.Start)) {
-                    return new ValidationWarning(t.Token, Resources.Lint_SpaceBeforeOpenBrace, ErrorLocation.Token);
+                    return new ValidationWarning(t.Token, Resources.Lint_SpaceBeforeOpenBrace, ErrorLocation.Token, tp.Version);
                 }
             }
             return null;
@@ -185,7 +185,7 @@ namespace Microsoft.R.Editor.Validation.Lint {
                         var text = tp.GetText(TextRange.FromBounds(node.End, lineEnd));
                         var wsEnd = text.IndexWhere(ch => !char.IsWhiteSpace(ch)).FirstOrDefault();
                         wsEnd = wsEnd > 0 ? wsEnd + node.End : tp.Length;
-                        return new ValidationWarning(TextRange.FromBounds(node.End, wsEnd), Resources.Lint_SpaceAfterLeftParenthesis, ErrorLocation.Token);
+                        return new ValidationWarning(TextRange.FromBounds(node.End, wsEnd), Resources.Lint_SpaceAfterLeftParenthesis, ErrorLocation.Token, tp.Version);
                     }
                     break;
                 case RTokenType.CloseBrace:
@@ -199,7 +199,7 @@ namespace Microsoft.R.Editor.Validation.Lint {
                             }
                         }
                         i = Math.Max(i, 0);
-                        return new ValidationWarning(TextRange.FromBounds(i, node.Start), Resources.Lint_SpaceBeforeClosingBrace, ErrorLocation.Token);
+                        return new ValidationWarning(TextRange.FromBounds(i, node.Start), Resources.Lint_SpaceBeforeClosingBrace, ErrorLocation.Token, tp.Version);
                     }
                     break;
                 case RTokenType.CloseSquareBracket:
@@ -220,7 +220,7 @@ namespace Microsoft.R.Editor.Validation.Lint {
             }
             var tp = node.Root.TextProvider;
             if (fc.RightOperand is Variable v && tp.IsWhitespaceAfterPosition(v.End - 1)) {
-                return new ValidationWarning(TextRange.FromBounds(v.End, fc.OpenBrace.Start), Resources.Lint_SpaceAfterFunctionName, ErrorLocation.Token);
+                return new ValidationWarning(TextRange.FromBounds(v.End, fc.OpenBrace.Start), Resources.Lint_SpaceAfterFunctionName, ErrorLocation.Token, tp.Version);
             }
             return null;
         }
@@ -244,7 +244,7 @@ namespace Microsoft.R.Editor.Validation.Lint {
                     var offendingTokens = tokens.Where(x => x.TokenType != RTokenType.Comment);
                     if (offendingTokens.Any()) {
                         var squiggle = TextRange.FromBounds(node.End + offendingTokens.First().Start, node.End + offendingTokens.Last().End);
-                        return new ValidationWarning(squiggle, Resources.Lint_MultipleStatementsInLine, ErrorLocation.Token);
+                        return new ValidationWarning(squiggle, Resources.Lint_MultipleStatementsInLine, ErrorLocation.Token, tp.Version);
                     }
                 }
             }
@@ -256,7 +256,7 @@ namespace Microsoft.R.Editor.Validation.Lint {
             if (options.TrueFalseNames) {
                 if (node is TokenNode t && t.Token.TokenType == RTokenType.Logical) {
                     if (t.Token.Length == 1) {
-                        return new ValidationWarning(t.Token, Resources.Lint_TrueFalseNames, ErrorLocation.Token);
+                        return new ValidationWarning(t.Token, Resources.Lint_TrueFalseNames, ErrorLocation.Token, node.Root.TextProvider.Version);
                     }
                 }
             }

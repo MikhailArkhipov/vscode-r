@@ -47,6 +47,7 @@ namespace Microsoft.R.LanguageServer {
         private IFunctionIndex _functionIndex;
         private InitializeParams _initParams;
         private IREvalSession _evalSession;
+        private IUIService _ui;
         private bool _shutdown;
 
         private IMainThreadPriority MainThreadPriority => _mainThread ??= _services.GetService<IMainThreadPriority>();
@@ -54,6 +55,7 @@ namespace Microsoft.R.LanguageServer {
         private IIdleTimeTracker IdleTimeTracker => _idleTimeTracker ??= _services.GetService<IIdleTimeTracker>();
         private IFunctionIndex FunctionIndex => _functionIndex ??= _services.GetService<IFunctionIndex>();
         private IREvalSession EvalSession => _evalSession ??= _services.GetService<IREvalSession>();
+        private IUIService UI => _ui ??= _services.GetService<IUIService>();
 
         public LanguageServer(IServiceContainer services) {
             _services = services;
@@ -65,9 +67,11 @@ namespace Microsoft.R.LanguageServer {
 
         [JsonRpcMethod("textDocument/hover")]
         public Task<Hover> hover(JToken token, CancellationToken ct) {
-            var p = token.ToObject<TextDocumentPositionParams>();
-            var doc = Documents.GetDocument(p.textDocument.uri);
-            return doc != null ? doc.GetHoverAsync(p.position, ct) : Task.FromResult((Hover)null);
+            return MainThreadPriority.SendAsync(async () => {
+                var p = token.ToObject<TextDocumentPositionParams>();
+                var doc = Documents.GetDocument(p.textDocument.uri);
+                return doc != null ? await doc.GetHoverAsync(p.position, ct) : null;
+            }, ThreadPostPriority.Background, UI, ct);
         }
 
         [JsonRpcMethod("textDocument/signatureHelp")]
@@ -75,8 +79,8 @@ namespace Microsoft.R.LanguageServer {
             return MainThreadPriority.SendAsync(async () => {
                 var p = token.ToObject<TextDocumentPositionParams>();
                 var doc = Documents.GetDocument(p.textDocument.uri);
-                return doc != null ? await doc.GetSignatureHelpAsync(p.position) : new SignatureHelp();
-            }, ThreadPostPriority.Background);
+                return doc != null ? await doc.GetSignatureHelpAsync(p.position) : null;
+            }, ThreadPostPriority.Background, UI, ct);
         }
 
         [JsonRpcMethod("textDocument/didOpen")]
@@ -100,7 +104,7 @@ namespace Microsoft.R.LanguageServer {
                 var doc = Documents.GetDocument(p.textDocument.uri);
                 doc?.ProcessChanges(p.contentChanges);
                 return true;
-            }, ThreadPostPriority.Normal);
+            }, ThreadPostPriority.Normal, UI, ct);
         }
 
         [JsonRpcMethod("textDocument/willSave")]
@@ -116,28 +120,30 @@ namespace Microsoft.R.LanguageServer {
         [JsonRpcMethod("textDocument/completion")]
         public Task<CompletionList> completion(JToken token, CancellationToken ct) {
             IdleTimeTracker.NotifyUserActivity();
-            var p = token.ToObject<CompletionParams>();
             return MainThreadPriority.SendAsync(async () => {
+                var p = token.ToObject<CompletionParams>();
                 var doc = Documents.GetDocument(p.textDocument.uri);
                 return doc != null ? await doc.GetCompletionsAsync(p.position) : new CompletionList();
-            }, ThreadPostPriority.Background);
+            }, ThreadPostPriority.Background, UI, ct);
         }
 
         // The request is sent from the client to the server to resolve additional information
         // for a given completion item.
         [JsonRpcMethod("completionItem/resolve")]
-        public async Task<CompletionItem> resolve(JToken token, CancellationToken ct) {
-            var item = token.ToObject<CompletionItem>();
-            if (item.kind != CompletionItemKind.Function) {
+        public Task<CompletionItem> resolve(JToken token, CancellationToken ct) {
+            return MainThreadPriority.SendAsync(async () => {
+                var item = token.ToObject<CompletionItem>();
+                if (item.kind != CompletionItemKind.Function) {
+                    return item;
+                }
+                var info = await FunctionIndex.GetFunctionInfoAsync(item.label, ((JToken)item.data).Type == JTokenType.String ? (string)item.data : null);
+                if (info != null) {
+                    item.documentation = new MarkupContent {
+                        value = info.Description.RemoveLineBreaks()
+                    };
+                }
                 return item;
-            }
-            var info = await FunctionIndex.GetFunctionInfoAsync(item.label, ((JToken)item.data).Type == JTokenType.String ? (string)item.data : null);
-            if (info != null) {
-                item.documentation = new MarkupContent {
-                    value = info.Description.RemoveLineBreaks()
-                };
-            }
-            return item;
+            }, ThreadPostPriority.Background, UI, ct);
         }
 
         [JsonRpcMethod("textDocument/formatting")]
@@ -149,7 +155,7 @@ namespace Microsoft.R.LanguageServer {
                 var result = doc != null ? doc.Format() : Array.Empty<TextEdit>();
                 _ignoreNextChange = !IsEmptyChange(result);
                 return result;
-            }, ThreadPostPriority.Normal);
+            }, ThreadPostPriority.Normal, UI, ct);
         }
 
         [JsonRpcMethod("textDocument/rangeFormatting")]
@@ -161,7 +167,7 @@ namespace Microsoft.R.LanguageServer {
                 var result = doc.FormatRange(p.range);
                 _ignoreNextChange = !IsEmptyChange(result);
                 return result;
-            }, ThreadPostPriority.Normal);
+            }, ThreadPostPriority.Normal, UI, ct);
         }
 
         [JsonRpcMethod("textDocument/onTypeFormatting")]
@@ -173,19 +179,17 @@ namespace Microsoft.R.LanguageServer {
                 var result = doc.Autoformat(p.position, p.ch);
                 _ignoreNextChange = !IsEmptyChange(result);
                 return result;
-            }, ThreadPostPriority.Normal);
+            }, ThreadPostPriority.Normal, UI, ct);
         }
 
         [JsonRpcMethod("textDocument/documentSymbol")]
-#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         public Task<DocumentSymbol[]> documentSymbol(JToken token, CancellationToken ct) {
             return MainThreadPriority.SendAsync(() => {
                 var p = token.ToObject<DocumentSymbolParams>();
                 var doc = Documents.GetDocument(p.textDocument.uri);
                 return doc != null ? doc.GetSymbols(p.textDocument.uri) : Array.Empty<DocumentSymbol>();
-            }, ct);
+            }, UI, ct);
         }
-#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
 
         [JsonRpcMethod("workspace/didChangeConfiguration")]
         public Task didChangeConfiguration(JToken token, CancellationToken ct) {
@@ -241,7 +245,7 @@ namespace Microsoft.R.LanguageServer {
 
             return MainThreadPriority.SendAsync(() => {
                 _services.GetService<ISettingsManager>().UpdateSettings(settings);
-            }, ct);
+            }, UI, ct);
         }
 
         private static T GetSetting<T>(JToken section, string settingName, T defaultValue) {

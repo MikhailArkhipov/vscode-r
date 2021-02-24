@@ -7,8 +7,8 @@ using Microsoft.R.Core.Parser;
 
 namespace Microsoft.R.Editor.Validation.Errors {
     public class ValidationErrorCollection : List<IValidationError> {
-        public void Add(ITextRange range, string message, ErrorLocation location) {
-            Add(new ValidationError(range, message, location));
+        public void Add(ITextRange range, string message, ErrorLocation location, int snapshotVersion) {
+            Add(new ValidationError(range, message, location, snapshotVersion));
         }
     }
 }

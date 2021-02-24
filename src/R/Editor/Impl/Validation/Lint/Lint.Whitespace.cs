@@ -10,19 +10,19 @@ using Microsoft.R.Editor.Validation.Errors;
 
 namespace Microsoft.R.Editor.Validation.Lint {
     internal partial class LintValidator {
-        private static IValidationError TabCheck(CharacterStream cs, ILintOptions options) {
+        private static IValidationError TabCheck(CharacterStream cs, int snapshotVersion, ILintOptions options) {
             if (options.NoTabs && cs.CurrentChar == '\t' && cs.Position < cs.Length) {
                 // // no_tab_linter: check that only spaces are used, never tabs
-                return new ValidationWarning(new TextRange(cs.Position, 1), Resources.Lint_Tabs, ErrorLocation.Token);
+                return new ValidationWarning(new TextRange(cs.Position, 1), Resources.Lint_Tabs, ErrorLocation.Token, snapshotVersion);
             }
             return null;
         }
 
-        private static IValidationError TrailingWhitespaceCheck(CharacterStream cs, ILintOptions options) {
+        private static IValidationError TrailingWhitespaceCheck(CharacterStream cs, int snapshotVersion, ILintOptions options) {
             if (options.TrailingWhitespace) {
                 if (cs.IsWhiteSpace() && !cs.CurrentChar.IsLineBreak() && (cs.NextChar.IsLineBreak() || cs.Position == cs.Length - 1)) {
                     // trailing_whitespace_linter: check there are no trailing whitespace characters.
-                    return new ValidationWarning(new TextRange(cs.Position, 1), Resources.Lint_TrailingWhitespace, ErrorLocation.Token);
+                    return new ValidationWarning(new TextRange(cs.Position, 1), Resources.Lint_TrailingWhitespace, ErrorLocation.Token, snapshotVersion);
                 }
             }
             return null;
@@ -42,23 +42,23 @@ namespace Microsoft.R.Editor.Validation.Lint {
                 }
                 // On Windows, we get \r\n and need to squiggle \r.
                 // On other platforms we may get standalone \n and should then report it
-                var warnings = GetEolWarnings(trailingWhitespace, i, '\r');
+                var warnings = GetEolWarnings(trailingWhitespace, i, '\r', tp.Version);
                 if (!warnings.Any()) {
-                    warnings = GetEolWarnings(trailingWhitespace, i, '\n');
+                    warnings = GetEolWarnings(trailingWhitespace, i, '\n', tp.Version);
                 }
                 return warnings;
             }
             return Enumerable.Empty<IValidationError>();
         }
 
-        private static IEnumerable<IValidationError> GetEolWarnings(string trailingWhitespace, int baseIndex, char eol) {
+        private static IEnumerable<IValidationError> GetEolWarnings(string trailingWhitespace, int baseIndex, char eol, int snapshotVersion) {
             if (trailingWhitespace.Count(ch => ch == eol) > 1) {
                 // Squiggle all extra blank lines (a single one is OK)
                 return trailingWhitespace
                         .IndexWhere(ch => ch == eol)
                         .Skip(1)
                         .Select(x =>
-                            new ValidationWarning(new TextRange(baseIndex + x, 1), Resources.Lint_TrailingBlankLines, ErrorLocation.Token));
+                            new ValidationWarning(new TextRange(baseIndex + x, 1), Resources.Lint_TrailingBlankLines, ErrorLocation.Token, snapshotVersion));
             }
             return Enumerable.Empty<IValidationError>();
         }
@@ -75,7 +75,7 @@ namespace Microsoft.R.Editor.Validation.Lint {
                 if (ch.IsLineBreak() || ch == '\0') {
                     var length = i - start;
                     if (length > options.MaxLineLength) {
-                        list.Add(new ValidationWarning(new TextRange(start, length), Resources.Lint_LineTooLong.FormatInvariant(length, options.MaxLineLength), ErrorLocation.Token));
+                        list.Add(new ValidationWarning(new TextRange(start, length), Resources.Lint_LineTooLong.FormatInvariant(length, options.MaxLineLength), ErrorLocation.Token, tp.Version));
                     }
 
                     if (i < tp.Length && ((ch == '\r' && tp[i + 1] == '\n') || (ch == '\n' && tp[i + 1] == '\r'))) {
