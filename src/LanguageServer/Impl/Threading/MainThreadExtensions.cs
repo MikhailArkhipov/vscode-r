@@ -35,11 +35,11 @@ namespace Microsoft.R.LanguageServer.Threading {
         /// <param name="action"></param>
         /// <param name="cancellationToken"></param>
         public static async Task<T> SendAsync<T>(this IMainThread mainThread, Func<T> action, IUIService ui, CancellationToken cancellationToken = default) {
-            await mainThread.SwitchToAsync(cancellationToken);
             try {
+                await mainThread.SwitchToAsync(cancellationToken);
                 return action();
             } catch (OperationCanceledException) {
-                throw;
+                return default;
             } catch (Exception ex) {
                 ui.LogMessageAsync($"Exception {ex.Message} at {ex.StackTrace}", MessageType.Error).DoNotWait();
                 throw;

@@ -1,6 +1,10 @@
 # Changelog
 
-## 0.0.20 (12 Apr 2021)
+## 0.0.22 (13 Apr 2021)
+
+1. Suppress cancellation exception when looking up document symbols. Fixes [#54](https://github.com/MikhailArkhipov/vscode-r/issues/54).
+
+## 0.0.21 (12 Apr 2021)
 
 1. Adds support for R 4.x raw strings.
 

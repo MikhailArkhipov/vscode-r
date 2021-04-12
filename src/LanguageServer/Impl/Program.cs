@@ -28,26 +28,24 @@ namespace Microsoft.R.LanguageServer.Server {
             using (CoreShell.Create()) {
                 var services = CoreShell.Current.ServiceManager;
 
-                using (var cin = Console.OpenStandardInput())
-                using (var bcin = new BufferedStream(cin))
-                using (var cout = Console.OpenStandardOutput())
-                using (var server = new LanguageServer(services))
-                using (var rpc = new JsonRpc(cout, cin, server)) {
-                    rpc.SynchronizationContext = new SingleThreadSynchronizationContext();
+                using var cin = Console.OpenStandardInput();
+                using var bcin = new BufferedStream(cin);
+                using var cout = Console.OpenStandardOutput();
+                using var server = new LanguageServer(services);
+                using var rpc = new JsonRpc(cout, cin, server); rpc.SynchronizationContext = new SingleThreadSynchronizationContext();
 
-                    services
-                        .AddService(new UIService(rpc))
-                        .AddService(new Client(rpc))
-                        .AddService(messageFormatter.JsonSerializer);
+                services
+                    .AddService(new UIService(rpc))
+                    .AddService(new Client(rpc))
+                    .AddService(messageFormatter.JsonSerializer);
 
-                    var cts = new CancellationTokenSource();
-                    using (new RConnection(services, cts.Token)) {
-                        var token = server.Start();
-                        rpc.StartListening();
-                        // Wait for the "stop" request.
-                        token.WaitHandle.WaitOne();
-                        cts.Cancel();
-                    }
+                var cts = new CancellationTokenSource();
+                using (new RConnection(services, cts.Token)) {
+                    var token = server.Start();
+                    rpc.StartListening();
+                    // Wait for the "stop" request.
+                    token.WaitHandle.WaitOne();
+                    cts.Cancel();
                 }
             }
         }
