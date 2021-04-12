@@ -5,6 +5,7 @@ using System.Diagnostics.CodeAnalysis;
 using Microsoft.Languages.Core.Test.Utility;
 using Microsoft.R.Core.Tokens;
 using Microsoft.UnitTests.Core.XUnit;
+using Xunit;
 
 namespace Microsoft.R.Core.Test.Tokens {
     [ExcludeFromCodeCoverage]
@@ -16,8 +17,9 @@ namespace Microsoft.R.Core.Test.Tokens {
             _files = files;
         }
 
-        [Test]
-        public void TokenizeLeastSquares()
-            => TokenizeFiles.TokenizeFile<RToken, RTokenType, RTokenizer>(_files, @"Tokenization\lsfit.r", "R");
+        [CompositeTest]
+        [InlineData(@"Tokenization\lsfit.r")]
+        public void TokenizeLeastSquares(string fileName)
+            => TokenizeFiles.TokenizeFile<RToken, RTokenType, RTokenizer>(_files, fileName, "R");
     }
 }

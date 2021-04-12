@@ -13,7 +13,7 @@ using Microsoft.R.LanguageServer.Extensions;
 
 namespace Microsoft.R.LanguageServer.Symbols {
     internal sealed class DocumentSymbolsProvider : IAstVisitor {
-        private static readonly Guid _treeUserId = new Guid("5A8CE561-DC03-4CDA-8568-947DDB84F5FA");
+        private static readonly Guid _treeUserId = new("5A8CE561-DC03-4CDA-8568-947DDB84F5FA");
 
         private sealed class Scope {
             public IAstNode Node { get; }

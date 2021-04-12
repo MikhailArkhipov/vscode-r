@@ -10,5 +10,6 @@
   "r.formatting.formatOnSave": false,
   "r.rPath": "C:\\Program Files\\R\\R-3.4.0",
   "vscode.editor.tabSize": 2,
-  "vscode.editor.useSpaces": true
+  "vscode.editor.useSpaces": true,
+  "python.pythonPath": "C:\\Python39\\python.exe"
 }

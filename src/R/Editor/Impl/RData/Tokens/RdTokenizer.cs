@@ -9,9 +9,7 @@ using Microsoft.R.Core.Tokens;
 
 namespace Microsoft.R.Editor.RData.Tokens {
     /// <summary>
-    /// Main R tokenizer. Used for colirization and parsing. 
-    /// Coloring of variables, function names and parameters
-    /// is provided later by AST. Tokenizer only provides candidates.
+    /// Main RD tokenizer. Used for colirization and parsing. 
     /// https://developer.r-project.org/parseRd.pdf
     /// </summary>
     public class RdTokenizer : BaseTokenizer<RdToken> {
@@ -176,7 +174,7 @@ namespace Microsoft.R.Editor.RData.Tokens {
         /// requesting help in Rd format.
         /// </summary>
         private void HandleRContent() {
-            var braceCounter = new BraceCounter<char>(new [] { '{', '}', '[', ']' });
+            var braceCounter = new BraceCounter<char>(new[] { '{', '}', '[', ']' });
 
             while (!_cs.IsEndOfStream()) {
                 var handled = false;
@@ -354,18 +352,6 @@ namespace Microsoft.R.Editor.RData.Tokens {
             return false;
         }
 
-        private char GetMatchingBrace(char brace) {
-            if (brace == '{') {
-                return '}';
-            }
-
-            if (brace == '[') {
-                return ']';
-            }
-
-            return char.MinValue;
-        }
-
         private bool AddBraceToken() {
             var tokenType = RdTokenType.Unknown;
 
@@ -415,11 +401,11 @@ namespace Microsoft.R.Editor.RData.Tokens {
         /// </summary>
         /// <param name="openQuote"></param>
         private bool HandleRString(char openQuote) {
-            Tokenizer.HandleString(openQuote, _cs, (start, length) => {
-                if (_tokenizeRContent) {
-                    AddToken(RdTokenType.String, start, length);
-                }
-            });
+            var start = _cs.Position;
+            Tokenizer.HandleString(openQuote, _cs);
+            if (_tokenizeRContent) {
+                AddToken(RdTokenType.String, start, _cs.Position - start);
+            }
             return true;
         }
 

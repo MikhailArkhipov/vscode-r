@@ -64,7 +64,7 @@ namespace Microsoft.R.Core.Tokens {
             switch (_cs.CurrentChar) {
                 case '\"':
                 case '\'':
-                    HandleString(_cs.CurrentChar);
+                    HandleString();
                     break;
 
                 case '#':
@@ -111,6 +111,12 @@ namespace Microsoft.R.Core.Tokens {
                     break;
 
                 default:
+                    if ((_cs.CurrentChar == 'r' || _cs.CurrentChar == 'R') && _cs.NextChar == '\"' && 
+                        (_cs.LookAhead(2) == '(' || _cs.LookAhead(2) == '[' || _cs.LookAhead(2) == '{')) {
+                        HandleRawString();
+                        break;
+                    }
+
                     if (_cs.CurrentChar == '.' && _cs.NextChar == '.' && _cs.LookAhead(2) == '.') {
                         AddToken(RTokenType.Ellipsis, _cs.Position, 3);
                         _cs.Advance(3);
@@ -385,11 +391,23 @@ namespace Microsoft.R.Core.Tokens {
         }
 
         /// <summary>
-        /// Adds a token that represent a string
+        /// Adds a token that represents a string
         /// </summary>
-        /// <param name="openQuote"></param>
-        private void HandleString(char openQuote)
-            => Tokenizer.HandleString(openQuote, _cs, (start, length) => AddToken(RTokenType.String, start, length));
+        private void HandleString() {
+            var start = _cs.Position;
+            Tokenizer.HandleString(_cs.CurrentChar, _cs);
+            AddToken(RTokenType.String, start, _cs.Position - start);
+        }
+
+        /// <summary>
+        /// Adds a token that represents raw string
+        /// </summary>
+        private void HandleRawString() {
+            var start = _cs.Position;
+            _cs.MoveToNextChar(); // skip 'r'
+            Tokenizer.HandleRawString(_cs.CurrentChar, _cs.NextChar, _cs);
+            AddToken(RTokenType.String, start, _cs.Position - start);
+        }
 
         private bool AddIdentifier() {
             // 10.3.2 Identifiers
@@ -453,15 +471,5 @@ namespace Microsoft.R.Core.Tokens {
 
         public static bool IsIdentifierCharacter(char ch)
             => (CharacterStream.IsLetter(ch) || CharacterStream.IsDecimal(ch) || ch == '.' || ch == '_' || ch == '`');
-
-        private static bool IsOpenBraceFollow(CharacterStream cs, int position) {
-            for (var i = position; i < cs.Length; i++) {
-                if (!char.IsWhiteSpace(cs[i])) {
-                    return cs[i] == '(';
-                }
-            }
-
-            return false;
-        }
     }
 }

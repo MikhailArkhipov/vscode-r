@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.0.20 (12 Apr 2021)
+
+1. Adds support for R 4.x raw strings.
+
 ## 0.0.20 (24 Feb 2021)
 
 1. Fixes occasional exception when editing files.

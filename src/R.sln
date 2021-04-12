@@ -39,6 +39,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.R.LanguageServer.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.R.LanguageServer", "LanguageServer\Impl\Microsoft.R.LanguageServer.csproj", "{D7C73C94-BDDC-4210-AF24-4A5D0AA0DF31}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.R.Editor.Test", "R\Editor\Test\Microsoft.R.Editor.Test.csproj", "{DB5FA65A-126B-4D2D-89F1-8961929DC23F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -253,6 +255,18 @@ Global
 		{D7C73C94-BDDC-4210-AF24-4A5D0AA0DF31}.Release|x64.Build.0 = Release|Any CPU
 		{D7C73C94-BDDC-4210-AF24-4A5D0AA0DF31}.Release|x86.ActiveCfg = Release|Any CPU
 		{D7C73C94-BDDC-4210-AF24-4A5D0AA0DF31}.Release|x86.Build.0 = Release|Any CPU
+		{DB5FA65A-126B-4D2D-89F1-8961929DC23F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DB5FA65A-126B-4D2D-89F1-8961929DC23F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DB5FA65A-126B-4D2D-89F1-8961929DC23F}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{DB5FA65A-126B-4D2D-89F1-8961929DC23F}.Debug|x64.Build.0 = Debug|Any CPU
+		{DB5FA65A-126B-4D2D-89F1-8961929DC23F}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{DB5FA65A-126B-4D2D-89F1-8961929DC23F}.Debug|x86.Build.0 = Debug|Any CPU
+		{DB5FA65A-126B-4D2D-89F1-8961929DC23F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DB5FA65A-126B-4D2D-89F1-8961929DC23F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DB5FA65A-126B-4D2D-89F1-8961929DC23F}.Release|x64.ActiveCfg = Release|Any CPU
+		{DB5FA65A-126B-4D2D-89F1-8961929DC23F}.Release|x64.Build.0 = Release|Any CPU
+		{DB5FA65A-126B-4D2D-89F1-8961929DC23F}.Release|x86.ActiveCfg = Release|Any CPU
+		{DB5FA65A-126B-4D2D-89F1-8961929DC23F}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -263,6 +277,7 @@ Global
 		{FC4AAD0A-13B9-49EE-A59C-F03142958170} = {EE50720D-A0E5-45EE-B2EC-E065B569DB27}
 		{A930B6D8-2D2D-4047-A6EF-2522386877E3} = {EE50720D-A0E5-45EE-B2EC-E065B569DB27}
 		{23DE51A0-D83D-49C5-9730-4F2B5C19D82B} = {EE50720D-A0E5-45EE-B2EC-E065B569DB27}
+		{DB5FA65A-126B-4D2D-89F1-8961929DC23F} = {EE50720D-A0E5-45EE-B2EC-E065B569DB27}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {78E1EA9E-4708-4DE9-B4DF-D10E3B0119FA}
