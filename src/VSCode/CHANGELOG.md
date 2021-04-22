@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.0.23 (21 Apr 2021)
+
+1. Update references per github security bot recommendation. No logic changes.
+
 ## 0.0.22 (13 Apr 2021)
 
 1. Suppress cancellation exception when looking up document symbols. Fixes [#54](https://github.com/MikhailArkhipov/vscode-r/issues/54).

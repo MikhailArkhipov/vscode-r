@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.7)
+cmake_minimum_required(VERSION 2.9)
 project(R-Host)
 
 if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
@@ -32,7 +32,7 @@ endif()
 include_directories("${CMAKE_SOURCE_DIR}/lib/picojson" "${CMAKE_SOURCE_DIR}/lib/picojson")
 
 set(Boost_USE_STATIC_LIBS ON)
-find_package(Boost 1.72.0 REQUIRED COMPONENTS date_time filesystem locale program_options regex system)
+find_package(Boost 1.75.0 REQUIRED COMPONENTS date_time filesystem locale program_options regex system)
 include_directories(${Boost_INCLUDE_DIRS})
 target_link_libraries(Microsoft.R.Host ${Boost_LIBRARIES})
 

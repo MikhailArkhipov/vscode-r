@@ -218,10 +218,7 @@ namespace Microsoft.R.LanguageServer.Threading {
                 }
             }
 
-            public void OnCompleted(Action continuation) {
-                _cancellationToken.ThrowIfCancellationRequested();
-                _mainThread.Post(() => continuation());
-            }
+            public void OnCompleted(Action continuation) => _mainThread.Post(() => continuation());
         }
     }
 }

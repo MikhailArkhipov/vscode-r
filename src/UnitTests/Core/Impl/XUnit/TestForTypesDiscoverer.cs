@@ -21,7 +21,7 @@ namespace Microsoft.UnitTests.Core.XUnit {
 
             if (testMethod.Method.GetParameters().Count() != 1) {
                 return new[] {
-                    new ExecutionErrorTestCase(_diagnosticMessageSink, methodDisplay, testMethod, "[TestForTypes] can have only one System.Type parameter")
+                    new ExecutionErrorTestCase(_diagnosticMessageSink, methodDisplay, TestMethodDisplayOptions.None, testMethod, "[TestForTypes] can have only one System.Type parameter")
                 };
             }
 

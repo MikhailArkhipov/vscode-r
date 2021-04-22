@@ -2,7 +2,7 @@
   "name": "r",
   "displayName": "R Tools",
   "description": "R Tools (IntelliSense, signature help, tooltips and more)",
-  "version": "0.0.22",
+  "version": "0.0.23",
   "author": "Mikhail Arkhipov & Microsoft",
   "icon": "images/rIcon.png",
   "publisher": "Mikhail-Arkhipov",
