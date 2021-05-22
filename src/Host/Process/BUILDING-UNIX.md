@@ -10,8 +10,11 @@ Recommended:
 
 ### WSL
 
-### Install R
+### Mac
+R is x64 only. There are no ARM64 R binaries just yet. Therefore you have to install and use x64 components. Consider this
+[Installing Intel-based packages using Homebrew on the M1 Mac](https://www.wisdomgeek.com/development/installing-intel-based-packages-using-homebrew-on-the-m1-mac/)
 
+### Install R
 - `sudo apt-get install r-base`
 
 ### Install CMake
