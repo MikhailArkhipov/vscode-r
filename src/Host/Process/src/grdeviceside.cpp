@@ -549,6 +549,15 @@ namespace rhost {
                 dd->canGenIdle = R_FALSE;
             }
 
+            template <>
+            void ide_device<14>::init_devdesc(DevDesc* dd) {
+                dd->displayListOn = R_TRUE;
+                dd->canGenMouseDown = R_FALSE;
+                dd->canGenMouseMove = R_FALSE;
+                dd->canGenMouseUp = R_FALSE;
+                dd->canGenKeybd = R_FALSE;
+            }
+
             template <int ApiVer>
             auto ide_device<ApiVer>::create(const boost::uuids::uuid& device_id, std::string device_type, double width, double height, double resolution) -> std::unique_ptr<ide_device> {
                 auto dd = static_cast<DevDesc*>(calloc(1, sizeof(DevDesc)));
@@ -1158,7 +1167,7 @@ namespace rhost {
 
                 static SEXP ide_graphicsdevice_new(SEXP args) {
                     int ver = R_GE_getVersion();
-                    if (ver < R_32_GE_version || ver > R_34_GE_version) {
+                    if (ver < R_32_GE_version || ver > R_41_GE_version) {
                         Rf_error("Graphics API version %d is not supported.", ver);
                     }
 
@@ -1479,6 +1488,10 @@ namespace rhost {
                 case 12:
                     external_methods = external_methods_impl<12>::external_methods;
                     process_pending_render = ide_device<12>::process_pending_render;
+                    break;
+                case 14:
+                    external_methods = external_methods_impl<14>::external_methods;
+                    process_pending_render = ide_device<14>::process_pending_render;
                     break;
                 default:
                     log::fatal_error("Unsupported GD API version %d", ver);

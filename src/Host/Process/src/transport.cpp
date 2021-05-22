@@ -153,6 +153,7 @@ namespace rhost {
             // Duplicate and stash away handles for original stdin & stdout.
             input = fdopen(dup(fileno(stdin)), "rb");
             setvbuf(input, NULL, _IONBF, 0);
+
             output = fdopen(dup(fileno(stdout)), "wb");
             setvbuf(output, NULL, _IONBF, 0);
 

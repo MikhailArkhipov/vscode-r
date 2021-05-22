@@ -2,44 +2,52 @@
 - Mac: install XCode
 - Ubuntu: install CLANG and CMake via apt.
 
-Recommended: 
+Recommended:
+
 - [VS Code](https://code.visualstudio.com/)
-- [Microsoft C++ extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools) 
+- [Microsoft C++ extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools)
 - [CMake Tools](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cmake-tools&ssr=false#overview). It helps you locate and configure kits. You can also build directly from VS Code.
 
 ### WSL
 
 ### Install R
+
 - `sudo apt-get install r-base`
 
 ### Install CMake
+
 - `sudo apt remove --purge cmake`
 - `sudo apt install cmake`
 - `cmake --version`
 
 ### Install CLang
+
 - `sudo apt install build-essential xz-utils curl`
 - `curl -SL http://releases.llvm.org/9.0.0/clang+llvm-9.0.0-x86_64-linux-gnu-ubuntu-18.04.tar.xz | tar -xJC .`
 - `clang --version`
 
 ### Install Boost from sources
-- `get -O boost_1_73_0.tar.gz https://sourceforge.net/projects/boost/files/boost/1.73.0/boost_1_73_0.tar.gz/download`
-- `tar xzvf boost_1_73_0.tar.gz`
-- cd `boost_1_73_0`
+
+- `cd ~`
+- `wget -O boost_1_76_0.tar.gz https://sourceforge.net/projects/boost/files/boost/1.76.0/boost_1_76_0.tar.gz/download`
+- `tar xzvf boost_1_76_0.tar.gz`
+- `cd boost_1_76_0`
 - `./bootstrap.sh --prefix=/usr/`
 - `./b2`
 - `sudo ./b2 install`
 
 ### Connect subtrees
+
 - `git remote add picojson https://github.com/kazuho/picojson`
 - `git subtree add --prefix lib/picojson picojson master`
 
 ### Configure CMake in VS Code
+
 - `Ctrl+Shift+P`
 - `CMake: Configure`
 
 ```
-[main] Configuring folder: rhost 
+[main] Configuring folder: rhost
 [proc] Executing command: /usr/bin/cmake --no-warn-unused-cli -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=TRUE -DCMAKE_BUILD_TYPE:STRING=Debug -DCMAKE_C_COMPILER:FILEPATH=/bin/clang-10 -DCMAKE_CXX_COMPILER:FILEPATH=/bin/clang++-10 -H/home/mikhaila/rhost -B/home/mikhaila/rhost/build -G "Unix Makefiles"
 [cmake] Not searching for unused variables given on the command line.
 [cmake] -- The C compiler identification is Clang 10.0.0
@@ -59,5 +67,4 @@ Recommended:
 ```
 
 - `./build.sh`
-
-
+- For packaging place output into the respective folder under `src/Host[Windows|Mac|Linux]`

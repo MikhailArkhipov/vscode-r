@@ -18,18 +18,18 @@ namespace Microsoft.R.Editor.Test.RData.Tokens {
         }
 
         //[CompositeTest]
-        [InlineData(@"Tokenization\01.rd")]
-        [InlineData(@"Tokenization\02.rd")]
-        [InlineData(@"Tokenization\03.rd")]
-        [InlineData(@"Tokenization\04.rd")]
-        [InlineData(@"Tokenization\05.rd")]
-        [InlineData(@"Tokenization\06.rd")]
-        [InlineData(@"Tokenization\07.rd")]
-        [InlineData(@"Tokenization\08.rd")]
-        [InlineData(@"Tokenization\09.rd")]
-        [InlineData(@"Tokenization\10.rd")]
-        [InlineData(@"Tokenization\11.rd")]
-        [InlineData(@"Tokenization\12.rd")]
+        //[InlineData(@"Tokenization\01.rd")]
+        //[InlineData(@"Tokenization\02.rd")]
+        //[InlineData(@"Tokenization\03.rd")]
+        //[InlineData(@"Tokenization\04.rd")]
+        //[InlineData(@"Tokenization\05.rd")]
+        //[InlineData(@"Tokenization\06.rd")]
+        //[InlineData(@"Tokenization\07.rd")]
+        //[InlineData(@"Tokenization\08.rd")]
+        //[InlineData(@"Tokenization\09.rd")]
+        //[InlineData(@"Tokenization\10.rd")]
+        //[InlineData(@"Tokenization\11.rd")]
+        //[InlineData(@"Tokenization\12.rd")]
         public void TokenizeSampleRdFile(string fileName)
             => TokenizeFiles.TokenizeFile<RdToken, RdTokenType, RdTokenizer>(_files, fileName, "RD");
     }

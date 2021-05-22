@@ -2,7 +2,7 @@
   "name": "r",
   "displayName": "R Tools",
   "description": "R Tools (IntelliSense, signature help, tooltips and more)",
-  "version": "0.0.23",
+  "version": "0.0.24",
   "author": "Mikhail Arkhipov & Microsoft",
   "icon": "images/rIcon.png",
   "publisher": "Mikhail-Arkhipov",
@@ -328,22 +328,22 @@
     "test": "node ./node_modules/vscode/bin/test"
   },
   "devDependencies": {
-    "@types/getenv": "^1.0.0",
-    "@types/mocha": "^8.2.0",
+    "@types/getenv": "1.0.0",
+    "@types/mocha": "^8.2.2",
     "@types/node": "^14.14.27",
     "@types/vscode": "^1.53.0",
-    "@typescript-eslint/eslint-plugin": "^4.15.0",
-    "@typescript-eslint/parser": "4.15.0",
-    "eslint": "^7.20.0",
-    "eslint-config-prettier": "^7.2.0",
+    "@typescript-eslint/eslint-plugin": "^4.24.0",
+    "@typescript-eslint/parser": "^4.24.0",
+    "eslint": "^7.26.0",
+    "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-simple-import-sort": "^7.0.0",
-    "mocha": "^8.3.0",
-    "typescript": "^4.1.5",
-    "vsce": "^1.85.0"
+    "mocha": "^8.4.0",
+    "typescript": "^4.2.4",
+    "vsce": "^1.88.0"
   },
   "dependencies": {
     "getenv": "1.0.0",
-    "open": "^7.4.0",
+    "open": "^8.0.9",
     "vscode-languageclient": "^7.0.0"
   }
 }

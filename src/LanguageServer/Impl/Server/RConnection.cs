@@ -65,7 +65,7 @@ namespace Microsoft.R.LanguageServer.Server {
             log.Write(LogVerbosity.Normal, MessageCategory.General, $"Switching local broker to {e.InstallPath}");
             if (await _workflow.RSessions.TrySwitchBrokerAsync("(local)", info, ct)) {
                 try {
-                    await _workflow.RSession.StartHostAsync(new RHostStartupInfo(), new RSessionCallback(), Debugger.IsAttached ? 100000 : 20000, ct);
+                    await _workflow.RSession.StartHostAsync(new RHostStartupInfo(), new RSessionCallback(), Debugger.IsAttached ? 1000000 : 20000, ct);
                 } catch (Exception ex) {
                     _ui.ShowMessageAsync($"Unable to start R process. Exception: {ex.Message}", MessageType.Error).DoNotWait();
                     return;

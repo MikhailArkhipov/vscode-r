@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.0.24 (22 May 2021)
+
+1. Add support for R 4.1: update R Host to reflect changes in R API.
+
 ## 0.0.23 (21 Apr 2021)
 
 1. Update references per github security bot recommendation. No logic changes.
