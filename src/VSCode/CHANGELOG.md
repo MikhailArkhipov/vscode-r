@@ -2,7 +2,7 @@
 
 ## 0.0.24 (22 May 2021)
 
-1. Add support for R 4.1: update R Host to reflect changes in R API.
+1. Add support for R 4.1: update native R Host to reflect changes in R API. The host is still Intel x64. M1 ARM 64 support is yet to be done.
 
 ## 0.0.23 (21 Apr 2021)
 

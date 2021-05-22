@@ -11,10 +11,29 @@ Recommended:
 ### WSL
 
 ### Mac
-R is x64 only. There are no ARM64 R binaries just yet. Therefore you have to install and use x64 components. Consider this
+
+R Host is Intel x64 only so you have to install and use x64 components. Consider this
 [Installing Intel-based packages using Homebrew on the M1 Mac](https://www.wisdomgeek.com/development/installing-intel-based-packages-using-homebrew-on-the-m1-mac/)
 
+- Install XCode
+- Install XCode command line tools `xcode-select --install`
+
+- Use Rosetta Terminal!
+- Install Hmebrew from Rosetta terminal
+- Install `cmake` via Homebrew: `brew install cmake`
+- `brew install pkg-config`
+- `brew install libzip`
+- `brew install icu4c`
+- `export CMAKE_PREFIX_PATH=/usr/local/opt/icu4c`
+
+Related:
+
+- [Missing libcudata issue with boost 1.75](https://github.com/Homebrew/homebrew-core/issues/67427)
+- [Configuring CMake with boost 1.75](https://github.com/carlocab/macos-boost1.75-regex-bug)
+- [Missing licudata](https://github.com/OpenRCT2/OpenRCT2/issues/8000)
+
 ### Install R
+
 - `sudo apt-get install r-base`
 
 ### Install CMake

@@ -17,14 +17,7 @@ EOF
 ROOT_DIR=$(dirname "$0")
 BUILD_TYPE=Release
 COLORIZE=yes
-
-# Detect 32-bit MinGW. On other platforms x86 builds have to be specifically requested.
-if [ "$MSYSTEM" = "MINGW32" ]; then
-    TARGET_ARCH=x86
-else   
-    TARGET_ARCH=x64
-fi
-
+TARGET_ARCH=x64
 OPTIND=1
 
 while getopts "h?t:a:o:i:m" opt; do
