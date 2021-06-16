@@ -6,10 +6,11 @@ using System.Collections.Generic;
 using System.IO;
 using Microsoft.Common.Core;
 using Microsoft.Common.Core.IO;
+using Microsoft.R.Common.Core.OS;
 using Microsoft.R.Platform.IO;
 
 namespace Microsoft.R.Platform.Interpreters.Mac {
-    public sealed class RMacInstallation : IRInstallationService {
+    public sealed class RMacInstallation : RInstallationService {
         private const string RootPath = "/Library/Frameworks/R.framework/Versions/";
         private readonly IFileSystem _fileSystem;
 
@@ -20,37 +21,41 @@ namespace Microsoft.R.Platform.Interpreters.Mac {
             _fileSystem = fileSystem;
         }
 
-        public IRInterpreterInfo CreateInfo(string name, string path) {
-            var version = VersionFromPath(path, out var versionString);
-            return version != null ? new RMacInterpreterInfo("R " + versionString, versionString, version, _fileSystem) : null;
+        public override IRInterpreterInfo CreateInfo(string name, string path) {
+            var version = VersionFromPath(path, out var versionString, out var architecture);
+            return version != null ? new RMacInterpreterInfo("R " + versionString, versionString, architecture, version, _fileSystem) : null;
         }
 
-        public IEnumerable<IRInterpreterInfo> GetCompatibleEngines(ISupportedRVersionRange svl = null) {
-            var interpreters = new List<IRInterpreterInfo>();
-            interpreters.AddRange(GetInstalledCranR(svl));
-            return interpreters;
-        }
-
-        private IEnumerable<IRInterpreterInfo> GetInstalledCranR(ISupportedRVersionRange svl) {
+        public override IEnumerable<IRInterpreterInfo> GetCompatibleEngines() {
             var rFrameworkPath = Path.Combine("/Library/Frameworks/R.framework/Versions");
 
             foreach (var path in _fileSystem.GetDirectories(rFrameworkPath)) {
-                var version = VersionFromPath(path, out var versionString);
-                if (version != null && svl.IsCompatibleVersion(version)) {
-                    yield return new RMacInterpreterInfo("R " + versionString, versionString, version, _fileSystem);
+                var version = VersionFromPath(path, out var versionString, out var architecture);
+                if (version != null && SupportedVersions.IsCompatibleVersion(version)) {
+                    yield return new RMacInterpreterInfo("R " + versionString, versionString, architecture, version, _fileSystem);
                 }
             }
         }
 
-        private static Version VersionFromPath(string path, out string versionString) {
+        private static Version VersionFromPath(string path, out string versionString, out string architecture) {
             versionString = null;
+            architecture = ArchitectureString.X64;
+
             if (!path.StartsWithOrdinal(RootPath)) {
                 return null;
             }
             var resPath = path.Substring(RootPath.Length, path.Length - RootPath.Length);
             var index = resPath.IndexOf("/Resources");
             versionString = index > 0 ? resPath.Substring(0, index) : resPath;
-            return Version.TryParse(versionString, out var version) ? version : null;
+
+            // On Mac M1 R ARM64 version string looks like '4.1-arm64'. Truncate appropriately.
+            var vs = versionString;
+            var dashIndex = vs.IndexOf('-');
+            if (dashIndex > 0) {
+                architecture = vs.Substring(dashIndex + 1);
+                vs = vs.Substring(0, dashIndex);
+            }
+            return Version.TryParse(vs, out var version) ? version : null;
         }
     }
 }

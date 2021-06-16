@@ -11,9 +11,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.R.Host.Broker.RHost;
 using Microsoft.R.Host.Broker.Services;
-using Microsoft.R.Platform.Interpreters;
-using Microsoft.R.Platform.Interpreters.Linux;
-using Microsoft.R.Platform.Interpreters.Mac;
 using Microsoft.R.Platform.IO;
 
 namespace Microsoft.R.Host.Broker.Start {
@@ -30,12 +27,10 @@ namespace Microsoft.R.Host.Broker.Start {
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX)) {
                 services
-                    .AddSingleton<IProcessServices, MacProcessServices>()
-                    .AddSingleton<IRInstallationService, RMacInstallation>();
+                    .AddSingleton<IProcessServices, MacProcessServices>();
             } else {
                 services
-                    .AddSingleton<IProcessServices, LinuxProcessServices>()
-                    .AddSingleton<IRInstallationService, RLinuxInstallation>();
+                    .AddSingleton<IProcessServices, LinuxProcessServices>();
             }
         }
     }

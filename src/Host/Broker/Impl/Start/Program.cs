@@ -12,6 +12,7 @@ using Microsoft.R.Host.Broker.Windows;
 namespace Microsoft.R.Host.Broker.Start {
     public class Program {
         public static IWebHost WebHost { get; protected set; }
+
         public static void Main(string[] args) {
 #if WAIT_FOR_DEBUGGER
             while (!System.Diagnostics.Debugger.IsAttached) {

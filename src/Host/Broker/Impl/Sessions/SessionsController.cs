@@ -10,7 +10,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Common.Core;
 using Microsoft.Extensions.Logging;
-using Microsoft.R.Host.Broker.Interpreters;
 using Microsoft.R.Host.Broker.Pipes;
 using Microsoft.R.Host.Protocol;
 
@@ -18,12 +17,10 @@ namespace Microsoft.R.Host.Broker.Sessions {
     [AllowAnonymous]
     [Route("/sessions")]
     public class SessionsController : Controller {
-        private readonly InterpreterManager _interpManager;
         private readonly SessionManager _sessionManager;
         private readonly ILogger<Session> _sessionLogger;
 
-        public SessionsController(InterpreterManager interpManager, SessionManager sessionManager, ILogger<Session> sessionLogger) {
-            _interpManager = interpManager;
+        public SessionsController(SessionManager sessionManager, ILogger<Session> sessionLogger) {
             _sessionManager = sessionManager;
             _sessionLogger = sessionLogger;
         }
@@ -35,22 +32,8 @@ namespace Microsoft.R.Host.Broker.Sessions {
         [AllowAnonymous]
         [HttpPut("{id}")]
         public Task<IActionResult> PutAsync(string id, [FromBody] SessionCreateRequest request) {
-            if (!_interpManager.Interpreters.Any()) {
-                return Task.FromResult<IActionResult>(new ApiErrorResult(BrokerApiError.NoRInterpreters));
-            }
-
-            Interpreter interp;
-            if (!string.IsNullOrEmpty(request.InterpreterId)) {
-                interp = _interpManager.Interpreters.FirstOrDefault(ip => ip.Id == request.InterpreterId);
-                if (interp == null) {
-                    return Task.FromResult<IActionResult>(new ApiErrorResult(BrokerApiError.InterpreterNotFound));
-                }
-            } else {
-                interp = _interpManager.Interpreters.Latest();
-            }
-
             try {
-                var session = _sessionManager.CreateSession(id, interp, request.CommandLineArguments, request.IsInteractive);
+                var session = _sessionManager.CreateSession(id, request.InterpreterPath, request.InterpreterArchitecture, request.CommandLineArguments, request.IsInteractive);
                 return Task.FromResult<IActionResult>(new ObjectResult(session.Info));
             } catch (Exception ex) {
                 return Task.FromResult<IActionResult>(new ApiErrorResult(BrokerApiError.UnableToStartRHost, ex.Message));

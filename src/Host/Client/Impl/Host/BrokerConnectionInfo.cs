@@ -3,49 +3,36 @@
 
 using System;
 using System.Diagnostics;
-using Microsoft.Common.Core;
+using Microsoft.Common.Core.Diagnostics;
 
 namespace Microsoft.R.Host.Client.Host {
     [DebuggerDisplay("{Uri}, InterpreterId={InterpreterId}")]
     public struct BrokerConnectionInfo {
         public string Name { get; }
         public Uri Uri { get; }
-        public bool IsValid { get; }
-        public string ParametersId { get; }
         public string RCommandLineArguments { get; }
-        public string InterpreterId { get; }
+        public string InterpreterPath { get; }
+        public string InterpreterArchitecture { get; }
 
-        public static BrokerConnectionInfo Create(string name, string path, string rCommandLineArguments) {
+        public static BrokerConnectionInfo Create(string name, string interpreterPath, string interpreterArchitecture, string rCommandLineArguments) {
             rCommandLineArguments = rCommandLineArguments ?? string.Empty;
 
-            if (!Uri.TryCreate(path, UriKind.Absolute, out Uri uri)) {
+            if (!Uri.TryCreate(interpreterPath, UriKind.Absolute, out Uri uri)) {
                 return new BrokerConnectionInfo();
             }
 
-            return new BrokerConnectionInfo(name, uri, rCommandLineArguments, string.Empty);
+            return new BrokerConnectionInfo(name, uri, interpreterPath, interpreterArchitecture, rCommandLineArguments);
         }
 
-        private BrokerConnectionInfo(string name, Uri uri, string rCommandLineArguments, string interpreterId) {
+        private BrokerConnectionInfo(string name, Uri uri, string interpreterPath, string interpreterArchitecture, string rCommandLineArguments) {
+            Check.ArgumentStringNullOrEmpty(nameof(interpreterPath), interpreterPath);
+            Check.ArgumentStringNullOrEmpty(nameof(interpreterArchitecture), interpreterArchitecture);
+
             Name = name;
-            IsValid = true;
             Uri = uri;
+            InterpreterPath = interpreterPath;
+            InterpreterArchitecture = interpreterArchitecture;
             RCommandLineArguments = rCommandLineArguments?.Trim() ?? string.Empty;
-            InterpreterId = interpreterId;
-            ParametersId = string.Empty;
         }
-
-        public override bool Equals(object obj) => obj is BrokerConnectionInfo && Equals((BrokerConnectionInfo)obj);
-
-        public bool Equals(BrokerConnectionInfo other) => other.ParametersId.EqualsOrdinal(ParametersId) && Equals(other.Uri, Uri);
-
-        public override int GetHashCode() {
-            unchecked {
-                return ((ParametersId?.GetHashCode() ?? 0)*397) ^ (Uri != null ? Uri.GetHashCode() : 0);
-            }
-        }
-
-        public static bool operator ==(BrokerConnectionInfo a, BrokerConnectionInfo b) => a.Equals(b);
-
-        public static bool operator !=(BrokerConnectionInfo a, BrokerConnectionInfo b) => !a.Equals(b);
     }
 }

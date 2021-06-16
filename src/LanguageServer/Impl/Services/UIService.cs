@@ -7,7 +7,7 @@ using Microsoft.Common.Core;
 using StreamJsonRpc;
 
 namespace Microsoft.R.LanguageServer.Services {
-    public sealed class UIService : IUIService {
+    public sealed class UIService : IHostUIService {
         private readonly JsonRpc _rpc;
         private MessageType _logLevel = MessageType.Error;
 
@@ -55,5 +55,21 @@ namespace Microsoft.R.LanguageServer.Services {
         public void TraceMessage(IFormattable message) => TraceMessage(message.ToString());
 
         public void SetLogLevel(MessageType logLevel) => _logLevel = logLevel;
+
+        #region IUIService
+        public void ShowErrorMessage(string message) => LogMessageAsync(message, MessageType.Error).DoNotWait();
+        public void LogMessage(string message, Microsoft.Common.Core.UI.MessageType messageType = Microsoft.Common.Core.UI.MessageType.Information) {
+            var mt = MessageType.Info;
+            switch (messageType) {
+                case Microsoft.Common.Core.UI.MessageType.Error:
+                    mt = MessageType.Error;
+                    break;
+                case Microsoft.Common.Core.UI.MessageType.Warning:
+                    mt = MessageType.Warning;
+                    break;
+            }
+            LogMessageAsync(message, mt).DoNotWait();
+        }
+        #endregion
     }
 }

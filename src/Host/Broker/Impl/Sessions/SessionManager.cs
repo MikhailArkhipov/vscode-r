@@ -10,7 +10,6 @@ using Microsoft.Common.Core;
 using Microsoft.Common.Core.Logging;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.R.Host.Broker.Interpreters;
 using Microsoft.R.Host.Broker.Logging;
 using Microsoft.R.Host.Broker.Pipes;
 using Microsoft.R.Host.Broker.Services;
@@ -60,7 +59,7 @@ namespace Microsoft.R.Host.Broker.Sessions {
             }
         }
 
-        public Session CreateSession(string id, Interpreter interpreter, string commandLineArguments, bool isInteractive) {
+        public Session CreateSession(string id, string interpreterPath, string architecture, string commandLineArguments, bool isInteractive) {
             Session session;
             lock (_sessions) {
                 var oldUserSessions = GetOrCreateSessionList();
@@ -73,7 +72,7 @@ namespace Microsoft.R.Host.Broker.Sessions {
                 }
 
                 var userSessions = GetOrCreateSessionList();
-                session = new Session(this, _processService, _applicationLifetime, _sessionLogger, _messageLogger, interpreter, id, commandLineArguments, isInteractive);
+                session = new Session(this, _processService, _applicationLifetime, _sessionLogger, _messageLogger, interpreterPath, architecture, id, commandLineArguments, isInteractive);
                 session.StateChanged += Session_StateChanged;
 
                 userSessions.Add(session);

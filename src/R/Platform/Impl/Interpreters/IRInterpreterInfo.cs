@@ -18,6 +18,11 @@ namespace Microsoft.R.Platform.Interpreters {
         Version Version { get; }
 
         /// <summary>
+        /// Binary architecture. For example, 'arm64' or 'x64'.
+        /// </summary>
+        string Architecture { get; }
+
+        /// <summary>
         /// Path to the R installation folder (without bin\x64)
         /// </summary>
         string InstallPath { get; }

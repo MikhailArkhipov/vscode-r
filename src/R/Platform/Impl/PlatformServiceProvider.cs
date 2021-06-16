@@ -31,6 +31,7 @@ namespace Microsoft.R.Platform {
                     .AddService<IRInstallationService, WindowsRInstallation>()
                     .AddService(new WindowsPlatformServices());
             } else {
+                var fs = new UnixFileSystem();
                 services
                     .AddService(new UnixFileSystem());
 
@@ -38,13 +39,12 @@ namespace Microsoft.R.Platform {
                     services
                         .AddService(new MacProcessServices())
                         .AddService(new MacPlatformServices())
-                        .AddService(new RMacInstallation())
-                        .AddService(new LinuxPlatformServices());
+                        .AddService(new RMacInstallation(fs));
                 } else {
                     services
                         .AddService(new LinuxProcessServices())
                         .AddService(new LinuxPlatformServices())
-                        .AddService(new RLinuxInstallation());
+                        .AddService(new RLinuxInstallation(fs));
                 }
             }
         }

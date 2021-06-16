@@ -35,6 +35,10 @@ export class Repl implements Disposable {
     }
 
     public dispose() {
+        this.activeTerminal?.dispose();
+        while (this.terminals.length) {
+            this.terminals.pop()?.dispose();
+        }
         while (this.disposables.length) {
             this.disposables.pop()?.dispose();
         }

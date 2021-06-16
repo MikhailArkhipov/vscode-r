@@ -2,14 +2,15 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using System.Threading.Tasks;
+using Microsoft.Common.Core.UI;
 
 namespace Microsoft.R.LanguageServer {
     /// <summary>
     /// Service that represents the application user interface.
     /// </summary>
-    public interface IUIService {
+    public interface IHostUIService: IUIService {
         /// <summary>
-        /// Displays error message in a host-specific UI
+        /// Displays message in a host-specific UI
         /// </summary>
         Task ShowMessageAsync(string message, MessageType messageType);
 

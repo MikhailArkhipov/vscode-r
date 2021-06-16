@@ -4,6 +4,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Common.Core.UI;
 
 namespace Microsoft.R.Host.Client {
     public interface IRSession : IRExpressionEvaluator, IDisposable {
@@ -52,8 +53,8 @@ namespace Microsoft.R.Host.Client {
         Task<IRSessionInteraction> BeginInteractionAsync(bool isVisible = true, CancellationToken cancellationToken = default);
 
         Task CancelAllAsync(CancellationToken cancellationToken = default);
-        Task StartHostAsync(RHostStartupInfo startupInfo, IRSessionCallback callback, int timeout = 3000, CancellationToken cancellationToken = default);
-        Task EnsureHostStartedAsync(RHostStartupInfo startupInfo, IRSessionCallback callback, int timeout = 3000, CancellationToken cancellationToken = default);
+        Task StartHostAsync(RHostStartupInfo startupInfo, IRSessionCallback callback, IUIService ui, int timeout = 3000, CancellationToken cancellationToken = default);
+        Task EnsureHostStartedAsync(RHostStartupInfo startupInfo, IRSessionCallback callback, IUIService ui, int timeout = 3000, CancellationToken cancellationToken = default);
         Task StopHostAsync(bool waitForShutdown = true, CancellationToken cancellationToken = default);
 
         IDisposable DisableMutatedOnReadConsole();

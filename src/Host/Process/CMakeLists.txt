@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.9)
+cmake_minimum_required(VERSION 3.0)
 project(R-Host)
 
 if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
@@ -25,14 +25,11 @@ else()
 set_target_properties(Microsoft.R.Host PROPERTIES COMPILE_DEFINITIONS _APPLE )
 endif()
 
-if("${TARGET_ARCH}" STREQUAL "x86")
-    set_target_properties(Microsoft.R.Host PROPERTIES COMPILE_FLAGS "-m32" LINK_FLAGS "-m32")
-endif()
-
 include_directories("${CMAKE_SOURCE_DIR}/lib/picojson" "${CMAKE_SOURCE_DIR}/lib/picojson")
 
 set(Boost_USE_STATIC_LIBS ON)
-find_package(Boost 1.75.0 REQUIRED COMPONENTS date_time filesystem locale program_options regex system)
+# Keep boost 1.65 for Ubuntu 18.
+find_package(Boost 1.65.0 REQUIRED COMPONENTS date_time filesystem locale program_options regex system)
 include_directories(${Boost_INCLUDE_DIRS})
 target_link_libraries(Microsoft.R.Host ${Boost_LIBRARIES})
 

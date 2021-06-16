@@ -1,4 +1,4 @@
-- Install R 4.0+
+- Install R 4.1+
 - Mac: install XCode
 - Ubuntu: install CLANG and CMake via apt.
 
@@ -8,23 +8,53 @@ Recommended:
 - [Microsoft C++ extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools)
 - [CMake Tools](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cmake-tools&ssr=false#overview). It helps you locate and configure kits. You can also build directly from VS Code.
 
-### WSL
+### WSL (x86_64 only)
+
+- `sudo apt-get update`
+- `sudo apt install cmake`
+- `sudo apt remove r-base* --purge`
+- `sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E298A3A825C0D65DFD57CBB651716619E084DAB9`
+- `sudo add-apt-repository 'deb https://cloud.r-project.org/bin/linux/ubuntu bionic-cran40/'`
+- `sudo apt install r-base`
+- `sudo apt install -y libzip-dev`
+
+## Ubuntu 18 (stick with boost 1.65)
+
+- `wget -O boost_1_65_0.tar.gz https://sourceforge.net/projects/boost/files/boost/1.65.0/boost_1_65_0.tar.gz/download`
+- `tar xzvf boost_1_65_0.tar.gz`
+- `cd boost_1_65_0`
+- `./bootstrap.sh --prefix=/usr/`
+- `./b2`
+- `sudo ./b2 install`
+
+## Ubuntu 20:
+
+- `wget -O boost_1_76_0.tar.gz https://sourceforge.net/projects/boost/files/boost/1.76.0/boost_1_76_0.tar.gz/download`
+- `tar xzvf boost_1_76_0.tar.gz`
+- `cd boost_1_76_0`
+- `./bootstrap.sh --prefix=/usr/`
+- `./b2`
+- `sudo ./b2 install`
 
 ### Mac
 
-R Host is Intel x64 only so you have to install and use x64 components. Consider this
+R Host must be built for Intel x64 and for ARM so it can work with either R. Consider this
 [Installing Intel-based packages using Homebrew on the M1 Mac](https://www.wisdomgeek.com/development/installing-intel-based-packages-using-homebrew-on-the-m1-mac/)
 
 - Install XCode
 - Install XCode command line tools `xcode-select --install`
 
-- Use Rosetta Terminal!
-- Install Hmebrew from Rosetta terminal
-- Install `cmake` via Homebrew: `brew install cmake`
+On Mac for Intel builds:
+- Install Homebrew from Rosetta terminal
+- `brew install cmake`
 - `brew install pkg-config`
 - `brew install libzip`
 - `brew install icu4c`
-- `export CMAKE_PREFIX_PATH=/usr/local/opt/icu4c`
+
+On Mac for ARM builds:
+- Install Homebrew from regular terminal
+- `brew install libzip`
+- `brew install icu4c`
 
 Related:
 
@@ -42,12 +72,6 @@ Related:
 - `sudo apt install cmake`
 - `cmake --version`
 
-### Install CLang
-
-- `sudo apt install build-essential xz-utils curl`
-- `curl -SL http://releases.llvm.org/9.0.0/clang+llvm-9.0.0-x86_64-linux-gnu-ubuntu-18.04.tar.xz | tar -xJC .`
-- `clang --version`
-
 ### Install Boost from sources
 
 - `cd ~`
@@ -57,6 +81,10 @@ Related:
 - `./bootstrap.sh --prefix=/usr/`
 - `./b2`
 - `sudo ./b2 install`
+
+### Install libzip
+
+- `sudo apt-get install -y libzip-dev`
 
 ### Connect subtrees
 
@@ -68,25 +96,6 @@ Related:
 - `Ctrl+Shift+P`
 - `CMake: Configure`
 
-```
-[main] Configuring folder: rhost
-[proc] Executing command: /usr/bin/cmake --no-warn-unused-cli -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=TRUE -DCMAKE_BUILD_TYPE:STRING=Debug -DCMAKE_C_COMPILER:FILEPATH=/bin/clang-10 -DCMAKE_CXX_COMPILER:FILEPATH=/bin/clang++-10 -H/home/mikhaila/rhost -B/home/mikhaila/rhost/build -G "Unix Makefiles"
-[cmake] Not searching for unused variables given on the command line.
-[cmake] -- The C compiler identification is Clang 10.0.0
-[cmake] -- The CXX compiler identification is Clang 10.0.0
-[cmake] -- Check for working C compiler: /bin/clang-10
-[cmake] -- Check for working C compiler: /bin/clang-10 -- works
-[cmake] -- Detecting C compiler ABI info
-[cmake] -- Detecting C compiler ABI info - done
-[cmake] -- Detecting C compile features
-[cmake] -- Detecting C compile features - done
-[cmake] -- Check for working CXX compiler: /bin/clang++-10
-[cmake] -- Check for working CXX compiler: /bin/clang++-10 -- works
-[cmake] -- Detecting CXX compiler ABI info
-[cmake] -- Detecting CXX compiler ABI info - done
-[cmake] -- Detecting CXX compile features
-[cmake] -- Detecting CXX compile features - done
-```
-
-- `./build.sh`
-- For packaging place output into the respective folder under `src/Host[Windows|Mac|Linux]`
+- `./build.sh -a x64` for Intel binaries
+- `./build.sh -a arm64` for Mac M1
+- For packaging place output into the respective folder under `src/Host[Windows|Mac/x64|Mac/Arm64|Linux]`

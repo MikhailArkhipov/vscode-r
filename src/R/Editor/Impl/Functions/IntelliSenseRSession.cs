@@ -97,7 +97,7 @@ namespace Microsoft.R.Editor.Functions {
 
                 if (!Session.IsHostRunning) {
                     var timeout = _unitTests ? 10000 : 3000;
-                    await Session.EnsureHostStartedAsync(new RHostStartupInfo(), null, timeout, ct);
+                    await Session.EnsureHostStartedAsync(new RHostStartupInfo(), null, null, timeout, ct);
                 }
             } finally {
                 token.Set();

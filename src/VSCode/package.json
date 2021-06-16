@@ -2,7 +2,7 @@
   "name": "r",
   "displayName": "R Tools",
   "description": "R Tools (IntelliSense, signature help, tooltips and more)",
-  "version": "0.0.24",
+  "version": "0.0.25",
   "author": "Mikhail Arkhipov & Microsoft",
   "icon": "images/rIcon.png",
   "publisher": "Mikhail-Arkhipov",
@@ -133,7 +133,7 @@
       "properties": {
         "r.dependencyChecks": {
           "type": "boolean",
-          "default": true,
+          "default": false,
           "description": "Perform checks for .NET Core at startup."
         },
         "r.interpreter": {

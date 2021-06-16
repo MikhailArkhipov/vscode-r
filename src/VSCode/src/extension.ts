@@ -10,7 +10,7 @@ import { LanguageClient, LanguageClientOptions, ServerOptions, TransportKind } f
 import * as path from 'path';
 import { Commands } from './commands';
 import { OutputChannelName, RLanguage } from './constants';
-import { checkDependencies, ensureHostExecutable } from './dependencies';
+import { ensureHostExecutable } from './dependencies';
 import { PlotView } from './plotView';
 import { REngine } from './rengine';
 
@@ -27,14 +27,7 @@ export async function activate(context: ExtensionContext) {
     associations['*.rmd'] = 'markdown';
     await files.update('associations', associations, ConfigurationTarget.Global);
 
-    const config = workspace.getConfiguration('r');
     ensureHostExecutable(context);
-
-    const check = config.get<boolean>('dependencyChecks');
-    if (check && !(await checkDependencies(context))) {
-        return;
-    }
-
     await activateLanguageServer(context);
 }
 
@@ -59,12 +52,16 @@ export async function activateLanguageServer(context: ExtensionContext) {
         },
     };
 
+    // Pass actual CPU architecture to the language server.
+    // This allows LS on .NET 5.0 that runs as Intel on Apple M1
+    // to launch native R Host with proper ARM architecture.
+    process.env.LS_HOST_PROCESS_ARCHITECTURE = process.arch;
+
     // Create the language client and start the client.
     client = new LanguageClient(RLanguage.language, OutputChannelName, serverOptions, clientOptions);
     context.subscriptions.push(client.start());
 
     await client.onReady();
-
     rEngine = new REngine(client);
 
     window.registerWebviewPanelSerializer(PlotView.viewType, {
@@ -78,8 +75,9 @@ export async function activateLanguageServer(context: ExtensionContext) {
 }
 
 // this method is called when your extension is deactivated
-export async function deactivate() {
+export async function deactivate(): Promise<void> {
+    commands.dispose();
     if (client !== undefined || client !== null) {
-        client.stop();
+        await client.stop();
     }
 }

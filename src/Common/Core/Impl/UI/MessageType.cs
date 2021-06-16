@@ -4,7 +4,7 @@
 namespace Microsoft.Common.Core.UI {
 
     /// <summary>
-    /// Specifies which icon to show in a message box.
+    /// Specifies message type.
     /// </summary>
     public enum MessageType {
         Information,

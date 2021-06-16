@@ -11,23 +11,23 @@ export class REngine {
         this.client = client;
     }
 
-    public getInterpreterPath(): Thenable<string> {
+    public getInterpreterPath(): Promise<string> {
         return this.client.sendRequest<string>('r/getInterpreterPath');
     }
 
-    public execute(code: string): Thenable<string> {
+    public execute(code: string): Promise<string> {
         return this.client.sendRequest<string>('r/execute', { code });
     }
 
-    public async interrupt() {
+    public async interrupt(): Promise<void> {
         await this.client.sendRequest('r/interrupt');
     }
 
-    public async reset() {
+    public async reset(): Promise<void> {
         await this.client.sendRequest('r/reset');
     }
 
-    public async source(filePath: string) {
+    public async source(filePath: string): Promise<void> {
         await this.client.sendRequest('r/source', filePath);
     }
 }

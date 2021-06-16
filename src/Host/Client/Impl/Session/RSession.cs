@@ -74,12 +74,6 @@ namespace Microsoft.R.Host.Client.Session {
         internal IBrokerClient BrokerClient { get; }
         internal bool IsDisposed => _disposeToken.IsDisposed;
 
-        /// <summary>
-        /// For testing purpose only
-        /// Do not expose this property to the IRSession interface
-        /// </summary> 
-        public RHost RHost => _host;
-
         static RSession() {
             CanceledBeginInteractionTask = TaskUtilities.CreateCanceled<IRSessionInteraction>(new RHostDisconnectedException());
         }
@@ -184,19 +178,20 @@ namespace Microsoft.R.Host.Client.Session {
             }
         }
 
-        public Task EnsureHostStartedAsync(RHostStartupInfo startupInfo, IRSessionCallback callback, int timeout = 3000, CancellationToken cancellationToken = default)
-            => StartHostAsync(startupInfo, callback, timeout, false, cancellationToken);
+        public Task EnsureHostStartedAsync(RHostStartupInfo startupInfo, IRSessionCallback callback, IUIService ui, int timeout = 3000, CancellationToken cancellationToken = default)
+            => StartHostAsync(startupInfo, callback, ui, timeout, false, cancellationToken);
 
-        public Task StartHostAsync(RHostStartupInfo startupInfo, IRSessionCallback callback, int timeout = 3000, CancellationToken cancellationToken = default)
-            => StartHostAsync(startupInfo, callback, timeout, true, cancellationToken);
+        public Task StartHostAsync(RHostStartupInfo startupInfo, IRSessionCallback callback, IUIService ui, int timeout = 3000, CancellationToken cancellationToken = default)
+            => StartHostAsync(startupInfo, callback, ui, timeout, true, cancellationToken);
 
-        private async Task StartHostAsync(RHostStartupInfo startupInfo, IRSessionCallback callback, int timeout, bool throwIfStarted, CancellationToken cancellationToken) {
+        private async Task StartHostAsync(RHostStartupInfo startupInfo, IRSessionCallback callback, IUIService ui, int timeout, bool throwIfStarted, CancellationToken cancellationToken) {
+            // ui?.LogMessage($"Starting host {Name}");
             using (_disposeToken.Link(ref cancellationToken)) {
                 await TaskUtilities.SwitchToBackgroundThread();
 
                 using (await _initializationLock.WaitAsync(cancellationToken)) {
                     if (_hostStartedTcs.Task.Status != TaskStatus.RanToCompletion || !_isHostRunning) {
-                        await StartHostAsyncBackground(startupInfo, callback, timeout, cancellationToken);
+                        await StartHostAsyncBackground(startupInfo, callback, ui, timeout, cancellationToken);
                     } else if (throwIfStarted) {
                         throw new InvalidOperationException("Another instance of RHost is running for this RSession. Stop it before starting new one.");
                     }
@@ -204,14 +199,16 @@ namespace Microsoft.R.Host.Client.Session {
             }
         }
 
-        private async Task StartHostAsyncBackground(RHostStartupInfo startupInfo, IRSessionCallback callback, int timeout, CancellationToken cancellationToken) {
+        private async Task StartHostAsyncBackground(RHostStartupInfo startupInfo, IRSessionCallback callback, IUIService ui, int timeout, CancellationToken cancellationToken) {
             TaskUtilities.AssertIsOnBackgroundThread();
 
             _callback = callback;
             _startupInfo = startupInfo ?? new RHostStartupInfo();
             RHost host;
             try {
+                // ui?.LogMessage($"Making connection info {Name}");
                 var connectionInfo = new HostConnectionInfo(Name, this, _startupInfo.UseRHostCommandLineArguments, _startupInfo.IsInteractive, timeout);
+                // ui?.LogMessage($"Connecting to broker {Name}");
                 host = await BrokerClient.ConnectAsync(connectionInfo, cancellationToken);
             } catch (OperationCanceledException ex) {
                 _hostStartedTcs.TrySetCanceled(ex);

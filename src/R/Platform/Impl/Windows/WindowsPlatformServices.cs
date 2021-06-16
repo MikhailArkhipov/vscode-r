@@ -29,11 +29,7 @@ namespace Microsoft.R.Platform.Windows {
             }
         }
 
-        public string ApplicationFolder {
-            get {
-                var asmPath = typeof(WindowsPlatformServices).GetTypeInfo().Assembly.GetAssemblyPath();
-                return Path.GetDirectoryName(asmPath);
-            }
-        }
+        public string ApplicationFolder
+            => Path.GetDirectoryName(typeof(WindowsPlatformServices).GetTypeInfo().Assembly.GetAssemblyPath());
     }
 }

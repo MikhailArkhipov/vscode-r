@@ -13,7 +13,6 @@ namespace Microsoft.R.LanguageServer.InteractiveWorkflow {
         private readonly DisposableBag _disposableBag;
 
         public IServiceContainer Services { get; }
-        public IConsole Console => Services.GetService<IConsole>();
         public IRSessionProvider RSessions => Services.GetService<IRSessionProvider>();
         public IRSession RSession { get; }
         public IRPackageManager Packages { get; }
@@ -22,7 +21,6 @@ namespace Microsoft.R.LanguageServer.InteractiveWorkflow {
         public RInteractiveWorkflow(IServiceContainer services) {
             Services = services.Extend()
                 .AddService<IRInteractiveWorkflow>(this)
-                .AddService<IConsole, Console>()
                 .AddService<IRSessionProvider, RSessionProvider>();
 
             RSession = RSessions.GetOrCreate(SessionNames.InteractiveWindow);

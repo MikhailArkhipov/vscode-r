@@ -23,7 +23,7 @@ export namespace CommandNames {
     export const SourceFileToTerminal = 'r.sourceToTerminal';
 }
 
-export class Commands {
+export class Commands implements Disposable {
     private readonly disposables: Disposable[] = [];
     private readonly repl: Repl;
     private readonly output: OutputChannel;
@@ -44,6 +44,10 @@ export class Commands {
             commands.registerCommand(CommandNames.SourceFileToTerminal, () => this.sourceToTerminal())
         );
         return this.disposables;
+    }
+
+    public dispose(): void {
+        this.repl.dispose();
     }
 
     private async execute() {

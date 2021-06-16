@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.0.25 (16 June 2021)
+
+1. Support ARM R 4.1 on Apple M1 silicon. **VS Code for ARM is required**. Closes [#69](https://github.com/MikhailArkhipov/vscode-r/issues/69)
+
+**Make sure you install VS Code for OSX for ARM**. You may have to download it separately since if you have had VS Code installed on M1 before ARM build became available and kept upgrading it, it is probably still x64. The extension by default uses ARM version with R 4.1 or higher. However, if you need to use Intel build of R such as when you may be using native packages not available for ARM, you can select x64 R from the list of interpreters - such as pick '4.1' and not '4.1-arm64'. Use `r.interpreter` setting to specify the desired interpreter index.
+
+2. Build Linux host for Ubuntu 18 so both 18 and 20 are supported. Fixes [#72](https://github.com/MikhailArkhipov/vscode-r/issues/72)
+3. Security updates in npm modules.
+
 ## 0.0.24 (22 May 2021)
 
 1. Add support for R 4.1: update native R Host to reflect changes in R API. The host is still Intel x64. M1 ARM 64 support is yet to be done.

@@ -10,18 +10,18 @@ using Microsoft.R.Platform.IO;
 using Microsoft.R.Platform.OS.Linux;
 
 namespace Microsoft.R.Platform.Interpreters.Linux {
-    public sealed class RLinuxInstallation : IRInstallationService {
+    public sealed class RLinuxInstallation : RInstallationService {
         private readonly IFileSystem _fileSystem;
 
         public RLinuxInstallation() :
             this(new UnixFileSystem()) {
         }
 
-        public RLinuxInstallation(IFileSystem fileSystem) {
+        public RLinuxInstallation(IFileSystem fileSystem)  {
             _fileSystem = fileSystem;
         }
 
-        public IRInterpreterInfo CreateInfo(string name, string path) {
+        public override IRInterpreterInfo CreateInfo(string name, string path) {
             var packagesInfo = InstalledPackageInfo.GetPackages(_fileSystem);
             var libRsoPath = Path.Combine(path, "lib/libR.so").Replace('\\', '/');
 
@@ -42,24 +42,24 @@ namespace Microsoft.R.Platform.Interpreters.Linux {
             return null;
         }
 
-        public IEnumerable<IRInterpreterInfo> GetCompatibleEngines(ISupportedRVersionRange svl = null) {
+        public override IEnumerable<IRInterpreterInfo> GetCompatibleEngines() {
             var packagesInfo = InstalledPackageInfo.GetPackages(_fileSystem);
             var interpreters = new List<IRInterpreterInfo>();
 
-            interpreters.AddRange(GetInstalledMRO(packagesInfo, svl));
-            interpreters.AddRange(GetInstalledCranR(packagesInfo, svl));
+            interpreters.AddRange(GetInstalledMRO(packagesInfo));
+            interpreters.AddRange(GetInstalledCranR(packagesInfo));
             return interpreters;
         }
 
-        private IEnumerable<IRInterpreterInfo> GetInstalledMRO(IEnumerable<InstalledPackageInfo> packagesInfo, ISupportedRVersionRange svl) {
-            var selectedPackages = packagesInfo.Where(p => p.PackageName.StartsWithIgnoreCase("microsoft-r-open-mro") && svl.IsCompatibleVersion(p.GetVersion()));
+        private IEnumerable<IRInterpreterInfo> GetInstalledMRO(IEnumerable<InstalledPackageInfo> packagesInfo) {
+            var selectedPackages = packagesInfo.Where(p => p.PackageName.StartsWithIgnoreCase("microsoft-r-open-mro") && SupportedVersions.IsCompatibleVersion(p.GetVersion()));
             foreach (var package in selectedPackages) {
                 yield return RLinuxInterpreterInfo.CreateFromPackage(package, "Microsoft R Open", _fileSystem);
             }
         }
 
-        private IEnumerable<IRInterpreterInfo> GetInstalledCranR(IEnumerable<InstalledPackageInfo> packagesInfo, ISupportedRVersionRange svl) {
-            var selectedPackages = packagesInfo.Where(p => p.PackageName.EqualsIgnoreCase("r-base-core") && svl.IsCompatibleVersion(p.GetVersion()));
+        private IEnumerable<IRInterpreterInfo> GetInstalledCranR(IEnumerable<InstalledPackageInfo> packagesInfo) {
+            var selectedPackages = packagesInfo.Where(p => p.PackageName.EqualsIgnoreCase("r-base-core") && SupportedVersions.IsCompatibleVersion(p.GetVersion()));
             foreach (var package in selectedPackages) {
                 yield return RLinuxInterpreterInfo.CreateFromPackage(package, "CRAN R", _fileSystem);
             }

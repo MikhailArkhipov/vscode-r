@@ -17,7 +17,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.R.Host.Broker.Interpreters;
 using Microsoft.R.Host.Broker.Lifetime;
 using Microsoft.R.Host.Broker.Logging;
 using Microsoft.R.Host.Broker.RemoteUri;
@@ -42,11 +41,9 @@ namespace Microsoft.R.Host.Broker.Start {
                 .AddOptions()
                 .Configure<LifetimeOptions>(Configuration.GetLifetimeSection())
                 .Configure<LoggingOptions>(Configuration.GetLoggingSection())
-                .Configure<ROptions>(Configuration.GetRSection())
                 .Configure<StartupOptions>(Configuration.GetStartupSection())
 
                 .AddSingleton<LifetimeManager>()
-                .AddSingleton<InterpreterManager>()
                 .AddSingleton<SessionManager>()
 
                 .AddRouting()
@@ -60,7 +57,6 @@ namespace Microsoft.R.Host.Broker.Start {
             var startupOptions = app.ApplicationServices.GetService<IOptions<StartupOptions>>();
             var logger = app.ApplicationServices.GetService<ILogger<Startup>>();
             var lifetimeManager = app.ApplicationServices.GetService<LifetimeManager>();
-            var interpreterManager = app.ApplicationServices.GetService<InterpreterManager>();
 
             _logger = logger;
             var serverAddresses = app.ServerFeatures.Get<IServerAddressesFeature>();
@@ -97,7 +93,6 @@ namespace Microsoft.R.Host.Broker.Start {
             }
 
             lifetimeManager.Initialize();
-            interpreterManager.Initialize();
 
             app.UseWebSockets(new WebSocketOptions {
                 KeepAliveInterval = TimeSpan.FromMilliseconds(1000000000),

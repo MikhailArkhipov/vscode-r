@@ -47,7 +47,7 @@ namespace Microsoft.R.LanguageServer {
         private IFunctionIndex _functionIndex;
         private InitializeParams _initParams;
         private IREvalSession _evalSession;
-        private IUIService _ui;
+        private IHostUIService _ui;
         private bool _shutdown;
 
         private IMainThreadPriority MainThreadPriority => _mainThread ??= _services.GetService<IMainThreadPriority>();
@@ -55,7 +55,7 @@ namespace Microsoft.R.LanguageServer {
         private IIdleTimeTracker IdleTimeTracker => _idleTimeTracker ??= _services.GetService<IIdleTimeTracker>();
         private IFunctionIndex FunctionIndex => _functionIndex ??= _services.GetService<IFunctionIndex>();
         private IREvalSession EvalSession => _evalSession ??= _services.GetService<IREvalSession>();
-        private IUIService UI => _ui ??= _services.GetService<IUIService>();
+        private IHostUIService UI => _ui ??= _services.GetService<IHostUIService>();
 
         public LanguageServer(IServiceContainer services) {
             _services = services;
@@ -202,7 +202,7 @@ namespace Microsoft.R.LanguageServer {
                 return Task.CompletedTask;
             }
 
-            settings.InterpreterIndex = GetSetting(r, "interpreter", 0);
+            settings.InterpreterIndex = GetSetting(r, "interpreter", -1);
             settings.InterpreterPath = GetSetting(r, "interpreterPath", string.Empty);
 
             var editor = r["editor"];
@@ -334,15 +334,8 @@ namespace Microsoft.R.LanguageServer {
             return Path.Combine(homePath, binPath);
         }
 
-        private bool IsRInstalled() {
-            var ris = _services.GetService<IRInstallationService>();
-            var engines = ris
-                .GetCompatibleEngines(new SupportedRVersionRange(3, 2, 4, 9))
-                .OrderByDescending(x => x.Version)
-                .ToList();
-
-            return engines.Count > 0;
-        }
+        private bool IsRInstalled()
+            => _services.GetService<IRInstallationService>().GetCompatibleEngines().Any();
 
         [JsonRpcMethod("r/execute")]
         public Task<string> execute(string code) {
@@ -360,10 +353,10 @@ namespace Microsoft.R.LanguageServer {
         public Task reset() => EvalSession.ResetAsync(CancellationToken.None);
         #endregion
 
-        private bool IsEmptyChange(IEnumerable<TextEdit> changes)
+        private static bool IsEmptyChange(IEnumerable<TextEdit> changes)
             => changes.All(x => string.IsNullOrEmpty(x.newText) && IsRangeEmpty(x.range));
 
-        private bool IsRangeEmpty(Range range)
+        private static bool IsRangeEmpty(Range range)
             => range.start.line == range.end.line && range.start.character == range.end.character;
 
         private void MonitorParentProcess(InitializeParams p) {

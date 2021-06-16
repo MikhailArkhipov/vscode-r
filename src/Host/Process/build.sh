@@ -17,7 +17,6 @@ EOF
 ROOT_DIR=$(dirname "$0")
 BUILD_TYPE=Release
 COLORIZE=yes
-TARGET_ARCH=x64
 OPTIND=1
 
 while getopts "h?t:a:o:i:m" opt; do
@@ -53,6 +52,20 @@ fi
 
 pushd $ROOT_DIR >/dev/null
 ROOT_DIR=$(pwd)
+
+# Assuming installation of Homebrew in /usr/local on x64 and /opt on arm64
+# per https://docs.brew.sh/Installation
+if [ "$TARGET_ARCH" = "x64" ]; then
+    brewprefix="`brew --prefix`"
+    export CMAKE_OSX_ARCHITECTURES=x86_64
+    export CMAKE_PREFIX_PATH="${brewprefix}/opt:${CMAKE_PREFIX_PATH}"
+else
+    export CMAKE_OSX_ARCHITECTURES=arm64
+    export PKG_CONFIG_PATH="/opt/homebrew/opt/icu4c/lib/pkgconfig"
+    export LDFLAGS="-L/opt/homebrew/opt/icu4c/lib"
+    export CPPFLAGS="-I/opt/homebrew/opt/icu4c/include"
+    export BOOST_ROOT="/opt/homebrew/Cellar/boost/1.76.0/lib/cmake"
+fi
 
 mkdir -p "$INT_DIR" && \
     cd "$INT_DIR" && \

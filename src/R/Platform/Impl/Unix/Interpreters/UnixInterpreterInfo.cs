@@ -9,6 +9,7 @@ using Microsoft.Common.Core;
 using Microsoft.Common.Core.IO;
 using Microsoft.Common.Core.Services;
 using Microsoft.Common.Core.UI;
+using Microsoft.R.Common.Core.OS;
 
 namespace Microsoft.R.Platform.Interpreters {
     internal abstract class UnixInterpreterInfo: IRInterpreterInfo {
@@ -24,6 +25,11 @@ namespace Microsoft.R.Platform.Interpreters {
 
         public string Name { get; }
         public Version Version { get; }
+
+        /// <summary>
+        /// Binary architecture. For example, 'arm64' or 'x64'.
+        /// </summary>
+        public virtual string Architecture => ArchitectureString.X64;
 
         /// <summary>
         /// Path to the /R directory that contains libs, doc, etc
@@ -62,10 +68,10 @@ namespace Microsoft.R.Platform.Interpreters {
                     if (Version != null) {
                         _isValid = svr.IsCompatibleVersion(Version);
                         if (!_isValid.Value) {
-                            ui?.ShowMessage(
+                            ui?.ShowErrorMessage(
                                 Resources.Error_UnsupportedRVersion.FormatInvariant(
                                 Version.Major, Version.Minor, Version.Build, svr.MinMajorVersion, svr.MinMinorVersion, "*",
-                                svr.MaxMajorVersion, svr.MaxMinorVersion, "*"), MessageButtons.OK);
+                                svr.MaxMajorVersion, svr.MaxMinorVersion, "*"));
                         }
                     } else {
                         // In linux there is no direct way to get version from binary. So assume valid version for a user provided
@@ -73,7 +79,7 @@ namespace Microsoft.R.Platform.Interpreters {
                         _isValid = true;
                     }
                 } else {
-                    ui?.ShowMessage(Resources.Error_CannotFindRBinariesFormat.FormatInvariant(InstallPath), MessageButtons.OK);
+                    ui?.ShowErrorMessage(Resources.Error_CannotFindRBinariesFormat.FormatInvariant(InstallPath));
                 }
             } catch (Exception ex) when (ex is IOException || ex is ArgumentException || ex is UnauthorizedAccessException) {
                 ui?.ShowErrorMessage(Resources.Error_ExceptionAccessingPath.FormatInvariant(InstallPath, ex.Message));

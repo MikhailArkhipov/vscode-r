@@ -48,7 +48,7 @@ namespace Microsoft.R.LanguageServer.Threading {
         public void Post(Action action, ThreadPostPriority priority)
             => Execute(action, priority);
 
-        public Task<T> SendAsync<T>(Func<T> action, ThreadPostPriority priority, IUIService ui, CancellationToken ct = default) {
+        public Task<T> SendAsync<T>(Func<T> action, ThreadPostPriority priority, IHostUIService ui, CancellationToken ct = default) {
             var tcs = new TaskCompletionSource<T>();
             Execute(() => {
                 try {
@@ -64,7 +64,7 @@ namespace Microsoft.R.LanguageServer.Threading {
             return tcs.Task;
         }
 
-        public Task<T> SendAsync<T>(Func<Task<T>> action, ThreadPostPriority priority, IUIService ui, CancellationToken ct = default) {
+        public Task<T> SendAsync<T>(Func<Task<T>> action, ThreadPostPriority priority, IHostUIService ui, CancellationToken ct = default) {
             var tcs = new TaskCompletionSource<T>();
 #pragma warning disable VSTHRD101 // Avoid unsupported async delegates
             Execute(async () => {

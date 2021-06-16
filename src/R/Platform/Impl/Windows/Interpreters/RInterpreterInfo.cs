@@ -7,6 +7,7 @@ using System.IO;
 using Microsoft.Common.Core.IO;
 using Microsoft.Common.Core.Services;
 using Microsoft.Common.Core.UI;
+using Microsoft.R.Common.Core.OS;
 using Microsoft.R.Platform.Interpreters;
 
 namespace Microsoft.R.Platform.Windows.Interpreters {
@@ -24,6 +25,11 @@ namespace Microsoft.R.Platform.Windows.Interpreters {
         /// Found R version
         /// </summary>
         public Version Version { get; }
+
+        /// <summary>
+        /// Binary architecture. For example, 'arm64' or 'x64'.
+        /// </summary>
+        public string Architecture => ArchitectureString.X64;
 
         /// <summary>
         /// Path to the R installation folder (without bin\x64)
@@ -84,13 +90,13 @@ namespace Microsoft.R.Platform.Windows.Interpreters {
                     var fileVersion = GetRVersionFromBinary(_fileSystem, rDllPath);
                     _isValid = IsSameVersion(fileVersion, Version) && svr.IsCompatibleVersion(Version);
                     if (!_isValid.Value) {
-                        ui?.ShowMessage(
+                        ui?.ShowErrorMessage(
                             string.Format(CultureInfo.InvariantCulture, Resources.Error_UnsupportedRVersion,
                             Version.Major, Version.Minor, Version.Build, svr.MinMajorVersion, svr.MinMinorVersion, "*",
-                            svr.MaxMajorVersion, svr.MaxMinorVersion, "*"), MessageButtons.OK);
+                            svr.MaxMajorVersion, svr.MaxMinorVersion, "*"));
                     }
                 } else {
-                    ui?.ShowMessage(string.Format(CultureInfo.InvariantCulture, Resources.Error_CannotFindRBinariesFormat, InstallPath), MessageButtons.OK);
+                    ui?.ShowErrorMessage(string.Format(CultureInfo.InvariantCulture, Resources.Error_CannotFindRBinariesFormat, InstallPath));
                 }
             } catch (Exception ex) when (ex is IOException || ex is ArgumentException || ex is UnauthorizedAccessException) {
                 ui?.ShowErrorMessage(

@@ -14,7 +14,6 @@ using Microsoft.Common.Core;
 using Microsoft.Common.Core.Disposables;
 using Microsoft.Common.Core.Logging;
 using Microsoft.Common.Core.Services;
-using Microsoft.R.Common.Core.Output;
 using Microsoft.R.Host.Client.BrokerServices;
 using Microsoft.R.Host.Client.Transports;
 using Microsoft.R.Host.Protocol;
@@ -30,16 +29,10 @@ namespace Microsoft.R.Host.Client.Host {
 #else
             TimeSpan.FromSeconds(5);
 #endif
-        private static readonly IReadOnlyDictionary<Type, string> _typeToEndpointMap = new Dictionary<Type, string>() {
-            { typeof(IEnumerable<InterpreterInfo>), "interpreters"}
-        };
-
-        private readonly string _interpreterId;
+        private readonly string _interpreterPath;
+        private readonly string _interpreterArchitecture;
         private readonly string _rCommandLineArguments;
         private readonly ICredentialsDecorator _credentials;
-        private readonly IConsole _console;
-        private readonly IServiceContainer _services;
-        private readonly IRSessionProvider _sessionProvider;
 
         protected DisposableBag DisposableBag { get; } = DisposableBag.Create<BrokerClient>();
         protected IActionLog Log { get; }
@@ -49,17 +42,15 @@ namespace Microsoft.R.Host.Client.Host {
         public BrokerConnectionInfo ConnectionInfo { get; }
         public string Name { get; }
 
-        protected BrokerClient(string name, BrokerConnectionInfo connectionInfo, ICredentialsDecorator credentials, IConsole console, IServiceContainer services, IRSessionProvider sessionProvider = null) {
+        protected BrokerClient(string name, BrokerConnectionInfo connectionInfo, ICredentialsDecorator credentials, IServiceContainer services) {
             Name = name;
             Log = services.Log();
 
             _rCommandLineArguments = connectionInfo.RCommandLineArguments;
-            _interpreterId = connectionInfo.InterpreterId;
+            _interpreterPath = connectionInfo.InterpreterPath;
+            _interpreterArchitecture = connectionInfo.InterpreterArchitecture;
             _credentials = credentials;
-            _console = console;
             ConnectionInfo = connectionInfo;
-            _services = services;
-            _sessionProvider = sessionProvider;
         }
 
         protected void CreateHttpClient(Uri baseAddress) {
@@ -75,7 +66,6 @@ namespace Microsoft.R.Host.Client.Host {
                 };
             } catch(ArgumentException) {
                 var message = Resources.Error_InvalidUrl.FormatInvariant(baseAddress);
-                _console.WriteLine(message); // Output now since progress dialog may eat the exception
                 throw new RHostDisconnectedException(message);
             }
 
@@ -89,19 +79,11 @@ namespace Microsoft.R.Host.Client.Host {
             DisposableBag.ThrowIfDisposed();
             await TaskUtilities.SwitchToBackgroundThread();
 
-            var uniqueSessionName = $"{connectionInfo.Name}_{ConnectionInfo.ParametersId}_{Guid.NewGuid()}";
+            var uniqueSessionName = $"{connectionInfo.Name}_{Guid.NewGuid()}";
             try {
-                var sessionExists = connectionInfo.PreserveSessionData && await IsSessionRunningAsync(uniqueSessionName, cancellationToken);
-                if (sessionExists) {
-                    var terminateRDataSave = await _console.PromptYesNoAsync(Resources.AbortRDataAutosave, cancellationToken);
-                    if (!terminateRDataSave) {
-                        while (await IsSessionRunningAsync(uniqueSessionName, cancellationToken)) {
-                            await Task.Delay(500, cancellationToken);
-                        }
-                    }
-                }
-
+                // _services.UI().LogMessage($"Creating broker session {uniqueSessionName}");
                 await CreateBrokerSessionAsync(uniqueSessionName, connectionInfo.UseRHostCommandLineArguments, connectionInfo.IsInteractive, cancellationToken);
+                // _services.UI().LogMessage($"Connecting to broker session {uniqueSessionName}");
                 var webSocket = await ConnectToBrokerAsync(uniqueSessionName, cancellationToken);
                 return CreateRHost(uniqueSessionName, connectionInfo.Callbacks, webSocket);
             } catch (HttpRequestException ex) {
@@ -119,19 +101,14 @@ namespace Microsoft.R.Host.Client.Host {
         protected virtual Task<Exception> HandleHttpRequestExceptionAsync(HttpRequestException exception)
             => Task.FromResult<Exception>(new RHostDisconnectedException(Resources.Error_HostNotResponding.FormatInvariant(Name, exception.Message), exception));
 
-        private async Task<bool> IsSessionRunningAsync(string name, CancellationToken cancellationToken) {
-            var sessionsService = new SessionsWebService(HttpClient, _credentials, Log);
-            var sessions = await sessionsService.GetAsync(cancellationToken);
-            return sessions.Any(s => s.Id == name);
-        }
-
         private async Task CreateBrokerSessionAsync(string name, bool useRCommandLineArguments, bool isInteractive, CancellationToken cancellationToken) {
             var rCommandLineArguments = useRCommandLineArguments && _rCommandLineArguments != null ? _rCommandLineArguments : null;
             var sessions = new SessionsWebService(HttpClient, _credentials, Log);
             using (Log.Measure(LogVerbosity.Normal, Invariant($"Create broker session \"{name}\""))) {
                 try {
                     await sessions.PutAsync(name, new SessionCreateRequest {
-                        InterpreterId = _interpreterId,
+                        InterpreterPath = _interpreterPath,
+                        InterpreterArchitecture = _interpreterArchitecture,
                         CommandLineArguments = rCommandLineArguments,
                         IsInteractive = isInteractive,
                     }, cancellationToken);
@@ -174,10 +151,10 @@ namespace Microsoft.R.Host.Client.Host {
                 case BrokerApiError.NoRInterpreters:
                     return Resources.Error_NoRInterpreters;
                 case BrokerApiError.InterpreterNotFound:
-                    return Resources.Error_InterpreterNotFound.FormatInvariant(_interpreterId);
+                    return Resources.Error_InterpreterNotFound.FormatInvariant(_interpreterPath);
                 case BrokerApiError.UnableToStartRHost:
                     if (!string.IsNullOrEmpty(ex.Message)) {
-                        return Resources.Error_UnableToStartHostException.FormatInvariant(ex.Message);
+                        return Resources.Error_UnableToStartHostException.FormatInvariant($"{ex.Message}\n{ex.StackTrace}");
                     }
                     return Resources.Error_UnknownError;
                 case BrokerApiError.PipeAlreadyConnected:

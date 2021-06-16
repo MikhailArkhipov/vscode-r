@@ -5,7 +5,6 @@ using System;
 using Microsoft.Common.Core.Services;
 using Microsoft.Languages.Core.Formatting;
 using Microsoft.Languages.Core.Text;
-using Microsoft.Languages.Editor.ContainedLanguage;
 using Microsoft.Languages.Editor.Formatting;
 using Microsoft.Languages.Editor.Selection;
 using Microsoft.Languages.Editor.Services;
@@ -188,18 +187,7 @@ namespace Microsoft.R.Editor.Formatting {
         private bool CanFormatRange(ITextRange formatRange) {
             // Make sure we are not formatting damaging the projected range in R Markdown
             // which looks like ```{r. 'r' should not separate from {.
-            var host = _editorBuffer.GetService<IContainedLanguageHost>();
-            if (host != null) {
-                var snapshot = _editorBuffer.CurrentSnapshot;
-                var startLine = snapshot.GetLineNumberFromPosition(formatRange.Start);
-                var endLine = snapshot.GetLineNumberFromPosition(formatRange.End);
-                for (var i = startLine; i <= endLine; i++) {
-                    if (!host.CanFormatLine(_editorView, _editorBuffer, i)) {
-                        return false;
-                    }
-                }
-            }
-            return true;
+             return true;
         }
 
         private ISelectionTracker GetSelectionTracker(ITextRange formatRange) {

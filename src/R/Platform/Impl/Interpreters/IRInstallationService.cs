@@ -5,6 +5,9 @@ using System.Collections.Generic;
 
 namespace Microsoft.R.Platform.Interpreters {
     public interface IRInstallationService {
+        /// <summary>
+        /// Retrieves interpreter information.
+        /// </summary>
         IRInterpreterInfo CreateInfo(string name, string path);
 
         /// <summary>
@@ -12,6 +15,16 @@ namespace Microsoft.R.Platform.Interpreters {
         /// from registry. Typically in the form 'Program Files\R\R-3.2.1'
         /// Selects highest from compatible versions, not just the highest.
         /// </summary>
-        IEnumerable<IRInterpreterInfo> GetCompatibleEngines(ISupportedRVersionRange svl = null);
+        IEnumerable<IRInterpreterInfo> GetCompatibleEngines();
+
+        /// <summary>
+        /// Retries latest installed R for the current CPU architecture.
+        /// </summary>
+        IRInterpreterInfo GetLatest();
+
+        /// <summary>
+        ///  CPU architecture.
+        /// </summary>
+        string Architecture { get; }
     }
 }

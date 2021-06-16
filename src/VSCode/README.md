@@ -7,8 +7,8 @@ A [Visual Studio Code](https://code.visualstudio.com/) [extension](https://marke
 ### Supported platforms
 
 -   Windows x64
--   Mac OS 10.14+
--   Mac OS 11.2+ with Rosetta 2
+-   Mac OS 10.14+ (Intel)
+-   Mac OS 11.2+ Intel or ARM with Rosetta 2 (Rosetta for .NET language server, R 4.1+ ARM64)
 -   Linux distros supported by [.NET 5.0 Runtime](https://www.microsoft.com/net/download).
 
 ---
@@ -25,6 +25,7 @@ A [Visual Studio Code](https://code.visualstudio.com/) [extension](https://marke
 
 -   [.NET 5.0 Runtime](https://www.microsoft.com/net/download)
 -   [R distribution (64-bit only)](https://cloud.r-project.org/)
+-   With Apple M1 silicon and R 4.1+ please use ARM64 package.
 
 ## Quick start
 
@@ -64,6 +65,10 @@ Thanks to [@jackbrookes](https://github.com/jackbrookes) for suggestions and sni
 
 The extension does work in WSL. However, output windows cannot be displayed since UI does not translate over remote connection. There is limited support for plotting though. Remoting like `R Tools in Visual Studio` into containers with preinstalled RTVS broker is not supported. Please use VS Code remoting instead.
 
+### Using R on Apple ARM silicon
+
+**Make sure you install VS Code for OSX for ARM**. You may have to download it separately since if you have had VS Code installed on M1 before ARM build became available and kept upgrading it, it is probably still x64. The extension by default uses ARM version with R 4.1 or higher. However, if you need to use Intel build of R such as when you may be using native packages not available for ARM, you can select x64 R from the list of interpreters - such as pick '4.1' and not '4.1-arm64'. Use `r.interpreter` setting to specify the desired interpreter index.
+
 ### Plotting
 
 Plots typically appear in external R windows. However, there is support for internal `Plot` window that may come handy when working with remote sessions, such as WSL. Try `r.execute` command (`Ctrl+Shift+Enter`) to evaluate code in internal R session. Executing command over a line that yields a plot will output plot in the internal `Plot` window.
@@ -81,14 +86,6 @@ You can set `r.terminalPath` to an executable for the R Terminal. For example, [
 R session in the editor does not automatically pick up new packages installed in the terminal. You may have to reload the window for the session to pick up newly installed modules.
 
 ## Troubleshooting
-
-**.NET Core not found**
-
-You can bypass .NET Core check by setting
-
-```json
-"r.dependencyChecks": false
-```
 
 **R Interpreter not found**
 

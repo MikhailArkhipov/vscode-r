@@ -14,7 +14,6 @@ using Microsoft.Common.Core.Shell;
 using Microsoft.Common.Core.Tasks;
 using Microsoft.Common.Core.Threading;
 using Microsoft.Common.Core.UI;
-using Microsoft.Common.Core.UI.Commands;
 
 namespace Microsoft.Common.Core.Services {
     public static class ServiceContainerExtensions {
@@ -41,18 +40,6 @@ namespace Microsoft.Common.Core.Services {
         /// </summary>
         public static void ShowErrorMessage(this IServiceContainer sc, string message)
             => sc.UI().ShowErrorMessage(message);
-
-        /// <summary>
-        /// Shows the context menu with the specified command ID at the specified location
-        /// </summary>
-        public static void ShowContextMenu(this IServiceContainer sc, CommandId commandId, int x, int y, object commandTarget = null)
-            => sc.UI().ShowContextMenu(commandId, x, y, commandTarget);
-
-        /// <summary>
-        /// Displays message with specified buttons in a host-specific UI
-        /// </summary>
-        public static MessageButtons ShowMessage(this IServiceContainer sc, string message, MessageButtons buttons, MessageType messageType = MessageType.Information)
-            => sc.UI().ShowMessage(message, buttons, messageType);
 
         public static T CreateInstance<T>(this IServiceContainer s) where T : class => InstanceFactory<T>.New(s);
 

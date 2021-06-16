@@ -14,7 +14,6 @@ using Microsoft.Common.Core.Tasks;
 using Microsoft.Common.Core.Threading;
 using Microsoft.R.Common.Core.Output;
 using Microsoft.R.Host.Client.Host;
-using Microsoft.R.Platform.Interpreters;
 
 namespace Microsoft.R.Host.Client.Session {
     public sealed class RSessionProvider : IRSessionProvider {
@@ -32,9 +31,11 @@ namespace Microsoft.R.Host.Client.Session {
 
         public bool HasBroker => _brokerProxy.HasBroker;
 
-        public bool IsConnected {
+        public bool IsConnected
+        {
             get => _isConnected != 0;
-            private set {
+            private set
+            {
                 var isConnected = value ? 1 : 0;
                 if (Interlocked.Exchange(ref _isConnected, isConnected) != isConnected) {
                     var args = new BrokerStateChangedEventArgs(value);
@@ -89,12 +90,12 @@ namespace Microsoft.R.Host.Client.Session {
             Broker.Dispose();
         }
 
-        private RSession CreateRSession(string sessionId) 
+        private RSession CreateRSession(string sessionId)
             => new RSession(Interlocked.Increment(ref _sessionCounter), sessionId, Broker, _connectArwl.CreateExclusiveReaderLock(), () => DisposeSession(sessionId));
 
         private void DisposeSession(string sessionId) => _sessions.TryRemove(sessionId, out _);
 
-        private void OnBrokerChanged() => Task.Run(() 
+        private void OnBrokerChanged() => Task.Run(()
             => BrokerChanged?.Invoke(this, new EventArgs())).DoNotWait();
 
         public async Task RemoveBrokerAsync(CancellationToken cancellationToken = default) {
@@ -219,7 +220,7 @@ namespace Microsoft.R.Host.Client.Session {
             }
         }
 
-        private Task StopSessionsAsync(IEnumerable<RSession> sessions, bool waitForShutdown, CancellationToken cancellationToken) 
+        private Task StopSessionsAsync(IEnumerable<RSession> sessions, bool waitForShutdown, CancellationToken cancellationToken)
             => WhenAllCancelOnFailure(sessions, (s, ct) => s.StopHostAsync(waitForShutdown, ct), cancellationToken);
 
         private async Task ReconnectAsync(CancellationToken cancellationToken) {
@@ -276,18 +277,7 @@ namespace Microsoft.R.Host.Client.Session {
             }, cancellationToken);
         }
 
-        private IBrokerClient CreateBrokerClient(string name, BrokerConnectionInfo connectionInfo) {
-            if (!connectionInfo.IsValid) {
-                var installSvc = _services.GetService<IRInstallationService>();
-                var path = installSvc.GetCompatibleEngines().FirstOrDefault()?.InstallPath;
-                connectionInfo = BrokerConnectionInfo.Create(connectionInfo.Name, path, null);
-            }
-
-            if (!connectionInfo.IsValid) {
-                return null;
-            }
-
-            return new LocalBrokerClient(name, connectionInfo, _services, _console, this);
-        }
+        private IBrokerClient CreateBrokerClient(string name, BrokerConnectionInfo connectionInfo)
+            => new LocalBrokerClient(name, connectionInfo, _services);
     }
 }

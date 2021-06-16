@@ -9,7 +9,6 @@ using Microsoft.R.Host.Client;
 namespace Microsoft.R.Components.InteractiveWorkflow {
     public interface IRInteractiveWorkflow : IDisposable {
         IServiceContainer Services { get; }
-        IConsole Console { get; }
         IRPackageManager Packages { get; }
         IRSessionProvider RSessions { get; }
         IRSession RSession { get; }

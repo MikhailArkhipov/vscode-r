@@ -107,7 +107,7 @@ namespace Microsoft.R.LanguageServer.InteractiveWorkflow {
             _session ??= _workflow.RSessions.GetOrCreate(@"REPL");
 
             if (!_session.IsHostRunning) {
-                await _session.EnsureHostStartedAsync(new RHostStartupInfo(isInteractive: true), _sessionCallback, 3000, ct);
+                await _session.EnsureHostStartedAsync(new RHostStartupInfo(isInteractive: true), _sessionCallback, null, 3000, ct);
                 await _session.SetVsGraphicsDeviceAsync();
             }
 

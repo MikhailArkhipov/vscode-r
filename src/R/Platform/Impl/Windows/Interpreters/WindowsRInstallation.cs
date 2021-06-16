@@ -20,11 +20,7 @@ namespace Microsoft.R.Platform.Windows.Interpreters {
     /// specified in settings. If nothing is specified
     /// settings try and find highest version.
     /// </summary>
-    public sealed class WindowsRInstallation : IRInstallationService {
-        private const string _rCoreRegKey = @"SOFTWARE\R-core\R";
-        private const string _rServer = "R_SERVER";
-        private static readonly string[] rFolders = new string[] { "MRO", "RRO", "R" };
-
+    public sealed class WindowsRInstallation : RInstallationService {
         private readonly IRegistry _registry;
         private readonly IFileSystem _fileSystem;
 
@@ -36,18 +32,18 @@ namespace Microsoft.R.Platform.Windows.Interpreters {
             _fileSystem = fileSystem;
         }
 
-        public IRInterpreterInfo CreateInfo(string name, string path) => new RInterpreterInfo(name, path, _fileSystem);
+        public override IRInterpreterInfo CreateInfo(string name, string path) => new RInterpreterInfo(name, path, _fileSystem);
 
-        public IEnumerable<IRInterpreterInfo> GetCompatibleEngines(ISupportedRVersionRange svl = null) {
+        public override IEnumerable<IRInterpreterInfo> GetCompatibleEngines() {
             var list = new List<IRInterpreterInfo>();
 
-            var engines = GetCompatibleEnginesFromRegistry(svl);
-            engines = engines.Where(e => e.VerifyInstallation(svl))
+            var engines = GetCompatibleEnginesFromRegistry();
+            engines = engines.Where(e => e.VerifyInstallation(SupportedVersions))
                              .OrderBy(e => e.Version);
 
             list.AddRange(engines);
             if (list.Count == 0) {
-                var e = TryFindRInProgramFiles(svl);
+                var e = TryFindRInProgramFiles();
                 if (e != null) {
                     list.Add(e);
                 }
@@ -59,9 +55,8 @@ namespace Microsoft.R.Platform.Windows.Interpreters {
         /// <summary>
         /// Retrieves path to the all compatible R installations from registry. 
         /// </summary>
-        private IEnumerable<IRInterpreterInfo> GetCompatibleEnginesFromRegistry(ISupportedRVersionRange svr) {
-            svr = svr ?? new SupportedRVersionRange();
-            var engines = GetInstalledEnginesFromRegistry().Where(e => svr.IsCompatibleVersion(e.Version));
+        private IEnumerable<IRInterpreterInfo> GetCompatibleEnginesFromRegistry() {
+            var engines = GetInstalledEnginesFromRegistry().Where(e => SupportedVersions.IsCompatibleVersion(e.Version));
             // Among duplicates by path take the highest version
             return
                 from e in engines
@@ -98,8 +93,7 @@ namespace Microsoft.R.Platform.Windows.Interpreters {
         }
 
         private static string NameFromKey(string key) {
-            Version v;
-            if (Version.TryParse(key, out v)) {
+            if (Version.TryParse(key, out Version v)) {
                 return Invariant($"R {v}");
             }
 
@@ -121,8 +115,7 @@ namespace Microsoft.R.Platform.Windows.Interpreters {
         private static Version GetRVersionFromFolderName(string folderName) {
             if (folderName.StartsWith("R-", StringComparison.OrdinalIgnoreCase)) {
                 try {
-                    Version v;
-                    if (Version.TryParse(folderName.Substring(2), out v)) {
+                    if (Version.TryParse(folderName.Substring(2), out Version v)) {
                         return v;
                     }
                 } catch (Exception) { }
@@ -130,20 +123,22 @@ namespace Microsoft.R.Platform.Windows.Interpreters {
             return new Version(0, 0);
         }
 
-        private IRInterpreterInfo TryFindRInProgramFiles(ISupportedRVersionRange supportedVersions) {
+        private IRInterpreterInfo TryFindRInProgramFiles() {
             // Force 64-bit PF
             var programFiles = Environment.GetEnvironmentVariable("ProgramW6432");
             var baseRFolder = Path.Combine(programFiles, @"R");
             var versions = new List<Version>();
             try {
                 if (_fileSystem.DirectoryExists(baseRFolder)) {
-                    IEnumerable<IFileSystemInfo> directories = _fileSystem.GetDirectoryInfo(baseRFolder)
-                                                                    .EnumerateFileSystemInfos()
-                                                                    .Where(x => (x.Attributes & FileAttributes.Directory) != 0);
+                    var directories = _fileSystem
+                        .GetDirectoryInfo(baseRFolder)
+                        .EnumerateFileSystemInfos()
+                        .Where(x => (x.Attributes & FileAttributes.Directory) != 0);
+
                     foreach (IFileSystemInfo fsi in directories) {
                         string subFolderName = fsi.FullName.Substring(baseRFolder.Length + 1);
-                        Version v = GetRVersionFromFolderName(subFolderName);
-                        if (supportedVersions.IsCompatibleVersion(v)) {
+                        var v = GetRVersionFromFolderName(subFolderName);
+                        if (SupportedVersions.IsCompatibleVersion(v)) {
                             versions.Add(v);
                         }
                     }
@@ -154,11 +149,11 @@ namespace Microsoft.R.Platform.Windows.Interpreters {
 
             if (versions.Count > 0) {
                 versions.Sort();
-                Version highest = versions[versions.Count - 1];
+                var highest = versions[versions.Count - 1];
                 var name = string.Format(CultureInfo.InvariantCulture, "R-{0}.{1}.{2}", highest.Major, highest.Minor, highest.Build);
                 var path = Path.Combine(baseRFolder, name);
                 var ri = CreateInfo(name, path);
-                if (ri.VerifyInstallation(supportedVersions)) {
+                if (ri.VerifyInstallation(SupportedVersions)) {
                     return ri;
                 }
             }

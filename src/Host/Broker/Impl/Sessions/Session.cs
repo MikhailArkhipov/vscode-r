@@ -12,7 +12,6 @@ using Microsoft.Common.Core;
 using Microsoft.Common.Core.Logging;
 using Microsoft.Common.Core.OS;
 using Microsoft.Extensions.Logging;
-using Microsoft.R.Host.Broker.Interpreters;
 using Microsoft.R.Host.Broker.Pipes;
 using Microsoft.R.Host.Broker.Services;
 using Microsoft.R.Host.Protocol;
@@ -32,15 +31,18 @@ namespace Microsoft.R.Host.Broker.Sessions {
 
         public string Id { get; }
 
-        public Interpreter Interpreter { get; }
+        public string InterpreterPath { get; }
+        public string InterpreterArchitecture { get; }
 
         public string CommandLineArguments { get; }
 
         private int _state;
 
-        public SessionState State {
+        public SessionState State
+        {
             get => (SessionState)_state;
-            set {
+            set
+            {
                 var oldState = (SessionState)Interlocked.Exchange(ref _state, (int)value);
                 if (oldState != value) {
                     StateChanged?.Invoke(this, new SessionStateChangedEventArgs(oldState, value));
@@ -54,7 +56,6 @@ namespace Microsoft.R.Host.Broker.Sessions {
 
         public SessionInfo Info => new SessionInfo {
             Id = Id,
-            InterpreterId = Interpreter.Id,
             CommandLineArguments = CommandLineArguments,
             State = State,
         };
@@ -64,12 +65,14 @@ namespace Microsoft.R.Host.Broker.Sessions {
             , IApplicationLifetime applicationLifetime
             , ILogger sessionLogger
             , ILogger messageLogger
-            , Interpreter interpreter
+            , string interpreterPath
+            , string interpreterArchitecture
             , string id
             , string commandLineArguments
             , bool isInteractive) {
             Manager = manager;
-            Interpreter = interpreter;
+            InterpreterPath = interpreterPath;
+            InterpreterArchitecture = interpreterArchitecture;
             Id = id;
             CommandLineArguments = commandLineArguments;
             _processService = processService;
@@ -88,11 +91,15 @@ namespace Microsoft.R.Host.Broker.Sessions {
             var suppressUI = string.Empty;
             var isRepl = _isInteractive ? "--rhost-interactive " : string.Empty;
             var logFolderParam = string.IsNullOrEmpty(logFolder) ? string.Empty : Invariant($"--rhost-log-dir \"{logFolder}\"");
-            var rDirPath = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? Interpreter.BinPath : Interpreter.InstallPath;
+            
+            var rDirPath = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) 
+                ? Path.Combine(InterpreterPath, "bin", "x64") 
+                : InterpreterPath;
+
             var arguments = Invariant($"{suppressUI}{isRepl}--rhost-r-dir \"{rDirPath}\" --rhost-name \"{Id}\" {logFolderParam} --rhost-log-verbosity {(int)verbosity} {CommandLineArguments}");
 
             _sessionLogger.LogInformation(Resources.Info_StartingRHost, Id, arguments);
-            _process = _processService.StartHost(Interpreter, arguments);
+            _process = _processService.StartHost(InterpreterPath, InterpreterArchitecture, arguments);
 
             _process.Exited += delegate {
                 _hostEnd?.Dispose();
@@ -119,7 +126,7 @@ namespace Microsoft.R.Host.Broker.Sessions {
                 if (!(_process?.HasExited).Value) {
                     _process?.Kill();
                 }
-            } catch(Win32Exception wex) when ((uint)wex.HResult == 0x80004005) {
+            } catch (Win32Exception wex) when ((uint)wex.HResult == 0x80004005) {
                 // On windows, attempting to kill a process that already has a kill issued will result 
                 // in AccessDeniedException. This is best effort, so log it and continue.
                 _sessionLogger.LogError(0, wex, "Failed to kill host process for session '{0}'.", Id);

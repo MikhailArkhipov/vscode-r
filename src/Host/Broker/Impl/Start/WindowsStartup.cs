@@ -9,8 +9,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.R.Host.Broker.RHost;
 using Microsoft.R.Host.Broker.Services;
 using Microsoft.R.Host.Broker.Start;
-using Microsoft.R.Platform.Interpreters;
-using Microsoft.R.Platform.Windows.Interpreters;
 using Microsoft.R.Platform.Windows.IO;
 using Microsoft.R.Platform.Windows.OS;
 using Microsoft.R.Platform.Windows.Registry;
@@ -26,8 +24,7 @@ namespace Microsoft.R.Host.Broker.Windows {
                 .AddSingleton<IFileSystem>(new WindowsFileSystem())
                 .AddSingleton<IProcessServices>(new WindowsProcessServices())
                 .AddSingleton<IRegistry>(new RegistryImpl())
-                .AddSingleton<IRHostProcessService, RHostProcessService>()
-                .AddSingleton<IRInstallationService, WindowsRInstallation>();
+                .AddSingleton<IRHostProcessService, RHostProcessService>();
         }
     }
 }

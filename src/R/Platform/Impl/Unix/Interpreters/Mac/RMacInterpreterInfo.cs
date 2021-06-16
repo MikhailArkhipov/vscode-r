@@ -12,7 +12,7 @@ namespace Microsoft.R.Platform.Interpreters.Mac {
         /// </summary>
         /// <param name="name">Name of the R interpreter</param>
         /// <param name="fileSystem"></param>
-        public RMacInterpreterInfo(string name, string version, Version parsedVersion, IFileSystem fileSystem) :
+        public RMacInterpreterInfo(string name, string version, string architecture, Version parsedVersion, IFileSystem fileSystem) :
             base(name, parsedVersion, fileSystem) {
             InstallPath = $"/Library/Frameworks/R.framework/Versions/{version}/Resources";
             BinPath = Path.Combine(InstallPath, "bin");
@@ -20,8 +20,15 @@ namespace Microsoft.R.Platform.Interpreters.Mac {
             LibPath = Path.Combine(InstallPath, "lib");
             IncludePath = Path.Combine(InstallPath, "include");
             RShareDir = Path.Combine(InstallPath, "share");
+            Architecture = architecture;
         }
 
         public override string LibName => "libR.dylib";
+
+        /// <summary>
+        /// Binary architecture. For example, 'arm64' or 'x64'.
+        /// </summary>
+        public override string Architecture { get; }
+
     }
 }

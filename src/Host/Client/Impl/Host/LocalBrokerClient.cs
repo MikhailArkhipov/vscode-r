@@ -21,8 +21,6 @@ using Newtonsoft.Json;
 namespace Microsoft.R.Host.Client.Host {
     public sealed class LocalBrokerClient : BrokerClient {
         private const string InterpreterId = "local";
-
-        private static readonly bool ShowConsole;
         private static readonly LocalCredentialsDecorator _credentials = new LocalCredentialsDecorator();
 
         private readonly string _rHome;
@@ -31,18 +29,8 @@ namespace Microsoft.R.Host.Client.Host {
 
         private IProcess _brokerProcess;
 
-        static LocalBrokerClient() {
-            // Allow "true" and non-zero integer to enable, otherwise disable.
-            var rtvsShowConsole = Environment.GetEnvironmentVariable("RTVS_SHOW_CONSOLE");
-            if (!bool.TryParse(rtvsShowConsole, out ShowConsole)) {
-                if (int.TryParse(rtvsShowConsole, out var n) && n != 0) {
-                    ShowConsole = true;
-                }
-            }
-        }
-
-        public LocalBrokerClient(string name, BrokerConnectionInfo connectionInfo, IServiceContainer services, IConsole console, IRSessionProvider sessionProvider)
-            : base(name, connectionInfo, _credentials, console, services, sessionProvider) {
+        public LocalBrokerClient(string name, BrokerConnectionInfo connectionInfo, IServiceContainer services)
+            : base(name, connectionInfo, _credentials, services) {
             _rHome = connectionInfo.Uri.LocalPath;
             _services = services;
         }
@@ -59,7 +47,7 @@ namespace Microsoft.R.Host.Client.Host {
             var lockToken = await _connectLock.WaitAsync(cancellationToken);
             try {
                 if (!lockToken.IsSet) {
-                    await ConnectToBrokerWorker(cancellationToken);
+                    await ConnectToBrokerWorkerAsync(cancellationToken);
                 }
                 lockToken.Set();
             } finally {
@@ -67,17 +55,13 @@ namespace Microsoft.R.Host.Client.Host {
             }
         }
 
-        private async Task ConnectToBrokerWorker(CancellationToken cancellationToken) {
+        private async Task ConnectToBrokerWorkerAsync(CancellationToken cancellationToken) {
             Trace.Assert(_brokerProcess == null);
             var fs = _services.FileSystem();
-            var locator = BrokerExecutableLocator.Create(fs);
-
-            var rhostExe = locator.GetHostExecutablePath();
-            if (!fs.FileExists(rhostExe)) {
-                throw new RHostBinaryMissingException();
-            }
+            var locator = new BrokerExecutableLocator(fs);
 
             var rhostBrokerExe = locator.GetBrokerExecutablePath();
+            // _services.UI().LogMessage($"R Host broker: {rhostBrokerExe}");
             if (!fs.FileExists(rhostBrokerExe)) {
                 throw new RHostBrokerBinaryMissingException();
             }
@@ -90,13 +74,9 @@ namespace Microsoft.R.Host.Client.Host {
                 using (var processConnectCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, cts.Token))
                 using (var serverUriPipe = new NamedPipeServerStream(pipeName, PipeDirection.In, 1, PipeTransmissionMode.Byte, PipeOptions.Asynchronous)) {
                     var psi = GetProcessStartInfo(rhostBrokerExe, pipeName);
-                    if (!ShowConsole) {
-                        psi.CreateNoWindow = true;
-                    }
-
+                    // _services.UI().LogMessage($"Starting R Host broker: {rhostBrokerExe}");
                     process = StartBroker(psi);
-                    process.Exited += delegate
-                    {
+                    process.Exited += delegate {
                         cts.Cancel();
                         _brokerProcess = null;
                         _connectLock.EnqueueReset();
@@ -109,6 +89,9 @@ namespace Microsoft.R.Host.Client.Host {
                 if (DisposableBag.TryAdd(DisposeBrokerProcess)) {
                     _brokerProcess = process;
                 }
+            } catch (Exception ex) {
+                _services.UI().LogMessage($"Unable to start R Host broker process. Exception {ex.Message}");
+                throw;
             } finally {
                 if (_brokerProcess == null) {
                     try {
@@ -146,7 +129,7 @@ namespace Microsoft.R.Host.Client.Host {
             }
 
             var serverUriStr = Encoding.UTF8.GetString(serverUriData.ToArray());
-            if(serverUriStr.EndsWithOrdinal("^")) {
+            if (serverUriStr.EndsWithOrdinal("^")) {
                 serverUriStr = serverUriStr.Substring(0, serverUriStr.Length - 1);
             }
 
@@ -199,7 +182,8 @@ namespace Microsoft.R.Host.Client.Host {
                 UseShellExecute = false,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
-                Arguments = $"{rhostBrokerExecutable} {baseArguments}"
+                Arguments = $"{rhostBrokerExecutable} {baseArguments}",
+                CreateNoWindow = true
             };
             return psi;
         }
