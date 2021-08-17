@@ -1,8 +1,8 @@
 ﻿{
   "dependencies": {
     "MicroBuild.Core": "0.2.0",
-    "Newtonsoft.Json": "9.0.1",
-    "NuGet.CommandLine": "3.5.0"
+    "Newtonsoft.Json": "13.0.1",
+    "NuGet.CommandLine": "5.9.1"
   },
   "frameworks": {
     "net461": {}

@@ -2,16 +2,16 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata>
     <id>Microsoft.R.Host.Client.API</id>
-    <version>1.0.0</version>
+    <version>2.0.0</version>
     <title>C# to R interface</title>
-    <authors>Microsoft</authors>
-    <owners>R Tools for Visual Studio</owners>
-    <licenseUrl>https://github.com/Microsoft/RTVS/blob/master/LICENSE</licenseUrl>
-    <projectUrl>https://github.com/Microsoft/RTVS</projectUrl>
+    <authors>Mikhail Arkhipov</authors>
+    <owners>Mikhail Arkhipov</owners>
+    <license>MIT</license>
+    <projectUrl>https://github.com/MikhailArkhipov/vscode-r</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <description>Interface between C# and R using Visual Studio R Tools Runtime</description>
-    <releaseNotes>Initial release</releaseNotes>
-    <copyright>Copyright © Microsoft Corporation</copyright>
+    <description>Interface between C# and R using R Tools for VS Code</description>
+    <releaseNotes>Updated fro 1.0 to use R Tools for VS Code</releaseNotes>
+    <copyright>Copyright © Mikhail Arkhipov, Microsoft</copyright>
     <tags>C# R RTVS R.NET</tags>
     <dependencies>
       <dependency id="Newtonsoft.Json" version="9.0.1" />

@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.0.26 (17 Aug 2021)
+
+1. Limit keybindings to R editor so they do not activate in other languages. Closes [#75](https://github.com/MikhailArkhipov/vscode-r/issues/75)
+2. Security updates in Node modules.
+
 ## 0.0.25 (16 June 2021)
 
 1. Support ARM R 4.1 on Apple M1 silicon. **VS Code for ARM is required**. Closes [#69](https://github.com/MikhailArkhipov/vscode-r/issues/69)

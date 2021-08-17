@@ -9,15 +9,11 @@ Extension consists of three parts:
 1. Install Visual Studio 2019 Community with C#, C++ and .NET Core cross-platform development
 2. Install VS Code
 3. Clone the repo
-4. Add R-Host as subtree
-   - `git remote add RHost https://github.com/MikhailArkhipov/R-Host`
-   - `git subtree add --prefix=src/Host/Process/ RHost master`
-   - `git subtree pull --prefix src/Host/Process RHost master`
-5. Add R-Host dependencies
+4. Add R-Host dependencies (from `src/Host/Process`)
    - `git remote add picojson https://github.com/kazuho/picojson`
    - `git subtree add --prefix src/Host/Process/lib/picojson picojson master`
    - `git subtree pull --prefix src/Host/Process/lib/picojson picojson master`
-6. R Host is binaries are checked in under `Host/[Mac | Windows | Linux]` subfolder per platform.
+4. R Host is binaries are checked in under `Host/[Mac | Windows | Linux]` subfolder per platform.
 
 ### Building R-Host
 

@@ -11,15 +11,14 @@ using Microsoft.Common.Core.Disposables;
 using Microsoft.Common.Core.IO;
 using Microsoft.Common.Core.Logging;
 using Microsoft.Common.Core.OS;
-using Microsoft.Common.Core.Security;
-using Microsoft.Common.Core.Services;
 using Microsoft.Common.Core.Tasks;
-using Microsoft.Common.Core.Telemetry;
 using Microsoft.Common.Core.Threading;
 using Microsoft.R.DataInspection;
 using Microsoft.R.Host.Client.Host;
 using Microsoft.R.Host.Client.Session;
 using Microsoft.R.Interpreters;
+using Microsoft.R.Platform.Windows.Interpreters;
+using Microsoft.R.Platform.Windows.IO;
 using static System.FormattableString;
 
 namespace Microsoft.R.Host.Client {
@@ -65,17 +64,14 @@ namespace Microsoft.R.Host.Client {
         /// <param name="name">Session name</param>
         /// <param name="url">Path to local R interpreter (folder with R.dll) or URL to the remote machine</param>
         /// <returns>R session</returns>
-        public static IRHostSession Create(string name, string url = null) {
-            if (string.IsNullOrEmpty(url)) {
-                var engine = new RInstallation().GetCompatibleEngines().FirstOrDefault();
-                if (engine == null) {
-                    throw new InvalidOperationException("No R engines installed");
-                }
-                url = engine.InstallPath;
+        public static IRHostSession Create(string name) {
+            var e = new WindowsRInstallation().GetCompatibleEngines().FirstOrDefault();
+            if (e == null) {
+                throw new InvalidOperationException("No R engines installed");
             }
 
-            var ci = BrokerConnectionInfo.Create(null, name, url);
-            var bc = new LocalBrokerClient(name, ci, new CoreServices(), new NullConsole());
+            var ci = BrokerConnectionInfo.Create(e.Name, e.InstallPath, e.Architecture, string.Empty);
+            var bc = new LocalBrokerClient(name, ci, CoreShell.Create());
             return new RHostSession(new RSession(0, name, bc, new NullLock(), () => { }));
         }
 
@@ -246,14 +242,13 @@ namespace Microsoft.R.Host.Client {
             => _session.EvaluateAndDescribeAsync(expression, properties, RValueRepresentations.Str(), cancellationToken);
 
         private class CoreServices : ICoreServices {
-            public IFileSystem FileSystem => new FileSystem();
+            public IFileSystem FileSystem { get; } = new WindowsFileSystem();
             public IActionLog Log => new NullLog();
             public ILoggingPermissions LoggingPermissions => null;
             public IMainThread MainThread => null;
-            public IProcessServices Process => new ProcessServices();
+            public IProcessServices Process => new WindowsProcessServices();
             public ISecurityService Security => null;
             public ITaskService Tasks => null;
-            public ITelemetryService Telemetry => null;
-        }
+         }
     }
 }

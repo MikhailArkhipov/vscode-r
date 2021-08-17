@@ -112,7 +112,7 @@ namespace Microsoft.R.LanguageServer.Server {
             for (var i = 0; i < engines.Count; i++) {
                 _ui.LogMessageAsync($"\t[{i}] {engines[i].Name}", MessageType.Info).DoNotWait();
             }
-            _ui.LogMessageAsync("You can specify the desired interpreter index via `r.interpreterIndex` setting", MessageType.Info).DoNotWait();
+            _ui.LogMessageAsync("You can specify the desired interpreter index via `r.interpreter` setting", MessageType.Info).DoNotWait();
             _ui.LogMessageAsync("or provide path to R using `r.interpreterPath` setting.", MessageType.Info).DoNotWait();
 
             if (rs.InterpreterIndex >= engines.Count) {
