@@ -38,6 +38,11 @@ namespace Microsoft.R.Host.Client {
         Task HostStarted { get; }
 
         /// <summary>
+        /// Version of R language
+        /// </summary>
+        Version RVersion { get; }
+
+        /// <summary>
         /// Session is currently processing user request.
         /// </summary>
         bool IsProcessing { get; }

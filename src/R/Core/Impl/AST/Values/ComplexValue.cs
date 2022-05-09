@@ -31,8 +31,8 @@ namespace Microsoft.R.Core.AST.Values {
             Debug.Assert(text[text.Length - 1] == 'i');
 
             // Drop trailing i and retokenize as two numbers
-            RTokenizer tokenizer = new RTokenizer(separateComments: false);
-            IReadOnlyTextRangeCollection<RToken> tokens = tokenizer.Tokenize(text.Substring(0, text.Length - 1));
+            var tokenizer = new RTokenizer(separateComments: false);
+            var tokens = tokenizer.Tokenize(text.Substring(0, text.Length - 1), context.RVersion);
 
             if (tokens.Count == 1) {
                 // Only imaginary part is present

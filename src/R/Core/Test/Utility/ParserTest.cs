@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using System;
 using System.Diagnostics.CodeAnalysis;
 using FluentAssertions;
 using Microsoft.Common.Core.Test.Utility;
@@ -12,8 +13,8 @@ using Microsoft.R.Core.Utility;
 namespace Microsoft.R.Core.Test.Utility {
     [ExcludeFromCodeCoverage]
     public static class ParserTest {
-        public static void VerifyParse(string expected, string expression) {
-            var ast = RParser.Parse(new TextStream(expression));
+        public static void VerifyParse(string expected, string expression, Version languageVersion = null) {
+            var ast = RParser.Parse(new TextStream(expression), languageVersion);
             CompareTrees(expected, ast);
         }
 

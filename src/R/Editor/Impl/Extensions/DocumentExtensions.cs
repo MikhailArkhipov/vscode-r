@@ -16,7 +16,7 @@ namespace Microsoft.R.Editor {
                 if(!inComment) {
                     var line = document.EditorBuffer.CurrentSnapshot.GetLineFromPosition(position);
                     position -= line.Start;
-                    var tokens = (new RTokenizer()).Tokenize(line.GetText());
+                    var tokens = (new RTokenizer()).Tokenize(line.GetText(), ast.RVersion);
                     var token = tokens.FirstOrDefault(t => t.Contains(position) || t.End == position);
                     inComment = token != null && token.TokenType == RTokenType.Comment;
                 }

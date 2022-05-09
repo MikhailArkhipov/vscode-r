@@ -23,6 +23,7 @@ namespace Microsoft.R.Editor.Formatting {
         private readonly IEditorView _editorView;
         private readonly IEditorBuffer _editorBuffer;
         private readonly IIncrementalWhitespaceChangeHandler _changeHandler;
+        private readonly Version _rVersion;
 
         public RangeFormatter(IServiceContainer services, IEditorView editorView, IEditorBuffer editorBuffer, IIncrementalWhitespaceChangeHandler changeHandler = null) {
             _services = services;
@@ -30,6 +31,7 @@ namespace Microsoft.R.Editor.Formatting {
             _editorView = editorView;
             _editorBuffer = editorBuffer;
             _changeHandler = changeHandler ?? _services.GetService<IIncrementalWhitespaceChangeHandler>();
+            _rVersion = _editorBuffer.GetEditorDocument<IREditorDocument>()?.EditorTree?.AstRoot?.RVersion ?? new Version(3, 2);
         }
 
         public bool FormatRange(ITextRange formatRange) {
@@ -83,7 +85,7 @@ namespace Microsoft.R.Editor.Formatting {
             var spanText = snapshot.GetText(formatRange);
             var trimmedSpanText = spanText.Trim();
 
-            var formatter = new RFormatter(_settings.FormatOptions);
+            var formatter = new RFormatter(_settings.FormatOptions, _rVersion);
             var formattedText = formatter.Format(trimmedSpanText);
 
             formattedText = formattedText.Trim(); // There may be inserted line breaks after {
@@ -94,15 +96,16 @@ namespace Microsoft.R.Editor.Formatting {
 
             var selectionTracker = GetSelectionTracker(formatRange);
             var tokenizer = new RTokenizer();
-            var oldTokens = tokenizer.Tokenize(spanText);
-            var newTokens = tokenizer.Tokenize(formattedText);
+
+            var oldTokens = tokenizer.Tokenize(spanText, _rVersion);
+            var newTokens = tokenizer.Tokenize(formattedText, _rVersion);
 
             _changeHandler.ApplyChange(
                 _editorBuffer,
                 new TextStream(spanText), new TextStream(formattedText),
                 oldTokens, newTokens,
                 formatRange,
-                Microsoft.R.Editor.Resources.AutoFormat, selectionTracker,
+                Resources.AutoFormat, selectionTracker,
                 () => {
                     var ast = UpdateAst(_editorBuffer);
                     // Apply indentation
@@ -118,7 +121,7 @@ namespace Microsoft.R.Editor.Formatting {
                 document.EditorTree.EnsureTreeReady();
                 return document.EditorTree.AstRoot;
             }
-            return RParser.Parse(editorBuffer.CurrentSnapshot);
+            return RParser.Parse(editorBuffer.CurrentSnapshot, document.EditorTree.AstRoot.RVersion);
         }
 
         /// <summary>
@@ -164,13 +167,13 @@ namespace Microsoft.R.Editor.Formatting {
             var tokenizer = new RTokenizer(separateComments: true);
 
             var text = snapshot.GetLineFromLineNumber(lineNum).GetText();
-            var tokens = tokenizer.Tokenize(text);
+            var tokens = tokenizer.Tokenize(text, _rVersion);
             var nextLineStartsWithOperator = tokens.Count > 0 && tokens[0].TokenType == RTokenType.Operator;
 
             for (var i = lineNum - 1; i >= 0; i--) {
                 var line = snapshot.GetLineFromLineNumber(i);
                 text = line.GetText();
-                tokens = tokenizer.Tokenize(text);
+                tokens = tokenizer.Tokenize(text, _rVersion);
 
                 if (tokens.Count > 0) {
                     if (!nextLineStartsWithOperator && tokens[tokens.Count - 1].TokenType != RTokenType.Operator) {

@@ -240,7 +240,7 @@ namespace Microsoft.R.Editor.Validation.Lint {
                     var lineBreakIndex = tp.IndexOf('\n', node.End);
                     var trailingTextEnd = lineBreakIndex >= 0 ? lineBreakIndex : tp.Length;
                     var trailingText = tp.GetText(TextRange.FromBounds(node.End, trailingTextEnd));
-                    var tokens = new RTokenizer().Tokenize(trailingText);
+                    var tokens = new RTokenizer().Tokenize(trailingText, node.Root.RVersion);
                     var offendingTokens = tokens.Where(x => x.TokenType != RTokenType.Comment);
                     if (offendingTokens.Any()) {
                         var squiggle = TextRange.FromBounds(node.End + offendingTokens.First().Start, node.End + offendingTokens.Last().End);

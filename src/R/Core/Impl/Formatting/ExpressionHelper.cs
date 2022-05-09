@@ -43,15 +43,14 @@ namespace Microsoft.R.Core.Formatting {
                 var currentToken = _tokens[currentTokenIndex];
 
                 // Limit token stream since parser may not necessarily stop at the supplied text range end.
-                var list = new List<RToken>();
                 var tokens = _tokens.Skip(startIndex).Take(currentTokenIndex - startIndex);
 
-                var ts = new TokenStream<RToken>(new TextRangeCollection<RToken>(tokens), RToken.EndOfStreamToken);
+                var ts = new TokenStream<RToken>(new TextRangeCollection<RToken>(tokens), RToken.EndOfStreamToken, _tokens.LanguageVersion);
                 var end = currentToken.TokenType != RTokenType.EndOfStream ? currentToken.Start : _textProvider.Length;
 
                 var ast = RParser.Parse(_textProvider,
                                         TextRange.FromBounds(startToken.Start, end),
-                                        ts, new List<RToken>(), null);
+                                        ts, new List<RToken>(), _tokens.LanguageVersion, null);
                 return ast.IsCompleteExpression();
             }
             return true;

@@ -20,6 +20,6 @@ namespace Microsoft.R.Core.Test.Tokens {
         [CompositeTest]
         [InlineData(@"Tokenization\lsfit.r")]
         public void TokenizeLeastSquares(string fileName)
-            => TokenizeFiles.TokenizeFile<RToken, RTokenType, RTokenizer>(_files, fileName, "R");
+            => TokenizeFiles.TokenizeFile<RToken, RTokenType, RTokenizer>(_files, fileName);
     }
 }

@@ -68,6 +68,7 @@ namespace Microsoft.R.Host.Client.Session {
         public Task HostStarted => _hostStartedTcs.Task;
         public bool IsProcessing { get; private set; }
         public bool IsReadingUserInput => _readUserInputReentrancyCounter.Count > 0;
+        public Version RVersion => BrokerClient?.ConnectionInfo.RVersion ?? new Version(3, 2);
 
         public bool RestartOnBrokerSwitch { get; set; }
 

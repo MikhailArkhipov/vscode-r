@@ -279,7 +279,7 @@ namespace Microsoft.R.Core.Tokens {
         /// </summary>
         /// <returns></returns>
         internal bool HandleOperator() {
-            var length = Operators.OperatorLength(_cs);
+            var length = Operators.OperatorLength(_cs, _languageVersion);
             if (length > 0) {
                 AddToken(RTokenType.Operator, _cs.Position, length);
                 _cs.Advance(length);

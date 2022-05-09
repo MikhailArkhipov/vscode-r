@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using System;
 using System.Diagnostics;
 using Microsoft.Common.Core;
 using Microsoft.Languages.Core.Text;
@@ -35,9 +36,9 @@ namespace Microsoft.R.Editor.RData.Tokens {
             _tokenizeRContent = tokenizeRContent;
         }
 
-        public override IReadOnlyTextRangeCollection<RdToken> Tokenize(ITextProvider textProvider, int start, int length, bool excludePartialTokens) {
+        public override IReadOnlyTextRangeCollection<RdToken> Tokenize(ITextProvider textProvider, int start, int length, bool excludePartialTokens, Version languageVersion) {
             _currentContentType = BlockContentType.Latex;
-            return base.Tokenize(textProvider, start, length, excludePartialTokens);
+            return base.Tokenize(textProvider, start, length, excludePartialTokens, languageVersion);
         }
 
         /// <summary>
@@ -238,7 +239,7 @@ namespace Microsoft.R.Editor.RData.Tokens {
                                     var rt = new RTokenizer();
 
                                     var candidate = _cs.Text.GetText(TextRange.FromBounds(sequenceStart, _cs.Position));
-                                    var rTokens = rt.Tokenize(candidate);
+                                    var rTokens = rt.Tokenize(candidate, _languageVersion);
 
                                     if (rTokens.Count > 0 && rTokens[0].TokenType == RTokenType.Number) {
                                         if (_tokenizeRContent) {

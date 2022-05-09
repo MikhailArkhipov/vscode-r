@@ -354,7 +354,7 @@ namespace Microsoft.R.Editor.Tree {
                     }
 
                     treeChanges = new EditorTreeChangeCollection(snapshot.Version, true);
-                    var newTree = RParser.Parse(snapshot, _editorTree.ExpressionTermFilter);
+                    var newTree = RParser.Parse(snapshot, _editorTree.AstRoot.RVersion, _editorTree.ExpressionTermFilter);
                     treeChanges.Append(new EditorTreeChange_NewTree(newTree));
 
                 } finally {

@@ -1,12 +1,11 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using System;
 using System.Diagnostics;
 using Microsoft.Languages.Core.Text;
 using Microsoft.R.Core.AST.Comments;
-using Microsoft.R.Core.AST.Evaluation.Definitions;
 using Microsoft.R.Core.AST.Scopes;
-using Microsoft.R.Core.Evaluation;
 using Microsoft.R.Core.Parser;
 using Microsoft.R.Core.Utility;
 
@@ -14,20 +13,15 @@ namespace Microsoft.R.Core.AST {
     [DebuggerDisplay("AstRoot, Comments: {Comments.Count}, Errors: {Errors.Count}")]
     public sealed class AstRoot : AstNode {
         public ITextProvider TextProvider { get; internal set; }
-
         public CommentsCollection Comments { get; private set; }
-
-        public ICodeEvaluator CodeEvaluator { get; }
-
         public TextRangeCollection<IParseError> Errors { get; internal set; }
+        public Version RVersion { get; }
 
-        public AstRoot(ITextProvider textProvider) : this(textProvider, new CodeEvaluator()) { }
-
-        public AstRoot(ITextProvider textProvider, ICodeEvaluator codeEvaluator) {
+        public AstRoot(ITextProvider textProvider, Version rVersion) {
             TextProvider = textProvider;
             Comments = new CommentsCollection();
             Errors = new TextRangeCollection<IParseError>();
-            CodeEvaluator = codeEvaluator;
+            RVersion = rVersion;
         }
 
         #region IAstNode
@@ -37,13 +31,13 @@ namespace Microsoft.R.Core.AST {
         /// Finds deepest element node that contains given position
         /// </summary>
         /// <param name="position">Position</param>
-        public override IAstNode NodeFromPosition(int position) 
+        public override IAstNode NodeFromPosition(int position)
             => base.NodeFromPosition(position) ?? this;
 
         /// <summary>
         /// Finds deepest element node that contains given position
         /// </summary>
-        public override IAstNode NodeFromRange(ITextRange range, bool inclusiveEnd = false) 
+        public override IAstNode NodeFromRange(ITextRange range, bool inclusiveEnd = false)
             => base.NodeFromRange(range, inclusiveEnd) ?? this;
 
         #endregion

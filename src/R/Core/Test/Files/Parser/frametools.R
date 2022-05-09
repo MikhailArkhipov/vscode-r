@@ -16,8 +16,6 @@
 #  A copy of the GNU General Public License is available at
 #  http://www.r-project.org/Licenses/
 
-x <- 1
-
 subset.data.frame <- function (x, subset, select, drop = FALSE, ...)
 {
     r <- if(missing(subset))

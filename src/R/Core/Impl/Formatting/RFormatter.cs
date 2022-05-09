@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using System;
 using System.Diagnostics;
 using Microsoft.Common.Core;
 using Microsoft.Languages.Core.Formatting;
@@ -18,6 +19,7 @@ namespace Microsoft.R.Core.Formatting {
         private readonly RFormatOptions _options;
         private readonly IndentBuilder _indentBuilder;
         private readonly TextBuilder _tb;
+        private readonly Version _rVersion;
         private readonly FormattingScopeStack _formattingScopes = new FormattingScopeStack();
         private TokenStream<RToken> _tokens;
         private ITextProvider _textProvider;
@@ -25,14 +27,15 @@ namespace Microsoft.R.Core.Formatting {
         private BraceHandler _braceHandler;
         private ExpressionHelper _expressionHelper;
 
-        public RFormatter() :
-            this(new RFormatOptions()) {
+        public RFormatter(Version rVersion = null) :
+            this(new RFormatOptions(), rVersion ?? new Version(3, 2)) {
         }
 
-        public RFormatter(RFormatOptions options) {
+        public RFormatter(RFormatOptions options, Version rVersion = null) {
             _options = options;
             _indentBuilder = new IndentBuilder(_options.IndentType, _options.IndentSize, _options.TabSize);
             _tb = new TextBuilder(_indentBuilder);
+            _rVersion = rVersion ?? new Version(3, 2);
         }
 
         /// <summary>
@@ -731,8 +734,8 @@ namespace Microsoft.R.Core.Formatting {
             _textProvider = new TextStream(text);
 
             var tokenizer = new RTokenizer(separateComments: false);
-            var tokens = tokenizer.Tokenize(_textProvider, 0, _textProvider.Length);
-            _tokens = new TokenStream<RToken>(tokens, RToken.EndOfStreamToken);
+            var tokens = tokenizer.Tokenize(_textProvider, 0, _textProvider.Length, _rVersion);
+            _tokens = new TokenStream<RToken>(tokens, RToken.EndOfStreamToken, _rVersion);
 
             _braceHandler = new BraceHandler(_tokens, _tb);
             _expressionHelper = new ExpressionHelper(_tokens, _textProvider);

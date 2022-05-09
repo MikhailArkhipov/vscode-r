@@ -16,14 +16,14 @@ namespace Microsoft.Languages.Core.Test.Utility {
         // change to true in debugger if you want all baseline tree files regenerated
         private static readonly bool _regenerateBaselineFiles = false;
 
-        public static void TokenizeFile<TToken, TTokenType, TTokenizer>(DeployFilesFixture fixture, string name, string language)
+        public static void TokenizeFile<TToken, TTokenType, TTokenizer>(DeployFilesFixture fixture, string name, Version rVersion = null)
             where TTokenizer : ITokenizer<TToken>, new()
             where TToken : IToken<TTokenType> {
-            Action a = () => TokenizeFileImplementation<TToken, TTokenType, TTokenizer>(fixture, name, language);
+            Action a = () => TokenizeFileImplementation<TToken, TTokenType, TTokenizer>(fixture, name, rVersion);
             a.ShouldNotThrow();
         }
 
-        private static void TokenizeFileImplementation<TToken, TTokenType, TTokenizer>(DeployFilesFixture fixture, string name, string language)
+        private static void TokenizeFileImplementation<TToken, TTokenType, TTokenizer>(DeployFilesFixture fixture, string name, Version rVersion = null)
             where TTokenizer : ITokenizer<TToken>, new() where TToken : IToken<TTokenType> {
             var testFile = fixture.GetDestinationPath(name);
             var baselineFile = testFile + ".tokens";
@@ -32,7 +32,7 @@ namespace Microsoft.Languages.Core.Test.Utility {
             var textProvider = new TextStream(text);
             var tokenizer = new TTokenizer();
 
-            var tokens = tokenizer.Tokenize(textProvider, 0, textProvider.Length);
+            var tokens = tokenizer.Tokenize(textProvider, 0, textProvider.Length, rVersion ?? new Version(3, 2));
             var actual = DebugWriter.WriteTokens<TToken, TTokenType>(tokens);
 
             if (_regenerateBaselineFiles) {

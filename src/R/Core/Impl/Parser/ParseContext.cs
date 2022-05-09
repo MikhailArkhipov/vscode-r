@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -57,12 +58,18 @@ namespace Microsoft.R.Core.Parser {
 
         public IExpressionTermFilter ExpressionTermFilter { get; }
 
+        /// <summary>
+        /// R Language version
+        /// </summary>
+        public Version RVersion { get; }
+
         public ParseContext(ITextProvider textProvider
             , ITextRange range
             , TokenStream<RToken> tokens
             , IReadOnlyList<RToken> comments
+            , Version rVersion
             , IExpressionTermFilter filter = null) {
-            AstRoot = new AstRoot(textProvider);
+            AstRoot = new AstRoot(textProvider, rVersion);
             TextProvider = textProvider;
             Tokens = tokens;
             TextRange = range;
@@ -70,6 +77,7 @@ namespace Microsoft.R.Core.Parser {
             Expressions = new Stack<Expression>();
             Comments = comments;
             ExpressionTermFilter = filter ?? new DefaultExpressionTermFilter();
+            RVersion= rVersion;
         }
 
         public void AddError(ParseError error) {

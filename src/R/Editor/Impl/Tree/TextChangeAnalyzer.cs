@@ -81,15 +81,16 @@ namespace Microsoft.R.Editor.Tree {
             // so we can full-parse if 'else' position changes relatively to the if
             var snapshot = context.EditorTree.EditorBuffer.CurrentSnapshot;
             var text = snapshot.GetLineFromPosition(context.PendingChanges.Start).GetText();
-
+            var lv = snapshot.EditorBuffer.LanguageVersion();
+            
             // We need to find if any position in the line belong to `if` scope
             // if there is 'else' the same line
-            return FindKeyword("if", text) || FindKeyword("else", text);
+            return FindKeyword("if", text, lv) || FindKeyword("else", text, lv);
         }
 
-        private static bool FindKeyword(string keyword, string text)
+        private static bool FindKeyword(string keyword, string text, Version languageVersion)
             => new RTokenizer()
-                .Tokenize(text)
+                .Tokenize(text, languageVersion)
                 .FirstOrDefault(t => 
                         t.TokenType == RTokenType.Keyword && 
                         string.Compare(text, t.Start, keyword, 0, keyword.Length, StringComparison.Ordinal) == 0) != null;

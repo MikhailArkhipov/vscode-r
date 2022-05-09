@@ -145,9 +145,10 @@ namespace Microsoft.R.Editor.Completions.Engine {
 
             // Go left and right looking for 
             var tokenizer = new RTokenizer();
-            ITextProvider textProvider = new TextStream(lineText);
-            var c = tokenizer.Tokenize(textProvider, 0, textProvider.Length);
-            var tokens = new TokenStream<RToken>(c, RToken.EndOfStreamToken);
+            var textProvider = new TextStream(lineText);
+            var rVersion = editorBuffer.LanguageVersion();
+            var c = tokenizer.Tokenize(textProvider, 0, textProvider.Length, rVersion);
+            var tokens = new TokenStream<RToken>(c, RToken.EndOfStreamToken, rVersion);
 
             while (!tokens.IsEndOfStream()) {
                 if (tokens.CurrentToken.Start >= linePosition) {

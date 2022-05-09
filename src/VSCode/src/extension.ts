@@ -53,7 +53,7 @@ export async function activateLanguageServer(context: ExtensionContext) {
     };
 
     // Pass actual CPU architecture to the language server.
-    // This allows LS on .NET 5.0 that runs as Intel on Apple M1
+    // This allows LS on .NET 5.0+ that runs as Intel on Apple M1
     // to launch native R Host with proper ARM architecture.
     process.env.LS_HOST_PROCESS_ARCHITECTURE = process.arch;
 

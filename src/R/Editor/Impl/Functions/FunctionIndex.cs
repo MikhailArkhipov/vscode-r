@@ -227,7 +227,7 @@ namespace Microsoft.R.Editor.Functions {
         }
 
         private static bool IsValidFunctionName(string functionName) {
-            var tokens = new RTokenizer().Tokenize(functionName);
+            var tokens = new RTokenizer().Tokenize(functionName, new Version(3, 2));
             return tokens.Count == 1 && tokens[0].TokenType == RTokenType.Identifier;
         }
 

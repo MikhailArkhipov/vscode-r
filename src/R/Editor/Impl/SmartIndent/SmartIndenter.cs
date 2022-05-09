@@ -284,7 +284,7 @@ namespace Microsoft.R.Editor.SmartIndent {
 
         private static bool LineHasContinuation(IEditorLine line) {
             var tokenizer = new RTokenizer();
-            var tokens = tokenizer.Tokenize(line.GetText());
+            var tokens = tokenizer.Tokenize(line.GetText(), line.Snapshot.EditorBuffer.LanguageVersion());
             var lastTokenType = tokens.Count > 0 ? tokens[tokens.Count - 1].TokenType : RTokenType.Unknown;
             return lastTokenType == RTokenType.Operator || lastTokenType == RTokenType.Comma;
         }
@@ -392,11 +392,11 @@ namespace Microsoft.R.Editor.SmartIndent {
 
                 // Remember current indentation since formatter will remove it
                 var currentIndent = IndentBuilder.TextIndentInSpaces(fcText, settings.TabSize);
-                var formattedLineText = new RFormatter().Format(fcText);
+                var formattedLineText = new RFormatter(snapshot.EditorBuffer.LanguageVersion()).Format(fcText);
                 // Restore leading indent
                 formattedLineText = IndentBuilder.GetIndentString(currentIndent, settings.IndentType, settings.TabSize) + formattedLineText;
 
-                var ast = RParser.Parse(formattedLineText);
+                var ast = RParser.Parse(formattedLineText, snapshot.EditorBuffer.LanguageVersion());
                 var newFc = ast.FindFirstElement(n => n is IFunction) as IFunction;
                 if (newFc != null) {
                     offset = prevLine.Start;

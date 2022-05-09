@@ -79,10 +79,10 @@ namespace Microsoft.R.Core.Test.Tokens {
 
         [Test]
         public void TokenizeFile_IntegerFile() 
-            => TokenizeFiles.TokenizeFile<RToken, RTokenType, RTokenizer>(_files, @"Tokenization\Integers.r", "R");
+            => TokenizeFiles.TokenizeFile<RToken, RTokenType, RTokenizer>(_files, @"Tokenization\Integers.r");
 
         [Test]
         public void TokenizeFile_HexFile() 
-            => TokenizeFiles.TokenizeFile<RToken, RTokenType, RTokenizer>(_files, @"Tokenization\Hex.r", "R");
+            => TokenizeFiles.TokenizeFile<RToken, RTokenType, RTokenizer>(_files, @"Tokenization\Hex.r");
     }
 }

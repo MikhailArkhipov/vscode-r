@@ -18,6 +18,6 @@ namespace Microsoft.R.Core.Test.Tokens {
 
         [Test]
         public void TokenizeFile_ExpressionsFile()
-            => TokenizeFiles.TokenizeFile<RToken, RTokenType, RTokenizer>(_files, @"Tokenization\Expressions.r", "R");
+            => TokenizeFiles.TokenizeFile<RToken, RTokenType, RTokenizer>(_files, @"Tokenization\Expressions.r");
     }
 }

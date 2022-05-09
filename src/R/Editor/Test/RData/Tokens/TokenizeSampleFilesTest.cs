@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using System;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.Languages.Core.Test.Utility;
 using Microsoft.R.Editor.RData.Tokens;
@@ -31,6 +32,6 @@ namespace Microsoft.R.Editor.Test.RData.Tokens {
         //[InlineData(@"Tokenization\11.rd")]
         //[InlineData(@"Tokenization\12.rd")]
         public void TokenizeSampleRdFile(string fileName)
-            => TokenizeFiles.TokenizeFile<RdToken, RdTokenType, RdTokenizer>(_files, fileName, "RD");
+            => TokenizeFiles.TokenizeFile<RdToken, RdTokenType, RdTokenizer>(_files, fileName);
     }
 }

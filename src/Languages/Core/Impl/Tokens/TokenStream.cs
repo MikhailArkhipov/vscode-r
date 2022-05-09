@@ -22,7 +22,7 @@ namespace Microsoft.Languages.Core.Tokens {
         private int _index;
         private bool _isEndOfStream;
 
-        public TokenStream(IReadOnlyTextRangeCollection<T> tokens, T endOfStreamToken) {
+        public TokenStream(IReadOnlyTextRangeCollection<T> tokens, T endOfStreamToken, Version languageVersion) {
             Check.ArgumentNull(nameof(tokens), tokens);
 
             _index = 0;
@@ -30,7 +30,10 @@ namespace Microsoft.Languages.Core.Tokens {
             _endOfStreamToken = endOfStreamToken;
             _isEndOfStream = tokens.Length == 0;
             CurrentToken = _isEndOfStream ? _endOfStreamToken : _tokens[0];
+            LanguageVersion = languageVersion;
         }
+
+        public Version LanguageVersion { get; }
 
         /// <summary>
         /// Number of tokens in the stream

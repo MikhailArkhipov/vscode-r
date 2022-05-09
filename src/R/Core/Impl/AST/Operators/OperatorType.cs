@@ -38,6 +38,7 @@ namespace Microsoft.R.Core.AST.Operators {
         LeftAssign, // <- <<-
         RightAssign, // -> ->>
         Help, // ? and ??
+        Pipe, // |>
         UnaryMinus,
         UnaryPlus,
         Group, // ( ) pseudo-operator

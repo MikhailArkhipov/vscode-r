@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using Microsoft.Languages.Core.Text;
 using Microsoft.Languages.Core.Tokens;
@@ -9,19 +10,19 @@ using Microsoft.R.Core.Tokens;
 
 namespace Microsoft.R.Core.Parser {
     public sealed partial class RParser {
-        public static AstRoot Parse(string text) 
-            => Parse(new TextStream(text), null);
+        public static AstRoot Parse(string text, Version rVersion = null) 
+            => Parse(new TextStream(text), rVersion ?? new Version(3, 2), null);
 
-        public static AstRoot Parse(ITextProvider textProvider, IExpressionTermFilter filter = null) 
-            => Parse(textProvider, new TextRange(0, textProvider.Length), filter);
+        public static AstRoot Parse(ITextProvider textProvider, Version rVersion = null, IExpressionTermFilter filter = null) 
+            => Parse(textProvider, new TextRange(0, textProvider.Length), rVersion ?? new Version(3, 2), filter);
 
-        public static AstRoot Parse(ITextProvider textProvider, ITextRange range, IExpressionTermFilter filter) {
+        public static AstRoot Parse(ITextProvider textProvider, ITextRange range, Version rVersion, IExpressionTermFilter filter) {
             var tokenizer = new RTokenizer(separateComments: true);
 
-            var tokens = tokenizer.Tokenize(textProvider, range.Start, range.Length);
-            var tokenStream = new TokenStream<RToken>(tokens, new RToken(RTokenType.EndOfStream, TextRange.EmptyRange));
+            var tokens = tokenizer.Tokenize(textProvider, range.Start, range.Length, rVersion);
+            var tokenStream = new TokenStream<RToken>(tokens, new RToken(RTokenType.EndOfStream, TextRange.EmptyRange), rVersion);
 
-            return Parse(textProvider, range, tokenStream, tokenizer.CommentTokens, filter);
+            return Parse(textProvider, range, tokenStream, tokenizer.CommentTokens, rVersion, filter);
         }
 
         /// <summary>
@@ -29,8 +30,14 @@ namespace Microsoft.R.Core.Parser {
         /// </summary>
         /// <param name="textProvider">Text provider</param>
         /// <param name="range">Range to parse</param>
-        internal static AstRoot Parse(ITextProvider textProvider, ITextRange range, TokenStream<RToken> tokenStream, IReadOnlyList<RToken> commentTokens, IExpressionTermFilter filter) {
-            var context = new ParseContext(textProvider, range, tokenStream, commentTokens, filter);
+        internal static AstRoot Parse(
+            ITextProvider textProvider,
+            ITextRange range,
+            TokenStream<RToken> tokenStream,
+            IReadOnlyList<RToken> commentTokens,
+            Version rVersion,
+            IExpressionTermFilter filter) {
+            var context = new ParseContext(textProvider, range, tokenStream, commentTokens, rVersion, filter);
             return Parse(context);
         }
 

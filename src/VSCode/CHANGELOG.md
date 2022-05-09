@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.0.27 (9 May 2022)
+
+1. Update to .NET 6.0
+2. Support native pipe operator per R 4.1. Closes [#82](https://github.com/MikhailArkhipov/vscode-r/issues/82). Note that pipe operator will not be flagged as error in lower R versions. Per version support may be added in the future.
+3. Security updates in Node and Nuget modules.
+
 ## 0.0.26 (17 Aug 2021)
 
 1. Limit keybindings to R editor so they do not activate in other languages. Closes [#75](https://github.com/MikhailArkhipov/vscode-r/issues/75)

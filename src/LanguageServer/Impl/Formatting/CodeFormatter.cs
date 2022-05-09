@@ -27,7 +27,8 @@ namespace Microsoft.R.LanguageServer.Formatting {
             var settings = _services.GetService<IREditorSettings>();
 
             return DoFormatAction(snapshot, () => {
-                var formattedText = new RFormatter(settings.FormatOptions).Format(snapshot.GetText());
+                var v = snapshot.EditorBuffer.GetEditorDocument<IREditorDocument>()?.EditorTree?.AstRoot?.RVersion ?? new Version(3, 2);
+                var formattedText = new RFormatter(settings.FormatOptions, v).Format(snapshot.GetText());
                 snapshot.EditorBuffer.Replace(TextRange.FromBounds(0, snapshot.Length), formattedText);
             });
         }
@@ -62,9 +63,11 @@ namespace Microsoft.R.LanguageServer.Formatting {
 
             var before = snapshot;
             action();
+            
             var after = snapshot.EditorBuffer.CurrentSnapshot;
+            var languageVersion = snapshot.EditorBuffer.GetEditorDocument<IREditorDocument>()?.EditorTree?.AstRoot?.RVersion ?? new Version(3, 2);
 
-            return GetDifference(before, after);
+            return GetDifference(before, after, languageVersion);
         }
 
         /// <summary>
@@ -73,10 +76,10 @@ namespace Microsoft.R.LanguageServer.Formatting {
         /// <param name="before">Snapshot before the change</param>
         /// <param name="after">Snapshot after the change</param>
         /// <returns></returns>
-        private static TextEdit[] GetDifference(IEditorBufferSnapshot before, IEditorBufferSnapshot after) {
+        private static TextEdit[] GetDifference(IEditorBufferSnapshot before, IEditorBufferSnapshot after, Version languageVersion) {
             var tokenizer = new RTokenizer();
-            var oldTokens = tokenizer.Tokenize(before.GetText());
-            var newTokens = tokenizer.Tokenize(after.GetText());
+            var oldTokens = tokenizer.Tokenize(before.GetText(), languageVersion);
+            var newTokens = tokenizer.Tokenize(after.GetText(), languageVersion);
 
             if (newTokens.Count != oldTokens.Count) {
                 return new[] { new TextEdit {

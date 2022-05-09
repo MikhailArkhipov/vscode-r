@@ -82,6 +82,6 @@ namespace Microsoft.R.Core.Test.Tokens {
 
         [Test]
         public void Tokenize_IdentifiersFile() 
-            => TokenizeFiles.TokenizeFile<RToken, RTokenType, RTokenizer>(_files, @"Tokenization\Identifiers.r", "R");
+            => TokenizeFiles.TokenizeFile<RToken, RTokenType, RTokenizer>(_files, @"Tokenization\Identifiers.r");
     }
 }

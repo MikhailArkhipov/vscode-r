@@ -110,13 +110,13 @@ namespace Microsoft.R.Core.AST.Operators {
             }
 
             CommaSeparatedItem arg = Arguments[index];
-            if (arg is NamedArgument) {
+            if (arg is NamedArgument na) {
                 namedParameter = true;
-                return ((NamedArgument)arg).Name;
-            } else if (arg is ExpressionArgument) {
-                IExpression exp = ((ExpressionArgument)arg).ArgumentValue;
-                if (exp.Children.Count == 1 && exp.Children[0] is Variable) {
-                    return ((Variable)exp.Children[0]).Name;
+                return na.Name;
+            } else if (arg is ExpressionArgument ea) {
+                IExpression exp = ea.ArgumentValue;
+                if (exp.Children.Count == 1 && exp.Children[0] is Variable v) {
+                    return v.Name;
                 }
             }
 

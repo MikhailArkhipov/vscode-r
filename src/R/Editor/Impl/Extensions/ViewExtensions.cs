@@ -16,6 +16,12 @@ namespace Microsoft.R.Editor {
     public static class ViewExtensions {
         private const string _replContentTypeName = "Interactive Content";
 
+        public static Version LanguageVersion(this IEditorBuffer b) =>
+            b.GetEditorDocument<IREditorDocument>()?.EditorTree?.AstRoot?.RVersion ?? new Version(3, 2);
+
+        public static Version LanguageVersion(this IEditorView view) =>
+            view.EditorBuffer.LanguageVersion();
+
         /// <summary>
         /// Extracts identifier sequence at the caret location.
         /// Fetches parts of 'abc$def' rather than tne entire expression.
@@ -65,7 +71,9 @@ namespace Microsoft.R.Editor {
             var offset = 0;
             var positionInTokens = position - line.Start;
             var tokenizer = new RTokenizer();
-            var tokens = tokenizer.Tokenize(lineText);
+            var lv = line.Snapshot.EditorBuffer.LanguageVersion();
+
+            var tokens = tokenizer.Tokenize(lineText, lv);
             var tokenIndex = tokens.GetItemContaining(positionInTokens);
             if (tokenIndex >= 0) {
                 var token = tokens[tokenIndex];
@@ -74,7 +82,7 @@ namespace Microsoft.R.Editor {
                     // commented out code, code samples or Roxygen blocks.
                     positionInTokens -= token.Start;
                     var positionAfterHash = token.Start + 1;
-                    tokens = tokenizer.Tokenize(lineText.Substring(positionAfterHash, token.Length - 1));
+                    tokens = tokenizer.Tokenize(lineText.Substring(positionAfterHash, token.Length - 1), lv);
                     tokenIndex = tokens.GetItemContaining(positionInTokens);
                     if (tokenIndex >= 0) {
                         token = tokens[tokenIndex];
@@ -111,7 +119,7 @@ namespace Microsoft.R.Editor {
             // since during completion it is most probably damaged.
             var lineText = line.GetText();
             var tokenizer = new RTokenizer();
-            var tokens = tokenizer.Tokenize(lineText);
+            var tokens = tokenizer.Tokenize(lineText, line.Snapshot.EditorBuffer.LanguageVersion());
 
             var tokenPosition = position.Position - line.Start;
             var index = tokens.GetFirstItemBeforePosition(tokenPosition);

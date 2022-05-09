@@ -43,6 +43,6 @@ namespace Microsoft.R.Core.Test.Tokens {
 
         [Test]
         public void TokenizeFile_FunctionsFile() 
-            => TokenizeFiles.TokenizeFile<RToken, RTokenType, RTokenizer>(_files, @"Tokenization\Functions.r", "R");
+            => TokenizeFiles.TokenizeFile<RToken, RTokenType, RTokenizer>(_files, @"Tokenization\Functions.r");
     }
 }

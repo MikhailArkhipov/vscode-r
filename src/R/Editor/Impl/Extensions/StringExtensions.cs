@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using System;
 using Microsoft.Languages.Core.Text;
 using Microsoft.R.Core.Tokens;
 using static System.FormattableString;
@@ -10,7 +11,7 @@ namespace Microsoft.R.Editor {
         public static string BacktickName(this string name) {
             if (!string.IsNullOrEmpty(name)) {
                 var t = new RTokenizer();
-                var tokens = t.Tokenize(name);
+                var tokens = t.Tokenize(name, new Version(3, 2));
                 if (tokens.Count > 1) {
                     return Invariant($"`{name}`");
                 }

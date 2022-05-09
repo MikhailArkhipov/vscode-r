@@ -97,7 +97,7 @@ namespace Microsoft.R.Editor.Formatting {
             // In order to keep performance good during typing we'll use token stream from the classifier.
             var snapshot = EditorBuffer.CurrentSnapshot;
             var line = snapshot.GetLineFromPosition(position);
-            var tokens = new RTokenizer().Tokenize(snapshot.GetText());
+            var tokens = new RTokenizer().Tokenize(snapshot.GetText(), EditorBuffer.LanguageVersion());
             var tokenIndex = tokens.GetItemContaining(line.Start);
             return tokenIndex < 0 || tokens[tokenIndex].TokenType != RTokenType.String;
         }

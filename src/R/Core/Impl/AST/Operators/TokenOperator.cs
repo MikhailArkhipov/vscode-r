@@ -135,6 +135,9 @@ namespace Microsoft.R.Core.AST.Operators {
                 case "->>":
                     return OperatorType.RightAssign;
 
+                case "|>":
+                    return OperatorType.Pipe;
+
                 case "=":
                     return OperatorType.Equals;
 

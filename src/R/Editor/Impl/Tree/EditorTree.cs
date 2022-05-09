@@ -198,7 +198,7 @@ namespace Microsoft.R.Editor.Tree {
 
             if (EditorBuffer != null) {
                 BufferSnapshot = EditorBuffer.CurrentSnapshot;
-                _astRoot = RParser.Parse(EditorBuffer.CurrentSnapshot, ExpressionTermFilter);
+                _astRoot = RParser.Parse(EditorBuffer.CurrentSnapshot, EditorBuffer.LanguageVersion(), ExpressionTermFilter);
             }
 
             TreeUpdateTask.ClearChanges();

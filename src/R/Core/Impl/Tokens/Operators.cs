@@ -10,16 +10,23 @@ namespace Microsoft.R.Core.Tokens {
         /// Given candidate returns length of operator
         /// or zero if character sequence is not an operator.
         /// </summary>
-        public static int OperatorLength(CharacterStream cs) {
+        public static int OperatorLength(CharacterStream cs, Version languageVersion) {
             //
             // http://stat.ethz.ch/R-manual/R-patched/library/base/html/Syntax.html
             //
 
             // Longest first
-            return GetNCharOperatorLength(cs);
+            return GetNCharOperatorLength(cs, languageVersion);
         }
 
-        private static int GetNCharOperatorLength(CharacterStream cs) {
+        private static int GetNCharOperatorLength(CharacterStream cs, Version languageVersion) {
+            // R 4.1 Pipe: |>
+            // Temporary allow pipe in all versions
+            //var r41OrHigher = languageVersion.Major > 4 || (languageVersion.Major >= 4 && languageVersion.Minor >= 1);
+            if (cs.CurrentChar == '|' && cs.NextChar == '>' /*&& r41OrHigher*/) {
+                return 2;
+            }
+            
             // R allows user-defined infix operators. These have the form of 
             // a string of characters delimited by the ‘%’ character. The string 
             // can contain any printable character except ‘%’. 

@@ -27,6 +27,9 @@ namespace Microsoft.R.Core.AST.Operators {
                 case OperatorType.DataTableAssign:
                     return 50;
 
+                case OperatorType.Pipe:
+                    return 55;
+
                 case OperatorType.Tilde:
                     return 60;
 

@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
@@ -135,13 +136,15 @@ namespace Microsoft.R.Editor.RData.Parser {
             usageContent = usageContent.Replace(@"\dots", "...");
 
             var tokenizer = new RTokenizer(separateComments: true);
-            var collection = tokenizer.Tokenize(usageContent);
+            var collection = tokenizer.Tokenize(usageContent, new Version(3, 2));
             var textProvider = new TextStream(usageContent);
-            var tokens = new TokenStream<RToken>(collection, RToken.EndOfStreamToken);
+            // Specific R version does not matter here.
+            var v = new Version(3, 2);
+            var tokens = new TokenStream<RToken>(collection, RToken.EndOfStreamToken, v);
 
             var parseContext = new ParseContext(textProvider,
                          TextRange.FromBounds(tokens.CurrentToken.Start, textProvider.Length),
-                         tokens, tokenizer.CommentTokens);
+                         tokens, tokenizer.CommentTokens, v);
 
             while (!tokens.IsEndOfStream()) {
                 if (tokens.CurrentToken.TokenType != RTokenType.Identifier) {

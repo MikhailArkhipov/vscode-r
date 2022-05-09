@@ -56,7 +56,7 @@ namespace Microsoft.R.LanguageServer.Server {
             }
 
             var log = _services.Log();
-            var info = BrokerConnectionInfo.Create("(local)", e.InstallPath, e.Architecture, string.Empty);
+            var info = BrokerConnectionInfo.Create("(local)", e.InstallPath, e.Architecture, e.Version, string.Empty);
             var start = DateTime.Now;
 
             _ui.LogMessageAsync($"Starting R Process with {e.InstallPath}...", MessageType.Info).DoNotWait();
