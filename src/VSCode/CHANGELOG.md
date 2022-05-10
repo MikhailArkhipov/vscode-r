@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.0.28 (10 May 2022)
+
+1. Downgrade to .NET 5.0 for Mac comatibility. Mac M1 still has to use .NET 5.0 x64 b/c of breaking changes in .NET 6.0 ARM64.
+
 ## 0.0.27 (9 May 2022)
 
 1. Update to .NET 6.0

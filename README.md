@@ -8,7 +8,7 @@ A [Visual Studio Code](https://code.visualstudio.com/) [extension](https://marke
 
 -   Windows x64
 -   Mac OS 10.14+ (Intel)
--   Mac OS 11.2+ Intel or ARM with Rosetta 2 (Rosetta for .NET language server, R 4.1+ ARM64)
+-   Mac OS 11.2+ Intel or ARM with Rosetta 2 (Rosetta for .NET language server, R 4.1+ ARM64, .NET 5 x64)
 -   Linux distros supported by [.NET 5.0 Runtime](https://www.microsoft.com/net/download).
 
 ---
@@ -23,7 +23,7 @@ A [Visual Studio Code](https://code.visualstudio.com/) [extension](https://marke
 
 ## Prerequsites
 
--   [.NET 5.0 Runtime](https://www.microsoft.com/net/download)
+-   [.NET 5.0 Runtime](https://www.microsoft.com/net/download) - x64 on Mac even with ARM
 -   [R distribution (64-bit only)](https://cloud.r-project.org/)
 -   With Apple M1 silicon and R 4.1+ please use ARM64 package.
 
