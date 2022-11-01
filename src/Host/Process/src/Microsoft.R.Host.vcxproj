@@ -88,13 +88,16 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Platform)'=='x64'">
     <MSystem>MINGW64</MSystem>
-    <IncludePath>..\..\..\..\NugetPackages\boost.1.72.0.0\lib\include\boost;$(MSYSPath)\mingw64\x86_64-w64-mingw32\include;$(MSYSPath)\mingw64\include;$(MSYSPath)\mingw64\include\c++\6.3.0;..\lib\picojson</IncludePath>
+    <IncludePath>$(MSYSPath)\mingw64\include;$(MSYSPath)\mingw64\include\c++\6.3.0;..\lib\picojson</IncludePath>
   </PropertyGroup>
   <PropertyGroup>
     <NMakeOutput>$(OutDir)\Microsoft.R.Host.exe</NMakeOutput>
     <NMakeBuildCommandLine>set "MSYSTEM=$(MSystem)" &amp; $(MSYSPath)\usr\bin\bash.exe --login '$(MSBuildProjectDirectory)\..\build.sh' -m -t $(Configuration) -i $(IntDir) -o $(OutDir)</NMakeBuildCommandLine>
     <NMakeCleanCommandLine>rmdir /s /q "$(OutDir)" "$(IntDir)"</NMakeCleanCommandLine>
     <NMakeReBuildCommandLine>$(NMakeCleanCommandLine) &amp; $(NMakeBuildCommandLine)</NMakeReBuildCommandLine>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ExternalIncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);C:\Program Files\R\R-4.2.1\include;C:\Program Files\R\R-4.2.1\include\R_ext</ExternalIncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup>
   </ItemDefinitionGroup>

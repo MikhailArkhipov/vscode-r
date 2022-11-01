@@ -126,7 +126,7 @@ namespace Microsoft.R.Host.Client.Host {
                     Path = $"sessions/{name}/pipe"
                 }.Uri;
 
-                var wsClient = new WebSocketClient(pipeUri, new List<string> { "Microsoft.R.Host" }, HeartbeatTimeout, HttpClientHandler.Credentials);
+                var wsClient = new WebSocketClient(pipeUri, Enumerable.Repeat("Microsoft.R.Host", 1), HeartbeatTimeout, HttpClientHandler.Credentials);
                 while (true) {
                     using (await _credentials.LockCredentialsAsync(cancellationToken)) {
                         try {

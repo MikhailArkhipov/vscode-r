@@ -8,7 +8,6 @@ using System.Net;
 using System.Net.WebSockets;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.WebSockets.Protocol;
 
 namespace Microsoft.R.Host.Client.Transports {
     internal sealed class WebSocketClient {
@@ -29,10 +28,10 @@ namespace Microsoft.R.Host.Client.Transports {
 
             socket.Options.Credentials = _serverCredentails;
             socket.Options.KeepAliveInterval = _keepAliveInterval;
-            socket.Options.SetRequestHeader(Constants.Headers.SecWebSocketVersion, Constants.Headers.SupportedVersion);
+            socket.Options.SetRequestHeader("Sec-WebSocket-Version", "13");
 
             if (_subProtocols.Any()) {
-                socket.Options.SetRequestHeader(Constants.Headers.SecWebSocketProtocol, string.Join(", ", _subProtocols));
+                socket.Options.SetRequestHeader("Sec-WebSocket-Protocol", string.Join(", ", _subProtocols));
             }
 
             foreach (var sb in _subProtocols) {
@@ -40,7 +39,7 @@ namespace Microsoft.R.Host.Client.Transports {
             }
 
             
-            await socket.ConnectAsync(_uri, CancellationToken.None);
+            await socket.ConnectAsync(_uri, cancellationToken);
             return socket;
         }
     }

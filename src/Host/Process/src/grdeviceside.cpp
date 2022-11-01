@@ -550,12 +550,33 @@ namespace rhost {
             }
 
             template <>
+            void ide_device<13>::init_devdesc(DevDesc* dd) {
+                dd->displayListOn = R_TRUE;
+                dd->canGenMouseDown = R_FALSE;
+                dd->canGenMouseMove = R_FALSE;
+                dd->canGenMouseUp = R_FALSE;
+                dd->canGenKeybd = R_FALSE;
+                dd->canGenIdle = R_FALSE;
+            }
+
+            template <>
             void ide_device<14>::init_devdesc(DevDesc* dd) {
                 dd->displayListOn = R_TRUE;
                 dd->canGenMouseDown = R_FALSE;
                 dd->canGenMouseMove = R_FALSE;
                 dd->canGenMouseUp = R_FALSE;
                 dd->canGenKeybd = R_FALSE;
+                dd->canGenIdle = R_FALSE;
+            }
+
+            template <>
+            void ide_device<15>::init_devdesc(DevDesc* dd) {
+                dd->displayListOn = R_TRUE;
+                dd->canGenMouseDown = R_FALSE;
+                dd->canGenMouseMove = R_FALSE;
+                dd->canGenMouseUp = R_FALSE;
+                dd->canGenKeybd = R_FALSE;
+                dd->canGenIdle = R_FALSE;
             }
 
             template <int ApiVer>
@@ -1489,9 +1510,17 @@ namespace rhost {
                     external_methods = external_methods_impl<12>::external_methods;
                     process_pending_render = ide_device<12>::process_pending_render;
                     break;
+                case 13:
+                    external_methods = external_methods_impl<13>::external_methods;
+                    process_pending_render = ide_device<13>::process_pending_render;
+                    break;
                 case 14:
                     external_methods = external_methods_impl<14>::external_methods;
                     process_pending_render = ide_device<14>::process_pending_render;
+                    break;
+                case 15:
+                    external_methods = external_methods_impl<15>::external_methods;
+                    process_pending_render = ide_device<15>::process_pending_render;
                     break;
                 default:
                     log::fatal_error("Unsupported GD API version %d", ver);

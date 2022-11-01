@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.Common.Core;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.R.Host.Broker.Lifetime;
@@ -37,6 +38,7 @@ namespace Microsoft.R.Host.Broker.Start {
 
         public override void ConfigureServices(IServiceCollection services) {
             base.ConfigureServices(services);
+
             services
                 .AddOptions()
                 .Configure<LifetimeOptions>(Configuration.GetLifetimeSection())
@@ -47,13 +49,13 @@ namespace Microsoft.R.Host.Broker.Start {
                 .AddSingleton<SessionManager>()
 
                 .AddRouting()
-                .AddMvc()
+                .AddMvc(x => x.EnableEndpointRouting = false)
                 .AddApplicationPart(typeof(SessionsController).GetTypeInfo().Assembly);
         }
 
         public override void Configure(IApplicationBuilder app) {
-            var applicationLifetime = app.ApplicationServices.GetService<IApplicationLifetime>();
-            var env = app.ApplicationServices.GetService<IHostingEnvironment>();
+            var applicationLifetime = app.ApplicationServices.GetService<IHostApplicationLifetime>();
+            var env = app.ApplicationServices.GetService<IWebHostEnvironment>();
             var startupOptions = app.ApplicationServices.GetService<IOptions<StartupOptions>>();
             var logger = app.ApplicationServices.GetService<ILogger<Startup>>();
             var lifetimeManager = app.ApplicationServices.GetService<LifetimeManager>();
@@ -87,7 +89,6 @@ namespace Microsoft.R.Host.Broker.Start {
 
                         pipe.Flush();
                     }
-
                     logger.LogTrace(Resources.Trace_ServerUrlsToPipeDone, pipeName);
                 }));
             }
@@ -96,7 +97,6 @@ namespace Microsoft.R.Host.Broker.Start {
 
             app.UseWebSockets(new WebSocketOptions {
                 KeepAliveInterval = TimeSpan.FromMilliseconds(1000000000),
-                ReceiveBufferSize = 0x10000
             });
 
             app.UseMvc();

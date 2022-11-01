@@ -38,11 +38,7 @@ using namespace rhost::json;
 using namespace rhost::blobs;
 using namespace rhost::protocol;
 
-#ifdef _WIN32
-typedef char ReadConsole_buf_t;
-#else
 typedef unsigned char ReadConsole_buf_t;
-#endif
 
 namespace rhost {
     namespace host {

@@ -7,10 +7,10 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.Common.Core;
 using Microsoft.Common.Core.Logging;
 using Microsoft.Common.Core.OS;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.R.Host.Broker.Pipes;
 using Microsoft.R.Host.Broker.Services;
@@ -20,7 +20,7 @@ using static System.FormattableString;
 namespace Microsoft.R.Host.Broker.Sessions {
     public class Session {
         private readonly IRHostProcessService _processService;
-        private readonly IApplicationLifetime _applicationLifetime;
+        private readonly IHostApplicationLifetime _applicationLifetime;
         private readonly bool _isInteractive;
         private readonly ILogger _sessionLogger;
         private readonly MessagePipe _pipe;
@@ -62,7 +62,7 @@ namespace Microsoft.R.Host.Broker.Sessions {
 
         internal Session(SessionManager manager
             , IRHostProcessService processService
-            , IApplicationLifetime applicationLifetime
+            , IHostApplicationLifetime applicationLifetime
             , ILogger sessionLogger
             , ILogger messageLogger
             , string interpreterPath

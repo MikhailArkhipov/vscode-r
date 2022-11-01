@@ -153,35 +153,6 @@ namespace rhost {
         return args;
     }
 
-    void set_memory_limit() {
-#ifdef _WIN32
-        MEMORYSTATUSEX ms = {};
-        ms.dwLength = sizeof ms;
-        if (!GlobalMemoryStatusEx(&ms)) {
-            logf(log_verbosity::minimal, "Couldn't set R memory limit - GlobalMemoryStatusEx failed with GetLastError=%u\n", GetLastError());
-            return;
-        }
-
-        double new_limit = static_cast<double>(ms.ullTotalPhys / 1024 / 1024);
-
-        double old_limit = 0;
-        r_top_level_exec([&] {
-            old_limit = *REAL(in_memsize(Rf_ScalarLogical(NA_LOGICAL)));
-        });
-        if (old_limit >= new_limit) {
-            return;
-        }
-
-        logf(log_verbosity::minimal, "Setting R memory limit to %0.0f MB\n", new_limit);
-
-        protected_sexp limit = Rf_allocVector(REALSXP, 1);
-        *REAL(limit.get()) = new_limit;
-        if (!r_top_level_exec([&] { in_memsize(limit.get()); })) {
-            logf(log_verbosity::minimal, "Couldn't set R memory limit - in_memsize failed: %s\n", R_curErrorBuf());
-        }
-#endif
-    }
-
     void add_dir_to_loader_path(fs::path &r_dir) {
 #ifdef _WIN32
         wchar_t buff[32767] = {}; // max buffer size for environment variable values on windows.
@@ -244,13 +215,12 @@ namespace rhost {
         setup_Rmainloop();
         (*rhost::rapi::RHOST_RAPI_PTR(CharacterMode)) = RGui;
 
+        printf("R_getEmbeddingDllInfo\n");
         DllInfo *dll = R_getEmbeddingDllInfo();
         rhost::r_util::init(dll);
         //rhost::grdevices::xaml::init(dll);
         rhost::grdevices::ide::init(dll);
         rhost::exports::register_all(dll);
-
-        set_memory_limit();
 
         if (!args.rdata.empty()) {
             std::string s = args.rdata.string();

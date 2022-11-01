@@ -12,7 +12,6 @@
     <IntermediateOutputPath>$(BaseIntermediateOutputPath)\$(Configuration)\</IntermediateOutputPath>
     <MicroBuild_DoNotStrongNameSign>true</MicroBuild_DoNotStrongNameSign>
     <BuildDependsOn>ValidateAssemblyName;$(BuildDependsOn)</BuildDependsOn>
-    <LibuvVersion>1.10.0</LibuvVersion>
     <DebugType>portable</DebugType>
   </PropertyGroup>
 

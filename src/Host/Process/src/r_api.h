@@ -190,7 +190,6 @@ extern "C" {
     RHOST_IMPORT extern RCNTXT* R_GlobalContext;
     RHOST_IMPORT extern void R_SaveGlobalEnvToFile(const char *);
     RHOST_IMPORT extern void R_RestoreGlobalEnvFromFile(const char *, Rboolean);
-    RHOST_IMPORT extern SEXP in_memsize(SEXP);
     RHOST_IMPORT extern void run_Rmainloop(void);
     RHOST_IMPORT extern UImode  CharacterMode;
     RHOST_IMPORT extern size_t Rf_utf8towcs(wchar_t *wc, const char *s, size_t n);

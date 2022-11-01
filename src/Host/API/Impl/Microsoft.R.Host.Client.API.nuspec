@@ -143,7 +143,6 @@
     <file src="System.Xml.XmlDocument.dll" target="build" />
     <file src="System.Xml.XPath.dll" target="build" />
     <file src="System.Xml.XPath.XDocument.dll" target="build" />
-    <file src="libuv.dll" target="build" />
     <file src="zip.dll" target="build" />
     <file src="zlib$ConfigSuffix$.dll" target="build" />
     <file src="NewtonSoft.Json.dll" target="build" />

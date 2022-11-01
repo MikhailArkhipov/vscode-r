@@ -187,8 +187,8 @@ namespace Microsoft.R.LanguageServer {
             return MainThreadPriority.SendAsync(() => {
                 var p = token.ToObject<DocumentSymbolParams>();
                 var doc = Documents.GetDocument(p.textDocument.uri);
-                return doc != null ? doc.GetSymbols(p.textDocument.uri) : Array.Empty<DocumentSymbol>();
-            }, UI, ct);
+                return doc?.GetSymbols(p.textDocument.uri) ?? Array.Empty<DocumentSymbol>();
+            }, ThreadPostPriority.Normal, UI, ct);
         }
 
         [JsonRpcMethod("workspace/didChangeConfiguration")]

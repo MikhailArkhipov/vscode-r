@@ -139,7 +139,6 @@ macro(CharacterMode) \
 macro(get_R_HOME) \
 macro(getDLLVersion) \
 macro(getRUser) \
-macro(in_memsize) \
 macro(R_setStartTime) \
 macro(R_WaitEvent) \
 macro(readconsolecfg) \
@@ -299,7 +298,6 @@ namespace rhost {
 #define get_R_HOME rhost::rapi::RHOST_RAPI_PTR(get_R_HOME)
 #define getDLLVersion rhost::rapi::RHOST_RAPI_PTR(getDLLVersion)
 #define getRUser rhost::rapi::RHOST_RAPI_PTR(getRUser)
-#define in_memsize rhost::rapi::RHOST_RAPI_PTR(in_memsize)
 #define R_setStartTime rhost::rapi::RHOST_RAPI_PTR(R_setStartTime)
 #define R_WaitEvent rhost::rapi::RHOST_RAPI_PTR(R_WaitEvent)
 #define readconsolecfg rhost::rapi::RHOST_RAPI_PTR(readconsolecfg)

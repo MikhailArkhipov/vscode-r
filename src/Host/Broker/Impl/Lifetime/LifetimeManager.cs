@@ -4,19 +4,19 @@
 using System;
 using System.Diagnostics;
 using System.Threading;
-using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace Microsoft.R.Host.Broker.Lifetime {
     public class LifetimeManager {
         private readonly LifetimeOptions _options;
-        private readonly IApplicationLifetime _applicationLifetime;
+        private readonly IHostApplicationLifetime _applicationLifetime;
         private readonly ILogger _logger;
 
         private CancellationTokenSource _cts;
 
-        public LifetimeManager(IApplicationLifetime applicationLifetime, IOptions<LifetimeOptions> options, ILogger<LifetimeManager> logger) {
+        public LifetimeManager(IHostApplicationLifetime applicationLifetime, IOptions<LifetimeOptions> options, ILogger<LifetimeManager> logger) {
             _applicationLifetime = applicationLifetime;
             _options = options.Value;
             _logger = logger;

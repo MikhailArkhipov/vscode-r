@@ -38,21 +38,14 @@ Recommended:
 
 ### Mac
 
-R Host must be built for Intel x64 and for ARM so it can work with either R. Consider this
-[Installing Intel-based packages using Homebrew on the M1 Mac](https://www.wisdomgeek.com/development/installing-intel-based-packages-using-homebrew-on-the-m1-mac/)
+### Starting with R 4.2 only ARM builds are supported 
 
-- Install XCode
-- Install XCode command line tools `xcode-select --install`
+- Install XCode 14.1+ (or update to newest)
+- Install XCode command line tools `xcode-select --install` or remove and reinstall via `sudo rm -rf /Library/Developer/CommandLineTools`
+- Install R 4.2+
+- Install HomeBrew
 
-On Mac for Intel builds:
-- Install Homebrew from Rosetta terminal
-- `brew install cmake`
-- `brew install pkg-config`
-- `brew install libzip`
-- `brew install icu4c`
-
-On Mac for ARM builds:
-- Install Homebrew from regular terminal
+- `brew install boost`
 - `brew install libzip`
 - `brew install icu4c`
 
@@ -62,29 +55,7 @@ Related:
 - [Configuring CMake with boost 1.75](https://github.com/carlocab/macos-boost1.75-regex-bug)
 - [Missing licudata](https://github.com/OpenRCT2/OpenRCT2/issues/8000)
 
-### Install R
-
-- `sudo apt-get install r-base`
-
 ### Install CMake
-
-- `sudo apt remove --purge cmake`
-- `sudo apt install cmake`
-- `cmake --version`
-
-### Install Boost from sources
-
-- `cd ~`
-- `wget -O boost_1_76_0.tar.gz https://sourceforge.net/projects/boost/files/boost/1.76.0/boost_1_76_0.tar.gz/download`
-- `tar xzvf boost_1_76_0.tar.gz`
-- `cd boost_1_76_0`
-- `./bootstrap.sh --prefix=/usr/`
-- `./b2`
-- `sudo ./b2 install`
-
-### Install libzip
-
-- `sudo apt-get install -y libzip-dev`
 
 ### Connect subtrees
 
@@ -96,6 +67,5 @@ Related:
 - `Ctrl+Shift+P`
 - `CMake: Configure`
 
-- `./build.sh -a x64` for Intel binaries
-- `./build.sh -a arm64` for Mac M1
+- `./build.sh 
 - For packaging place output into the respective folder under `src/Host[Windows|Mac/x64|Mac/Arm64|Linux]`

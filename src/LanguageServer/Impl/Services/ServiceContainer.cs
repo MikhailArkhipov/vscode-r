@@ -23,7 +23,6 @@ namespace Microsoft.R.LanguageServer.Services {
     internal sealed class ServiceContainer : ServiceManager {
         public ServiceContainer() {
             var mt = new MainThread();
-            SynchronizationContext.SetSynchronizationContext(mt.SynchronizationContext);
 
             AddService<IActionLog>(s => new Logger("VSCode-R", Path.GetTempPath(), s))
                 .AddService(mt)

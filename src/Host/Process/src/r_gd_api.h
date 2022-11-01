@@ -72,6 +72,7 @@ namespace rhost {
 
 #define RHOST_DEVDESC_MEMBER(x) subst<::DevDesc, DevDesc, decltype(::DevDesc::x)>::type x;
 
+        // GraphicsEngine.h in R/R_ext/include for layout per version.
 #define RHOST_DEVDESC struct DevDesc { \
     RHOST_DEVDESC_V10_MEMBER(left) \
     RHOST_DEVDESC_V10_MEMBER(right) \
@@ -139,21 +140,80 @@ namespace rhost {
     RHOST_DEVDESC_V10_MEMBER(haveRaster) \
     RHOST_DEVDESC_V10_MEMBER(haveCapture) \
     RHOST_DEVDESC_V10_MEMBER(haveLocator) \
+    RHOST_DEVDESC_V13_MEMBER(setPattern) \
+    RHOST_DEVDESC_V13_MEMBER(releasePattern) \
+    RHOST_DEVDESC_V13_MEMBER(setClipPath) \
+    RHOST_DEVDESC_V13_MEMBER(releaseClipPath) \
+    RHOST_DEVDESC_V13_MEMBER(setMask) \
+    RHOST_DEVDESC_V13_MEMBER(releaseMask) \
+    RHOST_DEVDESC_V13_MEMBER(deviceVersion) \
+    RHOST_DEVDESC_V14_MEMBER(deviceClip) \
+    RHOST_DEVDESC_V15_MEMBER(defineGroup) \
+    RHOST_DEVDESC_V15_MEMBER(useGroup) \
+    RHOST_DEVDESC_V15_MEMBER(releaseGroup) \
+    RHOST_DEVDESC_V15_MEMBER(stroke) \
+    RHOST_DEVDESC_V15_MEMBER(fill) \
+    RHOST_DEVDESC_V15_MEMBER(fillStroke) \
+    RHOST_DEVDESC_V15_MEMBER(capabilities) \
     RHOST_DEVDESC_V10_MEMBER(reserved) \
     };
 
 #define RHOST_DEVDESC_V10_MEMBER(x) RHOST_DEVDESC_MEMBER(x)
 #define RHOST_DEVDESC_V12_MEMBER(x) RHOST_DEVDESC_MEMBER(x)
+#define RHOST_DEVDESC_V13_MEMBER(x) RHOST_DEVDESC_MEMBER(x)
 #define RHOST_DEVDESC_V14_MEMBER(x) RHOST_DEVDESC_MEMBER(x)
+#define RHOST_DEVDESC_V15_MEMBER(x) RHOST_DEVDESC_MEMBER(x)
 
         template<int ApiVer>
         struct gd_api;
 
+        // R 4.2+
+        template<>
+        struct gd_api<15> {
+            struct DevDesc;
+            typedef DevDesc* pDevDesc;
+            RHOST_DEVDESC;
+            RHOST_GD_SET(RHOST_GD_MEMBER_DECL);
+
+            static void load();
+            static void unload();
+        };
+#undef RHOST_DEVDESC_V15_MEMBER
+#define RHOST_DEVDESC_V15_MEMBER(x)
+
+        // R 4.1.1+
+        template<>
+        struct gd_api<14> {
+            struct DevDesc;
+            typedef DevDesc* pDevDesc;
+            RHOST_DEVDESC;
+            RHOST_GD_SET(RHOST_GD_MEMBER_DECL);
+
+            static void load();
+            static void unload();
+        };
+#undef RHOST_DEVDESC_V14_MEMBER
+#define RHOST_DEVDESC_V14_MEMBER(x)
+
+        // R 4.1.0
+        template<>
+        struct gd_api<13> {
+            struct DevDesc;
+            typedef DevDesc* pDevDesc;
+            RHOST_DEVDESC;
+            RHOST_GD_SET(RHOST_GD_MEMBER_DECL);
+
+            static void load();
+            static void unload();
+        };
+#undef RHOST_DEVDESC_V13_MEMBER
+#define RHOST_DEVDESC_V13_MEMBER(x)
+
+        // R 3.4+
         template<>
         struct gd_api<12> {
             struct DevDesc;
             typedef DevDesc* pDevDesc;
-
             RHOST_DEVDESC;
             RHOST_GD_SET(RHOST_GD_MEMBER_DECL);
 
@@ -164,8 +224,9 @@ namespace rhost {
 #undef RHOST_DEVDESC_V12_MEMBER
 #define RHOST_DEVDESC_V12_MEMBER(x)
 
+        // R 3.0+
         template<>
-        struct gd_api<10> {
+        struct gd_api<11> {
             struct DevDesc;
             typedef DevDesc* pDevDesc;
             RHOST_DEVDESC;
@@ -175,15 +236,9 @@ namespace rhost {
             static void unload();
         };
 
+        // R 3.0+
         template<>
-        struct gd_api<11> : gd_api<10> {
-        };
-
-#undef RHOST_DEVDESC_V14_MEMBER
-#define RHOST_DEVDESC_V14_MEMBER(x)
-
-        template<>
-        struct gd_api<14> {
+        struct gd_api<10> {
             struct DevDesc;
             typedef DevDesc* pDevDesc;
             RHOST_DEVDESC;

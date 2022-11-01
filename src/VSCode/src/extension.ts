@@ -59,9 +59,9 @@ export async function activateLanguageServer(context: ExtensionContext) {
 
     // Create the language client and start the client.
     client = new LanguageClient(RLanguage.language, OutputChannelName, serverOptions, clientOptions);
-    context.subscriptions.push(client.start());
+    context.subscriptions.push(client);
 
-    await client.onReady();
+    await client.start();
     rEngine = new REngine(client);
 
     window.registerWebviewPanelSerializer(PlotView.viewType, {

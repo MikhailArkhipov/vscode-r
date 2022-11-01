@@ -30,7 +30,6 @@ namespace Microsoft.R.LanguageServer.Threading {
 
         public MainThread() {
             _disposableBag.Add(Stop);
-            SynchronizationContext = new MainThreadSynchronizationContext(this);
             Thread.Start(this);
         }
 
@@ -83,12 +82,6 @@ namespace Microsoft.R.LanguageServer.Threading {
         }
 
         public void CancelIdle() => _idleOnceAction = null;
-        #endregion
-
-        #region SynchronizationContext
-        public SynchronizationContext SynchronizationContext { get; }
-        public void Post(Action<object> action, object state) => Execute(() => action(state), ThreadPostPriority.Background);
-        public void Send(Action<object> action, object state) => Execute(() => action(state), ThreadPostPriority.Background);
         #endregion
 
         #region IDisposable
@@ -189,16 +182,6 @@ namespace Microsoft.R.LanguageServer.Threading {
             if (!_ctsExit.IsCancellationRequested) {
                 action();
             }
-        }
-
-        internal sealed class MainThreadSynchronizationContext : SynchronizationContext {
-            private readonly MainThread _mainThread;
-            public MainThreadSynchronizationContext(MainThread mainThread) {
-                _mainThread = mainThread;
-            }
-
-            public override void Post(SendOrPostCallback d, object state) => _mainThread.Post(o => d(o), state);
-            public override void Send(SendOrPostCallback d, object state) => _mainThread.Send(o => d(o), state);
         }
 
         class MainThreadAwaiter : IMainThreadAwaiter {

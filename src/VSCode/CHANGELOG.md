@@ -1,8 +1,17 @@
 # Changelog
 
+## 0.0.30 (01 November 2022)
+
+1. Add support for R 4.2+ (R API version change).
+2. WARNING: R 4.2+ on Mac is only supported on ARM. On Intel Macs consider using R 4.1.
+
+## 0.0.29 (05 June 2022)
+
+1. Upgrade to .NET 6.0 (all platforms).
+
 ## 0.0.28 (10 May 2022)
 
-1. Downgrade to .NET 5.0 for Mac comatibility. Mac M1 still has to use .NET 5.0 x64 b/c of breaking changes in .NET 6.0 ARM64.
+1. Downgrade to .NET 5.0 for Mac compatibility. Mac M1 still has to use .NET 5.0 x64 b/c of breaking changes in .NET 6.0 ARM64.
 
 ## 0.0.27 (9 May 2022)
 

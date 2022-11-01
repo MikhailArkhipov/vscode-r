@@ -28,9 +28,7 @@ namespace Microsoft.R.Host.Broker.Start {
             StartupOptions = Configuration.GetStartupOptions();
             LoggingOptions = Configuration.GetLoggingOptions();
 
-            LoggerFactory = new LoggerFactory2(StartupOptions, LoggingOptions)
-                    .AddDebug()
-                    .AddConsole(LogLevel.Trace);
+            LoggerFactory = new LoggerFactory2(StartupOptions, LoggingOptions);
 
             var s = Configuration.GetValue<string>(WebHostDefaults.ServerUrlsKey, null) ?? "http://0.0.0.0:5444";
             if (Uri.TryCreate(s, UriKind.Absolute, out var uri)) {

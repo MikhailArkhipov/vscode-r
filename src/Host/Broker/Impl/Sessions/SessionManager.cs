@@ -5,9 +5,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.Common.Core;
 using Microsoft.Common.Core.Logging;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.R.Host.Broker.Logging;
@@ -20,13 +20,13 @@ namespace Microsoft.R.Host.Broker.Sessions {
         private readonly LoggingOptions _loggingOptions;
         private readonly ILogger _messageLogger;
         private readonly IRHostProcessService _processService;
-        private readonly IApplicationLifetime _applicationLifetime;
+        private readonly IHostApplicationLifetime _applicationLifetime;
         private readonly ILogger _sessionLogger;
 
         private readonly List<Session> _sessions = new List<Session>();
 
         public SessionManager(IRHostProcessService processService
-            , IApplicationLifetime applicationLifetime
+            , IHostApplicationLifetime applicationLifetime
             , IOptions<LoggingOptions> loggingOptions
             , ILogger<Session> sessionLogger
             , ILogger<MessagePipe> messageLogger) {

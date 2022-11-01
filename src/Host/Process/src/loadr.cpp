@@ -30,8 +30,11 @@
 
 #define RHOST_GD_DEFINE(api) \
     decltype(gd_api<10>::api) gd_api<10>::api; \
+    decltype(gd_api<11>::api) gd_api<11>::api; \
     decltype(gd_api<12>::api) gd_api<12>::api; \
-    decltype(gd_api<14>::api) gd_api<14>::api;
+    decltype(gd_api<13>::api) gd_api<13>::api; \
+    decltype(gd_api<14>::api) gd_api<14>::api; \
+    decltype(gd_api<15>::api) gd_api<15>::api; \
 
 #define RHOST_GET_PROC(m, api) RHOST_RAPI_PTR(api) = get_proc<decltype(api)*>(m, RHOST_RAPI_STR(api));
 #define RHOST_RAPI_GET_PROC(api) RHOST_GET_PROC(r_module, api)
@@ -106,6 +109,14 @@ namespace rhost {
             RHOST_GD_SET(RHOST_GD_UNLOAD);
         }
 
+        void gd_api<11>::load() {
+            RHOST_GD_SET(RHOST_GD_GET_PROC);
+        }
+
+        void gd_api<11>::unload() {
+            RHOST_GD_SET(RHOST_GD_UNLOAD);
+        }
+
         void gd_api<12>::load() {
             RHOST_GD_SET(RHOST_GD_GET_PROC);
         }
@@ -114,11 +125,27 @@ namespace rhost {
             RHOST_GD_SET(RHOST_GD_UNLOAD);
         }
 
+        void gd_api<13>::load() {
+            RHOST_GD_SET(RHOST_GD_GET_PROC);
+        }
+
+        void gd_api<13>::unload() {
+            RHOST_GD_SET(RHOST_GD_UNLOAD);
+        }
+
         void gd_api<14>::load() {
             RHOST_GD_SET(RHOST_GD_GET_PROC);
         }
 
         void gd_api<14>::unload() {
+            RHOST_GD_SET(RHOST_GD_UNLOAD);
+        }
+
+        void gd_api<15>::load() {
+            RHOST_GD_SET(RHOST_GD_GET_PROC);
+        }
+
+        void gd_api<15>::unload() {
             RHOST_GD_SET(RHOST_GD_UNLOAD);
         }
 
@@ -163,8 +190,14 @@ namespace rhost {
             case 12:
                 gd_api<12>::load();
                 break;
+            case 13:
+                gd_api<13>::load();
+                break;
             case 14:
                 gd_api<14>::load();
+                break;
+            case 15:
+                gd_api<15>::load();
                 break;
             default:
                 log::fatal_error("Unsupported GD API version %d", ver);
@@ -182,8 +215,14 @@ namespace rhost {
             case 12:
                 gd_api<12>::unload();
                 break;
+            case 13:
+                gd_api<13>::unload();
+                break;
             case 14:
                 gd_api<14>::unload();
+                break;
+            case 15:
+                gd_api<15>::unload();
                 break;
             default:
                 log::fatal_error("Unsupported GD API version %d", ver);

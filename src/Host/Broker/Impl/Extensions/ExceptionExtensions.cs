@@ -7,6 +7,7 @@ using System.Runtime.ExceptionServices;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.R.Host.Protocol;
 
@@ -14,7 +15,7 @@ namespace Microsoft.R.Host.Broker {
     public static class ExceptionExtensions {
         public static void HandleWebHostStartExceptions(this Exception ex, IServiceProvider services, bool isService) {
             var configuration = services.GetRequiredService<IConfigurationRoot>();
-            var lifetime = services.GetRequiredService<IApplicationLifetime>();
+            var lifetime = services.GetRequiredService<IHostApplicationLifetime>();
             var logger = services.GetService<ILogger<StartupBase>>();
 
             switch (ex) {
