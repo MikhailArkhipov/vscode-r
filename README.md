@@ -89,7 +89,7 @@ R session in the editor does not automatically pick up new packages installed in
 
 **R Interpreter not found**
 
-Try using `r.intepreterPath` setting and specify path to R installation. The path should be root folder, like `C:\Program Files\R\R-3.4.3`, without `bin/x64`.
+Try using `r.interpreterPath` setting and specify path to R installation. The path should be root folder, like `C:\Program Files\R\R-3.4.3`, without `bin/x64`.
 
 ## Not currently supported
 
