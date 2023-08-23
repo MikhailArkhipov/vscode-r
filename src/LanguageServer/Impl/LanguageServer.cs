@@ -276,7 +276,7 @@ namespace Microsoft.R.LanguageServer {
                     },
                     completionProvider = new CompletionOptions {
                         resolveProvider = true,
-                        triggerCharacters = new[] { ".", ":", "$", "<", "%" }
+                        triggerCharacters = new[] { ".", ":", "$", "<", "%", "|" }
                     },
                     textDocumentSync = new TextDocumentSyncOptions {
                         openClose = true,

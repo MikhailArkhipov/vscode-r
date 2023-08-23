@@ -6,7 +6,12 @@
     },
     "magrittr pipe": {
         "prefix": "%",
-        "body": " %>% ",
+        "body": [" %>% "],
         "description": "magrittr pipe"
+    },    
+    "native pipe": {
+        "prefix": "|",
+        "body": [" |> "],
+        "description": "native pipe"
     }    
 }

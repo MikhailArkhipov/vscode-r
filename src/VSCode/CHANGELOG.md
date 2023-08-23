@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.0.31 (23 August 2023)
+
+1. Add native pipe operator snippet. Closes [#95](https://github.com/MikhailArkhipov/vscode-r/issues/95).
+2. Updated references.
+3. Merge typo fix in README.
+
 ## 0.0.30 (01 November 2022)
 
 1. Add support for R 4.2+ (R API version change).
