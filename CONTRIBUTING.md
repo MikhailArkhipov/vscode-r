@@ -6,7 +6,7 @@ Extension consists of three parts:
 
 ### Setup
 
-1. Install Visual Studio 2019 Community with C#, C++ and .NET Core cross-platform development
+1. Install Visual Studio 2022 Community with C#, C++ and .NET Core cross-platform development
 2. Install VS Code
 3. Clone the repo
 4. Add R-Host dependencies (from `src/Host/Process`)
