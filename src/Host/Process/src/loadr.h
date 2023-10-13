@@ -145,9 +145,6 @@ macro(readconsolecfg) \
 macro(Rf_utf8towcs) \
 macro(Rf_wtransChar)
 
-#define RHOST_RGRAPHAPPAPI_SET(macro) \
-macro(GA_initapp)
-
 #define RHOST_RAPI_SET(macro) \
 RHOST_RAPI_SET_COMMON(macro) \
 RHOST_RAPI_SET_WINDOWS(macro)
@@ -182,10 +179,6 @@ namespace rhost {
         // R.dll/R.so APIs
         RHOST_RAPI_SET(RHOST_RAPI_DECL_END);
 
-#ifdef _WIN32
-        // Rgraphapp.dll/Rgraphapp.so APIs
-        RHOST_RGRAPHAPPAPI_SET(RHOST_RAPI_DECL_END);
-#endif
         void load_r_apis(fs::path& r_dll_dir);
         void unload_r_apis();
     }
@@ -304,7 +297,7 @@ namespace rhost {
 #define Rf_utf8towcs rhost::rapi::RHOST_RAPI_PTR(Rf_utf8towcs)
 #define Rf_wtransChar rhost::rapi::RHOST_RAPI_PTR(Rf_wtransChar)
 
-#define GA_initapp rhost::rapi::RHOST_RAPI_PTR(GA_initapp)
+//#define GA_initapp rhost::rapi::RHOST_RAPI_PTR(GA_initapp)
 
 #else // POSIX
 

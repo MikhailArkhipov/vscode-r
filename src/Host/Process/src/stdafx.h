@@ -98,7 +98,6 @@
 #include <dbghelp.h>
 #pragma warning(pop)
 
-#include "minhook.h"
 #else // linux
 #include <unistd.h>
 #include <dlfcn.h>

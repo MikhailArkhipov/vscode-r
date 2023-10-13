@@ -26,8 +26,6 @@
 #include "host.h"
 #include "util.h"
 #include "eval.h"
-#include "detours.h"
-#include "grdeviceside.h"
 #include "exports.h"
 #include "transport.h"
 
@@ -200,15 +198,11 @@ namespace rhost {
 
         rhost::host::initialize(rp, args.rdata, args.idle_timeout);
 
-        // suppress UI is set only in the remote case, for now can be used to
-        // as equivalent of is_remote.
-        rhost::detours::init_ui_detours(args.suppress_ui);
-
         R_set_command_line_arguments(args.argc, args.argv.data());
         R_common_command_line(&args.argc, args.argv.data(), &rp);
         R_SetParams(&rp);
 
-        GA_initapp(0, 0);
+        //GA_initapp(0, 0);
         readconsolecfg();
 
         (*rhost::rapi::RHOST_RAPI_PTR(CharacterMode)) = LinkDLL;
@@ -218,8 +212,6 @@ namespace rhost {
         printf("R_getEmbeddingDllInfo\n");
         DllInfo *dll = R_getEmbeddingDllInfo();
         rhost::r_util::init(dll);
-        //rhost::grdevices::xaml::init(dll);
-        rhost::grdevices::ide::init(dll);
         rhost::exports::register_all(dll);
 
         if (!args.rdata.empty()) {
@@ -333,7 +325,6 @@ int main(int argc, char** argv) {
     
     SCOPE_WARDEN(_main_exit, {
         flush_log();
-        rhost::detours::terminate_ui_detours();
         rhost::rapi::unload_r_apis();
     });
 

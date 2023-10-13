@@ -35,6 +35,7 @@
     decltype(gd_api<13>::api) gd_api<13>::api; \
     decltype(gd_api<14>::api) gd_api<14>::api; \
     decltype(gd_api<15>::api) gd_api<15>::api; \
+    decltype(gd_api<16>::api) gd_api<16>::api; \
 
 #define RHOST_GET_PROC(m, api) RHOST_RAPI_PTR(api) = get_proc<decltype(api)*>(m, RHOST_RAPI_STR(api));
 #define RHOST_RAPI_GET_PROC(api) RHOST_GET_PROC(r_module, api)
@@ -42,10 +43,6 @@
 
 #define RHOST_GD_GET_PROC(api) api = get_proc<decltype(api)>(r_module, RHOST_RAPI_STR(api));
 #define RHOST_GD_UNLOAD(api) api = nullptr;
-
-#ifdef _WIN32
-#define RHOST_RGRAPHAPPAPI_GET_PROC(api) RHOST_GET_PROC(rgraphapp_module, api)
-#endif
 
 #ifdef _WIN32
 typedef HMODULE rhost_module_t;
@@ -56,14 +53,9 @@ typedef void* rhost_module_t;
 namespace rhost {
     namespace rapi {
         RHOST_RAPI_SET(RHOST_RAPI_DEFINE_NULLPTR);
-        RHOST_GD_SET(RHOST_GD_DEFINE);
-#ifdef _WIN32
-        RHOST_RGRAPHAPPAPI_SET(RHOST_RAPI_DEFINE_NULLPTR);
-#endif
 
         namespace {
             rhost_module_t r_module = nullptr;
-            rhost_module_t rgraphapp_module = nullptr;
 
             template<typename T>
             T get_proc(rhost_module_t module, const char* proc_name) {
@@ -90,63 +82,6 @@ namespace rhost {
                 RHOST_RAPI_SET(RHOST_RAPI_UNLOAD);
             }
 
-#ifdef _WIN32
-            void internal_load_rgraphapp_apis() {
-                RHOST_RGRAPHAPPAPI_SET(RHOST_RGRAPHAPPAPI_GET_PROC);
-            }
-
-            void internal_unload_rgraphapp_apis() {
-                RHOST_RGRAPHAPPAPI_SET(RHOST_RAPI_UNLOAD);
-            }
-#endif
-        }
-
-        void gd_api<10>::load() {
-            RHOST_GD_SET(RHOST_GD_GET_PROC);
-        }
-
-        void gd_api<10>::unload() {
-            RHOST_GD_SET(RHOST_GD_UNLOAD);
-        }
-
-        void gd_api<11>::load() {
-            RHOST_GD_SET(RHOST_GD_GET_PROC);
-        }
-
-        void gd_api<11>::unload() {
-            RHOST_GD_SET(RHOST_GD_UNLOAD);
-        }
-
-        void gd_api<12>::load() {
-            RHOST_GD_SET(RHOST_GD_GET_PROC);
-        }
-
-        void gd_api<12>::unload() {
-            RHOST_GD_SET(RHOST_GD_UNLOAD);
-        }
-
-        void gd_api<13>::load() {
-            RHOST_GD_SET(RHOST_GD_GET_PROC);
-        }
-
-        void gd_api<13>::unload() {
-            RHOST_GD_SET(RHOST_GD_UNLOAD);
-        }
-
-        void gd_api<14>::load() {
-            RHOST_GD_SET(RHOST_GD_GET_PROC);
-        }
-
-        void gd_api<14>::unload() {
-            RHOST_GD_SET(RHOST_GD_UNLOAD);
-        }
-
-        void gd_api<15>::load() {
-            RHOST_GD_SET(RHOST_GD_GET_PROC);
-        }
-
-        void gd_api<15>::unload() {
-            RHOST_GD_SET(RHOST_GD_UNLOAD);
         }
 
         void load_r_apis(fs::path& r_dll_dir) {
@@ -158,13 +93,6 @@ namespace rhost {
             if (!r_module) {
                 log::fatal_error("Error r module failed to load: %d", GetLastError());
             }
-
-            rgraphapp_module = LoadLibraryEx(rgraphapp_path.make_preferred().wstring().c_str(), nullptr, LOAD_WITH_ALTERED_SEARCH_PATH);
-            if (!rgraphapp_module) {
-                log::fatal_error("Error rgraphapp module failed to load: %d", GetLastError());
-            }
-
-            internal_load_rgraphapp_apis();
 #else // POSIX
             // Try Linux first
             fs::path r_path = r_dll_dir / "lib/libR.so";
@@ -179,60 +107,12 @@ namespace rhost {
             }
 #endif
             internal_load_r_apis();
-
-            switch (int ver = fp_R_GE_getVersion()) {
-            case 10:
-                gd_api<10>::load();
-                break;
-            case 11:
-                gd_api<11>::load();
-                break;
-            case 12:
-                gd_api<12>::load();
-                break;
-            case 13:
-                gd_api<13>::load();
-                break;
-            case 14:
-                gd_api<14>::load();
-                break;
-            case 15:
-                gd_api<15>::load();
-                break;
-            default:
-                log::fatal_error("Unsupported GD API version %d", ver);
-            }
         }
 
         void unload_r_apis() {
-            switch (int ver = fp_R_GE_getVersion()) {
-            case 10:
-                gd_api<10>::unload();
-                break;
-            case 11:
-                gd_api<11>::unload();
-                break;
-            case 12:
-                gd_api<12>::unload();
-                break;
-            case 13:
-                gd_api<13>::unload();
-                break;
-            case 14:
-                gd_api<14>::unload();
-                break;
-            case 15:
-                gd_api<15>::unload();
-                break;
-            default:
-                log::fatal_error("Unsupported GD API version %d", ver);
-            }
-
             internal_unload_r_apis();
 #ifdef _WIN32
-            internal_unload_rgraphapp_apis();
             FreeLibrary(r_module);
-            FreeLibrary(rgraphapp_module);
 #else // POSIX
             dlclose(r_module);
 #endif
