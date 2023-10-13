@@ -2,7 +2,7 @@
   "name": "r",
   "displayName": "R Tools",
   "description": "R Tools (IntelliSense, signature help, tooltips and more)",
-  "version": "0.0.31",
+  "version": "0.0.32",
   "author": "Mikhail Arkhipov & Microsoft",
   "icon": "images/rIcon.png",
   "publisher": "Mikhail-Arkhipov",
@@ -326,7 +326,7 @@
     "test": "node ./node_modules/vscode/bin/test"
   },
   "devDependencies": {
-    "@types/getenv": "^1.0.0",
+    "@types/getenv": "^1.0.1",
     "@types/mocha": "^10.0.1",
     "@types/node": "^14.18.33",
     "@types/vscode": "^1.75.0",

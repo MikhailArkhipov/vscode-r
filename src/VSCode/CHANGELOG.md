@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.0.32 (14 October 2023)
+1. Update .NET to 7.0
+2. Add support for `\()` anonymous functions - closes [#96]()
+
 ## 0.0.31 (23 August 2023)
 
 1. Add native pipe operator snippet. Closes [#95](https://github.com/MikhailArkhipov/vscode-r/issues/95).

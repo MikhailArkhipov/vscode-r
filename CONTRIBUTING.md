@@ -6,14 +6,14 @@ Extension consists of three parts:
 
 ### Setup
 
-1. Install Visual Studio 2019 Community with C#, C++ and .NET Core cross-platform development
+1. Install Visual Studio 2022 Community with C#, C++ and .NET Core cross-platform development (.NET 7.x)
 2. Install VS Code
 3. Clone the repo
 4. Add R-Host dependencies (from `src/Host/Process`)
    - `git remote add picojson https://github.com/kazuho/picojson`
    - `git subtree add --prefix src/Host/Process/lib/picojson picojson master`
    - `git subtree pull --prefix src/Host/Process/lib/picojson picojson master`
-4. R Host is binaries are checked in under `Host/[Mac | Windows | Linux]` subfolder per platform.
+5. R Host is binaries are checked in under `Host/[Mac | Windows | Linux]` subfolder per platform.
 
 ### Building R-Host
 
@@ -29,10 +29,11 @@ This is usually unnecessary unless you are changing R Host. R Host binaries is b
 
 1. cd `src/VSCode`
 2. cd `npm install`
-3. Open `src/VSCode` in VS Code
-4. If you are planning to debug, change `Release` to `Debug` in `package.cmd`.
-5. Run `debug.cmd`. This will populate `ls` folder with language server debug bits.
-6. You should be able to run the extension.
+3. `npm install -g typescript`
+4. Open `src/VSCode` in VS Code
+5. If you are planning to debug, change `Release` to `Debug` in `package.cmd`.
+6. Run `debug.cmd`. This will populate `ls` folder with language server debug bits.
+7. You should be able to run the extension.
 
 ### Debugging
 

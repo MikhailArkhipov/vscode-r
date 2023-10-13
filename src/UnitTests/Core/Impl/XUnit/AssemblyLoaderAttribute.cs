@@ -80,8 +80,7 @@ namespace Microsoft.UnitTests.Core.XUnit {
         private static Assembly AssemblyLoad(string assemblyName, string assemblyPath) {
             try {
                 return Assembly.Load(new AssemblyName {
-                    Name = assemblyName,
-                    CodeBase = new Uri(assemblyPath).AbsoluteUri
+                    Name = assemblyName
                 });
             } catch (FileLoadException) {
                 return null;
