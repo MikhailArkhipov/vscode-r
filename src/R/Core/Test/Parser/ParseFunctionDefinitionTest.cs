@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using System;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.R.Core.Test.Utility;
 using Microsoft.UnitTests.Core.XUnit;
@@ -272,6 +273,105 @@ OperatorExpected Token [16...17)
                 TokenNode  [) [40...41)]
 ";
             ParserTest.VerifyParse(expected, "a((function(x) vector(length = x))(x), 1))");
+        }
+
+        [Test]
+        [Category.R.Parser]
+        public void ParseAnonymousFunctionDefinition() {
+            string expected =
+@"GlobalScope  [Global]
+    ExpressionStatement  [(function (x) { return(x) })(1)]
+        Expression  [(function (x) { return(x) })(1)]
+            FunctionCall  [0...31)
+                Group  [0...28)
+                    TokenNode  [( [0...1)]
+                    Expression  [function (x) { return(x) }]
+                        FunctionDefinition  [1...27)
+                            TokenNode  [function [1...9)]
+                            TokenNode  [( [10...11)]
+                            ArgumentList  [11...12)
+                                ExpressionArgument  [11...12)
+                                    Expression  [x]
+                                        Variable  [x]
+                            TokenNode  [) [12...13)]
+                            Scope  []
+                                TokenNode  [{ [14...15)]
+                                ExpressionStatement  [return(x)]
+                                    Expression  [return(x)]
+                                        FunctionCall  [16...25)
+                                            Variable  [return]
+                                            TokenNode  [( [22...23)]
+                                            ArgumentList  [23...24)
+                                                ExpressionArgument  [23...24)
+                                                    Expression  [x]
+                                                        Variable  [x]
+                                            TokenNode  [) [24...25)]
+                                TokenNode  [} [26...27)]
+                    TokenNode  [) [27...28)]
+                TokenNode  [( [28...29)]
+                ArgumentList  [29...30)
+                    ExpressionArgument  [29...30)
+                        Expression  [1]
+                            NumericalValue  [1 [29...30)]
+                TokenNode  [) [30...31)]
+";
+            ParserTest.VerifyParse(expected, "(function (x) { return(x) })(1)");
+        }
+
+        [Test]
+        [Category.R.Parser]
+        public void ParseAnonymousFunctionShorthand41() {
+            string expected =
+@"GlobalScope  [Global]
+
+RightOperandExpected Token [0...0)
+CloseBraceExpected AfterToken [0...1)
+OperatorExpected Token [0...1)
+";
+            ParserTest.VerifyParse(expected, "(\\(x) { return(x) })(1)");
+        }
+
+        [Test]
+        [Category.R.Parser]
+        public void ParseAnonymousFunctionShorthand42() {
+            string expected =
+@"GlobalScope  [Global]
+    ExpressionStatement  [(\(x) { return(x) })(1)]
+        Expression  [(\(x) { return(x) })(1)]
+            FunctionCall  [0...23)
+                Group  [0...20)
+                    TokenNode  [( [0...1)]
+                    Expression  [\(x) { return(x) }]
+                        FunctionDefinition  [1...19)
+                            TokenNode  [\ [1...2)]
+                            TokenNode  [( [2...3)]
+                            ArgumentList  [3...4)
+                                ExpressionArgument  [3...4)
+                                    Expression  [x]
+                                        Variable  [x]
+                            TokenNode  [) [4...5)]
+                            Scope  []
+                                TokenNode  [{ [6...7)]
+                                ExpressionStatement  [return(x)]
+                                    Expression  [return(x)]
+                                        FunctionCall  [8...17)
+                                            Variable  [return]
+                                            TokenNode  [( [14...15)]
+                                            ArgumentList  [15...16)
+                                                ExpressionArgument  [15...16)
+                                                    Expression  [x]
+                                                        Variable  [x]
+                                            TokenNode  [) [16...17)]
+                                TokenNode  [} [18...19)]
+                    TokenNode  [) [19...20)]
+                TokenNode  [( [20...21)]
+                ArgumentList  [21...22)
+                    ExpressionArgument  [21...22)
+                        Expression  [1]
+                            NumericalValue  [1 [21...22)]
+                TokenNode  [) [22...23)]
+";
+            ParserTest.VerifyParse(expected, "(\\(x) { return(x) })(1)", new Version(4,2));
         }
     }
 }

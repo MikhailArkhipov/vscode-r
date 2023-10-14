@@ -110,6 +110,11 @@ namespace Microsoft.R.Core.Tokens {
                     _cs.MoveToNextChar();
                     break;
 
+                case '\\':
+                    AddToken(RTokenType.Backslash, _cs.Position, 1);
+                    _cs.MoveToNextChar();
+                    break;
+
                 default:
                     if ((_cs.CurrentChar == 'r' || _cs.CurrentChar == 'R') && _cs.NextChar == '\"' && 
                         (_cs.LookAhead(2) == '(' || _cs.LookAhead(2) == '[' || _cs.LookAhead(2) == '{')) {

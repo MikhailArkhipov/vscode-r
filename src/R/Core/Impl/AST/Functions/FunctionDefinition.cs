@@ -68,20 +68,27 @@ namespace Microsoft.R.Core.AST.Functions {
         public override bool Parse(ParseContext context, IAstNode parent) {
             TokenStream<RToken> tokens = context.Tokens;
 
-            Debug.Assert(tokens.CurrentToken.TokenType == RTokenType.Keyword);
-            this.Keyword = RParser.ParseKeyword(context, this);
-            this.Text = context.TextProvider.GetText(this.Keyword);
+            // Since R 4.2: either "(function (x) {...})(1)" OR "(\(x) {...})(1)"
+            if (tokens.CurrentToken.TokenType == RTokenType.Keyword) {
+                Keyword = RParser.ParseKeyword(context, this);
+                Text = context.TextProvider.GetText(Keyword);
+            } else if(tokens.CurrentToken.TokenType == RTokenType.Backslash && tokens.NextToken.TokenType == RTokenType.OpenBrace) {
+                Keyword = RParser.ParseToken(context, this);
+                Text = context.TextProvider.GetText(Keyword);
+            } else {
+                Debug.Assert(false, "Unexpected start token when parsing function definition.");
+            }
 
             if (tokens.CurrentToken.TokenType == RTokenType.OpenBrace) {
-                this.OpenBrace = RParser.ParseToken(context, this);
+                OpenBrace = RParser.ParseToken(context, this);
 
-                this.Arguments = new ArgumentList(RTokenType.CloseBrace);
-                this.Arguments.Parse(context, this);
+                Arguments = new ArgumentList(RTokenType.CloseBrace);
+                Arguments.Parse(context, this);
 
                 if (tokens.CurrentToken.TokenType == RTokenType.CloseBrace) {
-                    this.CloseBrace = RParser.ParseToken(context, this);
-                    this.Scope = RParser.ParseScope(context, this, allowsSimpleScope: true, terminatingKeyword: null);
-                    if (this.Scope != null) {
+                    CloseBrace = RParser.ParseToken(context, this);
+                    Scope = RParser.ParseScope(context, this, allowsSimpleScope: true, terminatingKeyword: null);
+                    if (Scope != null) {
                         return base.Parse(context, parent);
                     } else {
                         context.AddError(new ParseError(ParseErrorType.FunctionBodyExpected, ErrorLocation.Token, tokens.PreviousToken));

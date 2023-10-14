@@ -79,7 +79,13 @@ namespace Microsoft.R.Core.Tokens {
         /// '...' sequence, typically argument indicating
         /// any number of parameters in the function definitions
         /// </summary>
+
         Ellipsis,
+
+        /// <summary>
+        /// Typically anonymous function definitions in R 4.2+ like (\(x) {...})(1)
+        /// </summary>
+        Backslash,
 
         /// <summary>
         /// Preudo-token indicating end of stream
