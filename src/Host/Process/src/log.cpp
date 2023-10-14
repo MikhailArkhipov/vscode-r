@@ -225,7 +225,7 @@ namespace rhost {
             std::lock_guard<std::mutex> terminate_lock(terminate_mutex);
 
             char message[0xFFFF];
-            vsprintf_s(message, format, va);
+            vsnprintf(message, sizeof(message), format, va);
             if (unexpected) {
                 logf(log_verbosity::minimal, "Fatal error: ");
             }

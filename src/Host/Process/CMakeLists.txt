@@ -23,7 +23,7 @@ if(NOT APPLE)
 set_target_properties(Microsoft.R.Host PROPERTIES LINK_FLAGS "-static-libgcc -static-libstdc++")
 else()
 set_target_properties(Microsoft.R.Host PROPERTIES COMPILE_DEFINITIONS _APPLE )
-set(CMAKE_OSX_DEPLOYMENT_TARGET 12.0)
+set(CMAKE_OSX_DEPLOYMENT_TARGET 13.0)
 endif()
 
 include_directories("${CMAKE_SOURCE_DIR}/lib/picojson" "${CMAKE_SOURCE_DIR}/lib/picojson")

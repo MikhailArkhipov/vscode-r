@@ -42,20 +42,20 @@ Recommended:
 
 - Install XCode 14.1+ (or update to newest)
 - Install XCode command line tools `xcode-select --install` or remove and reinstall via `sudo rm -rf /Library/Developer/CommandLineTools`
-- Install R 4.2+
+- Install R 4.3+
 - Install HomeBrew
 
 - `brew install boost`
 - `brew install libzip`
 - `brew install icu4c`
+- `brew install pkg-config`
+- `brew install cmake`
 
 Related:
 
 - [Missing libcudata issue with boost 1.75](https://github.com/Homebrew/homebrew-core/issues/67427)
 - [Configuring CMake with boost 1.75](https://github.com/carlocab/macos-boost1.75-regex-bug)
 - [Missing licudata](https://github.com/OpenRCT2/OpenRCT2/issues/8000)
-
-### Install CMake
 
 ### Connect subtrees
 
