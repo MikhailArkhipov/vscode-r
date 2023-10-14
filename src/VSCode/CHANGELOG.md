@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.0.32 (14 October 2023)
+
+1. Update for R 4.3 as there was breaking graphics API change.
+2. Upgrade to .NET 7.0
+3. Implement anonymous functions support. Closes [#99](https://github.com/MikhailArkhipov/vscode-r/issues/99).
+4. Update references.
+5. Update Mac tools version and the Mac building process description.
+6. Update VS Code min version to 1.82.
+
 ## 0.0.31 (23 August 2023)
 
 1. Add native pipe operator snippet. Closes [#95](https://github.com/MikhailArkhipov/vscode-r/issues/95).
@@ -88,7 +97,7 @@
 
 2. Fixed issue preventing sourcing to terminal in some cases.
 3. Removed unnecessary package dependencies.
-4. Requre VS Code 1.49+ for security reasons.
+4. Require VS Code 1.49+ for security reasons.
 
 ## 0.0.14 (6 Aug 2020)
 
@@ -116,7 +125,7 @@ You may choose to use [Radian](https://github.com/randy3k/radian) in the termina
 
 1. Added limited support for plots in internal window. See the next item.
 
-2. Provided `r.execute` command (`Ctrl+Shift+Enter`) to evaluate code in internal R session. This may be useful when working in remote container, such as WSL, since external windows do not work in remote session as it is headless. Executing command over a line that yields a plot will output plot in the new internal `Plot` window. **Remember though that terminal window and internal R session are not connected, so executing code in Terminal and then attempting plot the result via internal session won't work.** With remote ressions, you can execute code in Terminal, save results into a file, then execute plotting in internal session providing results from the file.
+2. Provided `r.execute` command (`Ctrl+Shift+Enter`) to evaluate code in internal R session. This may be useful when working in remote container, such as WSL, since external windows do not work in remote session as it is headless. Executing command over a line that yields a plot will output plot in the new internal `Plot` window. **Remember though that terminal window and internal R session are not connected, so executing code in Terminal and then attempting plot the result via internal session won't work.** With remote sessions, you can execute code in Terminal, save results into a file, then execute plotting in internal session providing results from the file.
 
 3. Removed dependency on `libzip` on Mac and Linux.
 

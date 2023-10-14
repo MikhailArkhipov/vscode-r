@@ -39,7 +39,7 @@ This is usually unnecessary unless you are changing R Host. R Host binaries is b
 1. Debugging TypeScript code can be done by launching extension in VS Code.
 2. Debugging C# code:
 
-   - Use Visual Studion `Debug | Attach To Process`. Attach to `dotnet.exe` running `Microsoft.R.LanguageServer.dll` (debug build).
+   - Use Visual Studio `Debug | Attach To Process`. Attach to `dotnet.exe` running `Microsoft.R.LanguageServer.dll` (debug build).
    - If you need to debug startup sequence, open `Program.cs` in the `Microsoft.R.LanguageServer` and uncomment `#define WAIT_FOR_DEBUGGER`. Language server with then stop at startup and wait for the debugger to attach.
    - Same applies for `Microsoft.R.Broker` if you need to debug it.
 
