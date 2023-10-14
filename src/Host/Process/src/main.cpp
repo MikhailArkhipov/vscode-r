@@ -188,7 +188,7 @@ namespace rhost {
     int run_r_windows(command_line_args& args) {
         R_setStartTime();
         structRstart rp = {};
-        R_DefParamsEx(&rp, 0);
+        R_DefParamsEx(&rp, RSTART_VERSION);
 
         rp.rhome = get_R_HOME();
         rp.home = getRUser();
@@ -258,7 +258,7 @@ namespace rhost {
         int res = Rf_initialize_R(argc, argv);
 
         structRstart rp = {};
-        R_DefParamsEx(&rp, 16);
+        R_DefParamsEx(&rp, RSTART_VERSION);
         rp.R_Quiet = R_FALSE;
         rp.R_Interactive = args.is_interactive ? R_TRUE : R_FALSE;
         rp.RestoreAction = SA_NORESTORE;

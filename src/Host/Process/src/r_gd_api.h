@@ -155,6 +155,7 @@ namespace rhost {
     RHOST_DEVDESC_V15_MEMBER(fill) \
     RHOST_DEVDESC_V15_MEMBER(fillStroke) \
     RHOST_DEVDESC_V15_MEMBER(capabilities) \
+    RHOST_DEVDESC_V16_MEMBER(glyph) \
     RHOST_DEVDESC_V10_MEMBER(reserved) \
     };
 
@@ -163,6 +164,7 @@ namespace rhost {
 #define RHOST_DEVDESC_V13_MEMBER(x) RHOST_DEVDESC_MEMBER(x)
 #define RHOST_DEVDESC_V14_MEMBER(x) RHOST_DEVDESC_MEMBER(x)
 #define RHOST_DEVDESC_V15_MEMBER(x) RHOST_DEVDESC_MEMBER(x)
+#define RHOST_DEVDESC_V16_MEMBER(x) RHOST_DEVDESC_MEMBER(x)
 
         template<int ApiVer>
         struct gd_api;
@@ -178,8 +180,8 @@ namespace rhost {
             static void load();
             static void unload();
         };
-#undef RHOST_DEVDESC_V15_MEMBER
-#define RHOST_DEVDESC_V15_MEMBER(x)
+#undef RHOST_DEVDESC_V16_MEMBER
+#define RHOST_DEVDESC_V16_MEMBER(x)
 
         // R 4.2+
         template<>
