@@ -127,11 +127,6 @@ namespace Microsoft.R.Core.AST.Expressions {
                         break;
 
                     case RTokenType.Backslash: // anonymous function in R 4.2+, \ acts as 'function' keyword
-                        if (context.RVersion.Major > 4 || (context.RVersion.Major == 4 && context.RVersion.Minor >= 2)) {
-                            currentOperationType = HandleKeyword(context, out errorType);
-                        }
-                        endOfExpression = true;
-                        break;
                     case RTokenType.Keyword:
                         currentOperationType = HandleKeyword(context, out errorType);
                         endOfExpression = true;
@@ -410,14 +405,7 @@ namespace Microsoft.R.Core.AST.Expressions {
         private ParseErrorType HandleKeyword(ParseContext context, string keyword) {
             var errorType = ParseErrorType.None;
 
-            var isKeyword = keyword.Equals("function", StringComparison.Ordinal);
-            if (!isKeyword) {
-                if (context.RVersion.Major > 4 || (context.RVersion.Major == 4 && context.RVersion.Minor >= 2)) {
-                    isKeyword = keyword.Equals("\\", StringComparison.Ordinal);
-                }
-            }
-
-            if (isKeyword) {
+            if (keyword.Equals("function", StringComparison.Ordinal) || keyword.Equals("\\", StringComparison.Ordinal)) {
                 // Special case 'exp <- function(...) { } 
                 // In R 4.2+ also 'exp <- \() { }
                 var funcDef = new FunctionDefinition();
