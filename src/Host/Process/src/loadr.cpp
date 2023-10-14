@@ -35,6 +35,7 @@
     decltype(gd_api<13>::api) gd_api<13>::api; \
     decltype(gd_api<14>::api) gd_api<14>::api; \
     decltype(gd_api<15>::api) gd_api<15>::api; \
+    decltype(gd_api<16>::api) gd_api<16>::api; \
 
 #define RHOST_GET_PROC(m, api) RHOST_RAPI_PTR(api) = get_proc<decltype(api)*>(m, RHOST_RAPI_STR(api));
 #define RHOST_RAPI_GET_PROC(api) RHOST_GET_PROC(r_module, api)
@@ -149,6 +150,14 @@ namespace rhost {
             RHOST_GD_SET(RHOST_GD_UNLOAD);
         }
 
+        void gd_api<16>::load() {
+            RHOST_GD_SET(RHOST_GD_GET_PROC);
+        }
+
+        void gd_api<16>::unload() {
+            RHOST_GD_SET(RHOST_GD_UNLOAD);
+        }
+
         void load_r_apis(fs::path& r_dll_dir) {
 #ifdef _WIN32 
             fs::path r_path = r_dll_dir / "r.dll";
@@ -199,6 +208,9 @@ namespace rhost {
             case 15:
                 gd_api<15>::load();
                 break;
+            case 16:
+                gd_api<16>::load();
+                break;
             default:
                 log::fatal_error("Unsupported GD API version %d", ver);
             }
@@ -223,6 +235,9 @@ namespace rhost {
                 break;
             case 15:
                 gd_api<15>::unload();
+                break;
+            case 16:
+                gd_api<16>::unload();
                 break;
             default:
                 log::fatal_error("Unsupported GD API version %d", ver);

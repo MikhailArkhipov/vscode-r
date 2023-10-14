@@ -167,6 +167,20 @@ namespace rhost {
         template<int ApiVer>
         struct gd_api;
 
+        // R 4.3+
+        template<>
+        struct gd_api<16> {
+            struct DevDesc;
+            typedef DevDesc* pDevDesc;
+            RHOST_DEVDESC;
+            RHOST_GD_SET(RHOST_GD_MEMBER_DECL);
+
+            static void load();
+            static void unload();
+        };
+#undef RHOST_DEVDESC_V15_MEMBER
+#define RHOST_DEVDESC_V15_MEMBER(x)
+
         // R 4.2+
         template<>
         struct gd_api<15> {

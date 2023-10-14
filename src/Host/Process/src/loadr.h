@@ -41,7 +41,7 @@ macro(R_CHAR) \
 macro(R_CleanUp) \
 macro(R_common_command_line) \
 macro(R_curErrorBuf) \
-macro(R_DefParams) \
+macro(R_DefParamsEx) \
 macro(R_EmptyEnv) \
 macro(R_FunTab) \
 macro(R_getEmbeddingDllInfo) \
@@ -213,7 +213,7 @@ namespace rhost {
 #define R_CleanUp rhost::rapi::RHOST_RAPI_PTR(R_CleanUp)
 #define R_common_command_line rhost::rapi::RHOST_RAPI_PTR(R_common_command_line)
 #define R_curErrorBuf rhost::rapi::RHOST_RAPI_PTR(R_curErrorBuf)
-#define R_DefParams rhost::rapi::RHOST_RAPI_PTR(R_DefParams)
+#define R_DefParamsEx rhost::rapi::RHOST_RAPI_PTR(R_DefParamsEx)
 #define R_EmptyEnv (*rhost::rapi::RHOST_RAPI_PTR(R_EmptyEnv))
 #define R_FunTab (*rhost::rapi::RHOST_RAPI_PTR(R_FunTab))
 #define R_GE_getVersion rhost::rapi::RHOST_RAPI_PTR(R_GE_getVersion)

@@ -73,6 +73,8 @@ extern "C" {
         R_33_GE_version = 11,
         R_34_GE_version = 12,
         R_41_GE_version = 14,
+        R_42_GE_version = 15,
+        R_43_GE_version = 16,
     };
 
     enum {

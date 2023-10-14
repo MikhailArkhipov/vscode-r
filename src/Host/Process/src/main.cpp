@@ -188,7 +188,7 @@ namespace rhost {
     int run_r_windows(command_line_args& args) {
         R_setStartTime();
         structRstart rp = {};
-        R_DefParams(&rp);
+        R_DefParamsEx(&rp, 0);
 
         rp.rhome = get_R_HOME();
         rp.home = getRUser();
@@ -249,7 +249,6 @@ namespace rhost {
 #else // POSIX
     int run_r_posix(command_line_args& args) {
         R_running_as_main_program = 1;
-        
         ptr_R_ShowMessage = rhost::host::ShowMessage;
 
         char argv0[] = "Microsoft.R.Host";
@@ -259,7 +258,7 @@ namespace rhost {
         int res = Rf_initialize_R(argc, argv);
 
         structRstart rp = {};
-        R_DefParams(&rp);
+        R_DefParamsEx(&rp, 16);
         rp.R_Quiet = R_FALSE;
         rp.R_Interactive = args.is_interactive ? R_TRUE : R_FALSE;
         rp.RestoreAction = SA_NORESTORE;
